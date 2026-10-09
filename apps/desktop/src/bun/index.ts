@@ -2,6 +2,9 @@ import { ApplicationMenu, BrowserWindow, Updater } from 'electrobun/main'
 
 import { setLogSink } from './logger'
 import { createAppRPC } from './rpc'
+import { setWebView2Arguments } from './webview2'
+
+setWebView2Arguments()
 
 const getMainViewUrl = async () => {
   const channel = await Updater.localInfo.channel()
