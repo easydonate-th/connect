@@ -10,9 +10,9 @@ import { useConfig } from '~/hooks/use-config'
 import { useWidgetSocket } from '~/hooks/use-widget-socket'
 import { log } from '~/libs/logs'
 import { sendDonation } from '~/libs/rpc'
-import { toSocketUrl } from '~/libs/widget'
 
 import { Donation } from '../shared/donation'
+import { getSocketUrl } from './libs/utils'
 
 const App = () => {
   const {
@@ -46,7 +46,8 @@ const App = () => {
   }
 
   const handleConnect = () => {
-    const nextSocketUrl = toSocketUrl(config.widgetUrl)
+    const nextSocketUrl = getSocketUrl(config.widgetUrl)
+
     setIsUrlInvalid(nextSocketUrl === null)
     setSocketUrl(nextSocketUrl)
 
@@ -78,7 +79,7 @@ const App = () => {
           onWidgetUrlChange={handleWidgetUrlChange}
           status={status}
           isActive={
-            socketUrl !== null && socketUrl === toSocketUrl(config.widgetUrl)
+            socketUrl !== null && socketUrl === getSocketUrl(config.widgetUrl)
           }
           isUrlInvalid={isUrlInvalid}
           lastDonation={lastDonation}

@@ -14,14 +14,9 @@ const rpc = Electroview.defineRPC<AppRPC>({
   },
 })
 
-// Connects `rpc` to the main process
 export const electroview = new Electroview({ rpc })
 
-export const getConfig = (): Promise<Config> => rpc.request.getConfig()
-
-export const saveConfig = (config: Config): Promise<Config> =>
-  rpc.request.saveConfig(config)
-
-export const sendDonation = (donation: Donation) => {
-  rpc.send.donation(donation)
-}
+// services
+export const getConfig = () => rpc.request.getConfig()
+export const saveConfig = (config: Config) => rpc.request.saveConfig(config)
+export const sendDonation = (donation: Donation) => rpc.send.donation(donation)
