@@ -108,7 +108,7 @@ const LogsPanel = () => {
         ref={scrollRef}
         role="log"
         aria-live="polite"
-        className="h-64 overflow-y-auto px-4 py-3 font-mono text-xs leading-relaxed"
+        className="h-64 [scrollbar-color:var(--color-zinc-700)_transparent] overflow-y-auto px-4 py-3 font-mono text-xs leading-relaxed"
       >
         {lines.length === 0 ? (
           <p className="text-zinc-500">No logs yet.</p>

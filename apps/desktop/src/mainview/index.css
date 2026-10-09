@@ -139,5 +139,9 @@
   }
   html {
     @apply font-sans;
+    /* Light native controls even when the OS is in dark mode */
+    color-scheme: light;
+    scrollbar-color: var(--color-zinc-300) transparent;
+    scrollbar-width: thin;
   }
 }
