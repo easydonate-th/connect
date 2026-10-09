@@ -1,8 +1,8 @@
 import { use, useState } from 'react'
 import { toast } from 'sonner'
 
-import { log } from '~/lib/logs'
-import { getConfig, saveConfig } from '~/lib/rpc'
+import { log } from '~/libs/logs'
+import { getConfig, saveConfig } from '~/libs/rpc'
 
 import {
   Config,

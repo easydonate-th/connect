@@ -8,9 +8,9 @@ import { Spinner } from '~/components/ui/spinner'
 import WidgetConnection from '~/components/WidgetConnection'
 import { useConfig } from '~/hooks/use-config'
 import { useWidgetSocket } from '~/hooks/use-widget-socket'
-import { log } from '~/lib/logs'
-import { sendDonation } from '~/lib/rpc'
-import { toSocketUrl } from '~/lib/widget'
+import { log } from '~/libs/logs'
+import { sendDonation } from '~/libs/rpc'
+import { toSocketUrl } from '~/libs/widget'
 
 import { Donation } from '../shared/donation'
 

@@ -6,8 +6,8 @@ import { Button } from '~/components/ui/button'
 import { Label } from '~/components/ui/label'
 import { Switch } from '~/components/ui/switch'
 import { useLogs } from '~/hooks/use-logs'
-import { clearLogs, LogLine, mergeLogLines } from '~/lib/logs'
-import { cn } from '~/lib/utils'
+import { clearLogs, LogLine, mergeLogLines } from '~/libs/logs'
+import { cn } from '~/libs/utils'
 
 const LEVEL_STYLES: Record<LogLine['level'], string> = {
   info: 'text-sky-400',
