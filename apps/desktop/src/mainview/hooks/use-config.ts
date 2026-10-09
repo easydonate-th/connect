@@ -55,6 +55,9 @@ export const useConfig = () => {
   const setWidgetUrl = (widgetUrl: string) =>
     setConfig(current => ({ ...current, widgetUrl }))
 
+  const setAutoConnect = (autoConnect: boolean) =>
+    setConfig(current => ({ ...current, autoConnect }))
+
   const updateOSC = (patch: Partial<OSCConfig>) =>
     setConfig(current => ({
       ...current,
@@ -87,6 +90,7 @@ export const useConfig = () => {
     isValid: isValidConfig(config),
     isSaving,
     setWidgetUrl,
+    setAutoConnect,
     updateOSC,
     updateMIDI,
     save,

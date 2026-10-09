@@ -36,6 +36,8 @@ const VRCConfigSchema = z.object({
 const ConfigSchema = withDefaults(
   z.object({
     widgetUrl: withFallback(z.string().trim(), ''),
+    /** Connect to the saved widget URL when the app starts */
+    autoConnect: withFallback(z.boolean(), false),
     vrc: withDefaults(VRCConfigSchema),
   })
 )

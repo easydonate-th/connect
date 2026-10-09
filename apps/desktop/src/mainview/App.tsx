@@ -20,14 +20,18 @@ const App = () => {
     isDirty,
     isValid,
     isSaving,
+    savedConfig,
     setWidgetUrl,
+    setAutoConnect,
     updateOSC,
     updateMIDI,
     save,
   } = useConfig()
 
-  // Only connects when the user clicks Connect
-  const [socketUrl, setSocketUrl] = useState<string | null>(null)
+  // Connects on launch only when auto connect is saved as on
+  const [socketUrl, setSocketUrl] = useState(() =>
+    savedConfig.autoConnect ? getSocketUrl(savedConfig.widgetUrl) : null
+  )
   const [isUrlInvalid, setIsUrlInvalid] = useState(false)
   const [lastDonation, setLastDonation] = useState<Donation | null>(null)
   const [isLogsOpen, setIsLogsOpen] = useState(false)
@@ -77,6 +81,8 @@ const App = () => {
         <WidgetConnection
           widgetUrl={config.widgetUrl}
           onWidgetUrlChange={handleWidgetUrlChange}
+          autoConnect={config.autoConnect}
+          onAutoConnectChange={setAutoConnect}
           status={status}
           isActive={
             socketUrl !== null && socketUrl === getSocketUrl(config.widgetUrl)

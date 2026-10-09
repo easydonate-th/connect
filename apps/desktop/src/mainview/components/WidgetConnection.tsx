@@ -14,10 +14,12 @@ import {
 import {
   Field,
   FieldDescription,
+  FieldContent,
   FieldError,
   FieldLabel,
 } from '~/components/ui/field'
 import { Input } from '~/components/ui/input'
+import { Switch } from '~/components/ui/switch'
 import type { ConnectionStatus } from '~/hooks/use-widget-socket'
 
 import type { Donation } from '../../shared/donation'
@@ -47,6 +49,8 @@ const describeLastDonation = (donation: Donation | null) => {
 type WidgetConnectionProps = {
   widgetUrl: string
   onWidgetUrlChange: (widgetUrl: string) => void
+  autoConnect: boolean
+  onAutoConnectChange: (autoConnect: boolean) => void
   status: ConnectionStatus
   /** True when the current URL is the one the socket is using */
   isActive: boolean
@@ -59,6 +63,8 @@ type WidgetConnectionProps = {
 const WidgetConnection = ({
   widgetUrl,
   onWidgetUrlChange,
+  autoConnect,
+  onAutoConnectChange,
   status,
   isActive,
   isUrlInvalid,
@@ -89,7 +95,7 @@ const WidgetConnection = ({
           <ConnectionBadge status={status} />
         </CardAction>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex flex-col gap-4">
         <form noValidate onSubmit={handleSubmit}>
           <Field data-invalid={isUrlInvalid}>
             <FieldLabel htmlFor="widget-url">Widget URL</FieldLabel>
@@ -127,6 +133,16 @@ const WidgetConnection = ({
             )}
           </Field>
         </form>
+        <Field orientation="horizontal">
+          <Switch
+            id="auto-connect"
+            checked={autoConnect}
+            onCheckedChange={onAutoConnectChange}
+          />
+          <FieldContent>
+            <FieldLabel htmlFor="auto-connect">Auto connect</FieldLabel>
+          </FieldContent>
+        </Field>
       </CardContent>
     </Card>
   )

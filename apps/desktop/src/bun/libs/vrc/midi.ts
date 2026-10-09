@@ -14,6 +14,6 @@ export const sendDonationMIDI = async (
 ): Promise<void> => {
   // TODO: implement MIDI output
   logger.info(
-    `[MIDI] ${config.deviceName || '(no device)'} ch ${config.channel} <- ${donation.donatorName} ${donation.amount} THB (${donation.referenceNo}), not implemented yet`
+    `[MIDI] ${config.deviceName || '(no device)'} ch ${config.channel} | Message sent`
   )
 }
