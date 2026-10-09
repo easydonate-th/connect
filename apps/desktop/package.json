@@ -3,8 +3,7 @@
   "type": "module",
   "scripts": {
     "dev": "electrobun prepare && vite build && electrobun dev --watch",
-    "dev:hmr": "concurrently \"bun run hmr\" \"bun run start\"",
-    "hmr": "electrobun prepare && vite --port 5173",
+    "hmr": "electrobun prepare && vite",
     "start": "electrobun prepare && vite build && electrobun dev",
     "build": "electrobun prepare && vite build && electrobun build --env=stable",
     "build:canary": "electrobun prepare && vite build && electrobun build --env=canary"
