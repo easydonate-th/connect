@@ -3,6 +3,8 @@ import ultracite from 'ultracite/oxfmt'
 
 export default defineConfig({
   ...ultracite,
+  // Third-party skill docs for Claude Code, not project code
+  ignorePatterns: [...ultracite.ignorePatterns, '.claude/**'],
   singleQuote: true,
   printWidth: 80,
   tabWidth: 2,

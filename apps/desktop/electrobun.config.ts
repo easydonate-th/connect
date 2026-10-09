@@ -3,12 +3,12 @@ import type { ElectrobunConfig } from 'electrobun'
 export default {
   app: {
     name: 'EasyDonate Connect',
-    identifier: 'connect.ezdn.app',
+    identifier: 'app.ezdn.connect',
     version: '0.0.0-exp.1',
   },
   build: {
-    mainProcess: 'cottontail',
-    cottontail: {
+    mainProcess: 'bun',
+    bun: {
       entrypoint: 'src/bun/index.ts',
     },
     copy: {

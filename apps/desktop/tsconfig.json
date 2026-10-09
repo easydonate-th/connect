@@ -26,6 +26,6 @@
       "electrobun/view": ["./.hutch/devkit/api/browser/index.ts"]
     }
   },
-  "include": ["src"],
+  "include": ["src", "electrobun.config.ts"],
   "exclude": ["node_modules", "dist", "build"]
 }

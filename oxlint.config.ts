@@ -10,7 +10,6 @@ export default defineConfig({
   ignorePatterns: [
     ...core.ignorePatterns,
     '**/.cottontail-tmp/**',
-    // shadcn/ui components are generated vendor code
     '**/components/ui/**',
   ],
   rules: {

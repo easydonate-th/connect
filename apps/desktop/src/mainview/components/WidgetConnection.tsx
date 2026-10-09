@@ -116,7 +116,7 @@ const WidgetConnection = ({
                 inputMode="url"
                 autoComplete="off"
                 spellCheck={false}
-                placeholder="https://easydonate.app/alert?..."
+                placeholder="https://widgets.easydonate.app?w=alert..."
                 value={widgetUrl}
                 onChange={event => onWidgetUrlChange(event.currentTarget.value)}
                 aria-invalid={isUrlInvalid}
