@@ -13,7 +13,6 @@
     "fmt": "oxfmt ."
   },
   "devDependencies": {
-    "@shadcn/lint": "0.2.0",
     "lefthook": "2.2.1",
     "oxfmt": "0.72.0",
     "oxlint": "1.87.0",
