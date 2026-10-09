@@ -1,4 +1,4 @@
-import { LinkIcon, PlugIcon, UnplugIcon } from 'lucide-react'
+import { LinkIcon, PlugIcon, SendIcon, UnplugIcon } from 'lucide-react'
 import type { SubmitEvent } from 'react'
 
 import ConnectionBadge from '~/components/ConnectionBadge'
@@ -20,6 +20,11 @@ import {
 } from '~/components/ui/field'
 import { Input } from '~/components/ui/input'
 import { Switch } from '~/components/ui/switch'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '~/components/ui/tooltip'
 import type { ConnectionStatus } from '~/hooks/use-widget-socket'
 
 import type { Donation } from '../../shared/donation'
@@ -58,6 +63,9 @@ type WidgetConnectionProps = {
   lastDonation: Donation | null
   onConnect: () => void
   onDisconnect: () => void
+  /** False while the socket is connected or connecting */
+  canSendTest: boolean
+  onSendTest: () => void
 }
 
 const WidgetConnection = ({
@@ -71,6 +79,8 @@ const WidgetConnection = ({
   lastDonation,
   onConnect,
   onDisconnect,
+  canSendTest,
+  onSendTest,
 }: WidgetConnectionProps) => {
   const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -133,16 +143,40 @@ const WidgetConnection = ({
             )}
           </Field>
         </form>
-        <Field orientation="horizontal">
-          <Switch
-            id="auto-connect"
-            checked={autoConnect}
-            onCheckedChange={onAutoConnectChange}
-          />
-          <FieldContent>
-            <FieldLabel htmlFor="auto-connect">Auto connect</FieldLabel>
-          </FieldContent>
-        </Field>
+        <div className="flex items-center justify-between gap-4">
+          <Field orientation="horizontal" className="w-auto">
+            <Switch
+              id="auto-connect"
+              checked={autoConnect}
+              onCheckedChange={onAutoConnectChange}
+            />
+            <FieldContent>
+              <FieldLabel htmlFor="auto-connect">Auto connect</FieldLabel>
+            </FieldContent>
+          </Field>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              {/* Disabled buttons get no pointer events, so the wrapper
+                  carries the hover and focus for the tooltip */}
+              <span tabIndex={canSendTest ? undefined : 0}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={!canSendTest}
+                  onClick={onSendTest}
+                >
+                  <SendIcon />
+                  Send test donation
+                </Button>
+              </span>
+            </TooltipTrigger>
+            {!canSendTest && (
+              <TooltipContent>
+                Disconnect the widget before sending a test donation.
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </div>
       </CardContent>
     </Card>
   )

@@ -1,15 +1,15 @@
+import './index.css'
 import { StrictMode, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 
 import App from '~/App'
 import { Toaster } from '~/components/ui/sonner'
 import { Spinner } from '~/components/ui/spinner'
-
-import './index.css'
+import { TooltipProvider } from '~/components/ui/tooltip'
 
 const rootElement = document.querySelector('#root')
 if (!rootElement) {
-  throw new Error('Root element #root not found')
+  throw new Error('Root element not found')
 }
 
 createRoot(rootElement).render(
@@ -21,7 +21,9 @@ createRoot(rootElement).render(
         </div>
       }
     >
-      <App />
+      <TooltipProvider>
+        <App />
+      </TooltipProvider>
     </Suspense>
     <Toaster position="bottom-center" />
   </StrictMode>

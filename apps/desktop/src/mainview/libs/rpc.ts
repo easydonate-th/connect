@@ -19,4 +19,5 @@ export const electroview = new Electroview({ rpc })
 // services
 export const getConfig = () => rpc.request.getConfig()
 export const saveConfig = (config: Config) => rpc.request.saveConfig(config)
+export const getMIDIDevices = () => rpc.request.getMIDIDevices()
 export const sendDonation = (donation: Donation) => rpc.send.donation(donation)

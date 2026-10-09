@@ -14,6 +14,8 @@ export type AppRPC = {
       getConfig: { params: undefined; response: Config }
       /** Persists the config and returns the normalized result */
       saveConfig: { params: Config; response: Config }
+      /** Names of the MIDI output ports on this machine */
+      getMIDIDevices: { params: undefined; response: string[] }
     }
     messages: {
       /** Fire-and-forget: forward a widget event to the enabled VRChat outputs */

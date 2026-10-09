@@ -1,5 +1,7 @@
-import { PianoIcon } from 'lucide-react'
+import { cn } from 'cn'
+import { PianoIcon, RefreshCwIcon } from 'lucide-react'
 
+import { Button } from '~/components/ui/button'
 import {
   Field,
   FieldDescription,
@@ -8,7 +10,15 @@ import {
   FieldLabel,
 } from '~/components/ui/field'
 import { Input } from '~/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '~/components/ui/select'
 import OutputCard from '~/components/VRC/OutputCard'
+import { useMIDIDevices } from '~/hooks/use-midi-devices'
 
 import {
   isValidMIDIChannel,
@@ -22,7 +32,16 @@ type MIDIProps = {
 }
 
 const MIDI = ({ value, onChange }: MIDIProps) => {
+  const { devices, isScanning, scan } = useMIDIDevices()
   const isChannelInvalid = !isValidMIDIChannel(value.channel)
+  const isDeviceFound = devices.includes(value.deviceName)
+  const isDeviceMissing =
+    value.deviceName !== '' && !isDeviceFound && !isScanning
+  // Keep a saved device in the list while its port is missing
+  const options =
+    value.deviceName === '' || isDeviceFound
+      ? devices
+      : [value.deviceName, ...devices]
 
   return (
     <OutputCard
@@ -34,21 +53,52 @@ const MIDI = ({ value, onChange }: MIDIProps) => {
       onEnabledChange={enabled => onChange({ enabled })}
     >
       <FieldGroup className="grid grid-cols-[1fr_8rem] gap-4">
-        <Field>
+        <Field data-invalid={isDeviceMissing}>
           <FieldLabel htmlFor="midi-device">Device</FieldLabel>
-          <Input
-            id="midi-device"
-            autoComplete="off"
-            spellCheck={false}
-            placeholder="loopMIDI Port"
-            value={value.deviceName}
-            onChange={event =>
-              onChange({ deviceName: event.currentTarget.value })
-            }
-          />
-          <FieldDescription>
-            Virtual MIDI port that VRChat reads from.
-          </FieldDescription>
+          <div className="flex gap-2">
+            <Select
+              value={value.deviceName}
+              onValueChange={deviceName => onChange({ deviceName })}
+            >
+              <SelectTrigger
+                id="midi-device"
+                className="min-w-0 flex-1"
+                aria-invalid={isDeviceMissing}
+              >
+                <SelectValue
+                  placeholder={
+                    devices.length === 0
+                      ? 'No MIDI devices found'
+                      : 'Select a device'
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent position="popper">
+                {options.map(name => (
+                  <SelectItem key={name} value={name}>
+                    {devices.includes(name) ? name : `${name} (not found)`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={scan}
+              disabled={isScanning}
+              aria-label="Rescan MIDI devices"
+            >
+              <RefreshCwIcon className={cn(isScanning && 'animate-spin')} />
+            </Button>
+          </div>
+          {isDeviceMissing ? (
+            <FieldError>Device not found. Is loopMIDI running?</FieldError>
+          ) : (
+            <FieldDescription>
+              loopMIDI port that VRChat reads from.
+            </FieldDescription>
+          )}
         </Field>
         <Field data-invalid={isChannelInvalid}>
           <FieldLabel htmlFor="midi-channel">Channel</FieldLabel>

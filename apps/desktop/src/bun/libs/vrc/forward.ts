@@ -4,15 +4,8 @@ import { logger } from '../../logger'
 import { sendDonationMIDI } from './midi'
 import { sendDonationOSC } from './osc'
 
-/**
- * Sends a donation to every enabled VRChat output. Outputs run independently,
- * so one failing never blocks the other.
- */
-export const forwardDonation = async (
-  donation: Donation,
-  { vrc }: Config
-): Promise<void> => {
-  const outputs: { name: string; send: () => Promise<void> }[] = []
+export const forwardDonation = async (donation: Donation, { vrc }: Config) => {
+  const outputs: { name: string; send: () => void }[] = []
 
   if (vrc.osc.enabled) {
     outputs.push({
@@ -31,12 +24,16 @@ export const forwardDonation = async (
     logger.warn(
       `Donation ${donation.referenceNo} not forwarded: no VRChat output enabled in saved settings`
     )
+
     return
   }
 
-  const results = await Promise.allSettled(outputs.map(output => output.send()))
+  // Promise.try turns a synchronous throw into a rejection, so one output
+  // failing never stops the others
+  const results = await Promise.allSettled(
+    outputs.map(output => Promise.try(output.send))
+  )
 
-  // Successes are logged by each output
   for (const [index, result] of results.entries()) {
     if (result.status === 'rejected') {
       logger.error(

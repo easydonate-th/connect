@@ -36,13 +36,29 @@ const App = () => {
   const [lastDonation, setLastDonation] = useState<Donation | null>(null)
   const [isLogsOpen, setIsLogsOpen] = useState(false)
 
-  const status = useWidgetSocket(socketUrl, donation => {
+  const handleDonation = (donation: Donation) => {
     log.info(
       `Donation ${donation.referenceNo}: ${donation.donatorName || 'Anonymous'} donated ${donation.amount} THB`
     )
     setLastDonation(donation)
     sendDonation(donation)
-  })
+  }
+
+  const status = useWidgetSocket(socketUrl, handleDonation)
+
+  // Runs through the same path as a widget donation, so it reaches the
+  // outputs enabled in the saved settings
+  const handleSendTest = () => {
+    const timestamp = Date.now()
+
+    handleDonation({
+      referenceNo: `TEST-${timestamp}`,
+      donatorName: 'Test Donor',
+      message: 'This is a test donation',
+      amount: 100,
+      timestamp,
+    })
+  }
 
   const handleWidgetUrlChange = (widgetUrl: string) => {
     setWidgetUrl(widgetUrl)
@@ -75,7 +91,7 @@ const App = () => {
             EasyDonate Connect
           </h1>
           <p className="text-muted-foreground text-sm">
-            Forward donations from your alert widget to VRChat.
+            Forward donations to your destination.
           </p>
         </header>
         <WidgetConnection
@@ -91,6 +107,8 @@ const App = () => {
           lastDonation={lastDonation}
           onConnect={handleConnect}
           onDisconnect={handleDisconnect}
+          canSendTest={socketUrl === null}
+          onSendTest={handleSendTest}
         />
         <Integrations
           vrc={config.vrc}

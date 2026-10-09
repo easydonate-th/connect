@@ -3,14 +3,13 @@ import { ApplicationMenu, BrowserWindow, Updater } from 'electrobun/main'
 import { setLogSink } from './logger'
 import { createAppRPC } from './rpc'
 
-const DEV_SERVER_PORT = 5173
-const DEV_SERVER_URL = `http://localhost:${DEV_SERVER_PORT}`
-
 const getMainViewUrl = async () => {
   const channel = await Updater.localInfo.channel()
 
   if (channel === 'dev') {
     try {
+      const DEV_SERVER_URL = `http://localhost:5173`
+
       await fetch(DEV_SERVER_URL, { method: 'HEAD' })
       console.log(`HMR enabled: Using Vite dev server at ${DEV_SERVER_URL}`)
       return DEV_SERVER_URL
@@ -30,12 +29,7 @@ const mainWindow = new BrowserWindow({
   title: 'EasyDonate Connect',
   url,
   rpc: createAppRPC(),
-  frame: {
-    width: 800,
-    height: 720,
-    x: 200,
-    y: 200,
-  },
+  frame: { width: 800, height: 720, x: 200, y: 200 },
 })
 
 ApplicationMenu.setApplicationMenu([
