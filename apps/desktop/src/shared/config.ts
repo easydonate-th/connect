@@ -10,13 +10,11 @@ export type OSCConfig = {
 export type MIDIConfig = {
   enabled: boolean
   deviceName: string
-  /** 1-16, as shown in most MIDI tools */
   channel: number
 }
 
 export type Config = {
   widgetUrl: string
-  /** Connect to the saved widget URL when the app starts */
   autoConnect: boolean
   vrc: {
     osc: OSCConfig
@@ -28,17 +26,11 @@ export const createDefaultConfig = (): Config => ({
   widgetUrl: '',
   autoConnect: false,
   vrc: {
-    // VRChat listens for OSC input on 127.0.0.1:9000 by default
     osc: { enabled: false, host: '127.0.0.1', port: 9000 },
     midi: { enabled: false, deviceName: '', channel: 1 },
   },
 })
 
-/**
- * Fills fields missing from a config loaded from disk or received over RPC
- * (e.g. one saved by an older version) with defaults, and trims strings.
- * Values are not validated.
- */
 export const normalizeConfig = (input: Partial<Config>): Config => {
   const defaults = createDefaultConfig()
   const config = { ...defaults, ...input }
