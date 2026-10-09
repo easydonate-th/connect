@@ -1,11 +1,7 @@
-import { z } from 'zod'
-
 import { parseSocketFrame } from '../../shared/socket-frame'
 
 // TTS payload fields are long and irrelevant to forwarding
 const HIDDEN_KEYS = new Set(['ttsMessage', 'ttsTitle', 'ttsHash', 'ttsConfig'])
-
-const PongSchema = z.looseObject({ command: z.literal('PONG') })
 
 /**
  * Prepares an incoming socket frame for the raw log: drops heartbeat replies
@@ -21,7 +17,7 @@ export const toRawLogFrame = (frame: string): string | null => {
     return frame
   }
 
-  if (PongSchema.safeParse(json).success) {
+  if (json?.command === 'PONG') {
     return null
   }
 
