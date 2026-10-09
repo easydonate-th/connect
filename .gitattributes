@@ -1,0 +1,107 @@
+# ─────────────────────────────────────────────
+# Line endings
+# LF everywhere (Biome expects LF, Unity handles LF fine on Windows)
+# ─────────────────────────────────────────────
+* text=auto eol=lf
+
+# Windows scripts need CRLF
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+*.ps1  text eol=crlf
+
+# ─────────────────────────────────────────────
+# Source diffs
+# ─────────────────────────────────────────────
+*.cs   text diff=csharp
+*.ts   text
+*.tsx  text
+*.json text
+*.md   text diff=markdown
+
+# ─────────────────────────────────────────────
+# Unity YAML assets (requires Force Text serialization)
+# merge=unityyamlmerge only takes effect if Smart Merge is configured
+# in your local git config; otherwise git falls back to a normal merge.
+# ─────────────────────────────────────────────
+*.unity       text merge=unityyamlmerge linguist-generated
+*.prefab      text merge=unityyamlmerge linguist-generated
+*.asset       text merge=unityyamlmerge linguist-generated
+*.meta        text merge=unityyamlmerge linguist-generated
+*.mat         text merge=unityyamlmerge linguist-generated
+*.anim        text merge=unityyamlmerge linguist-generated
+*.controller  text merge=unityyamlmerge linguist-generated
+*.overrideController text merge=unityyamlmerge linguist-generated
+*.physicMaterial     text merge=unityyamlmerge linguist-generated
+*.lighting    text merge=unityyamlmerge linguist-generated
+*.mask        text merge=unityyamlmerge linguist-generated
+*.playable    text merge=unityyamlmerge linguist-generated
+*.preset      text merge=unityyamlmerge linguist-generated
+*.asmdef      text
+*.shader      text
+*.cginc       text
+*.hlsl        text
+*.uss         text
+*.uxml        text
+
+# ─────────────────────────────────────────────
+# Binary files outside Unity (plain git, not LFS)
+# e.g. desktop app icons
+# ─────────────────────────────────────────────
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.icns  binary
+*.webp  binary
+*.ttf   binary
+*.otf   binary
+*.woff  binary
+*.woff2 binary
+*.zip   binary
+*.exe   binary
+*.dll   binary
+
+# ─────────────────────────────────────────────
+# Git LFS — scoped to the Unity project (apps/unity) only
+# (later lines override the generic binary rules above)
+# ─────────────────────────────────────────────
+
+# Images / textures
+apps/unity/**/*.png   filter=lfs diff=lfs merge=lfs -text
+apps/unity/**/*.jpg   filter=lfs diff=lfs merge=lfs -text
+apps/unity/**/*.jpeg  filter=lfs diff=lfs merge=lfs -text
+apps/unity/**/*.tga   filter=lfs diff=lfs merge=lfs -text
+apps/unity/**/*.psd   filter=lfs diff=lfs merge=lfs -text
+apps/unity/**/*.tif   filter=lfs diff=lfs merge=lfs -text
+apps/unity/**/*.tiff  filter=lfs diff=lfs merge=lfs -text
+apps/unity/**/*.exr   filter=lfs diff=lfs merge=lfs -text
+apps/unity/**/*.hdr   filter=lfs diff=lfs merge=lfs -text
+apps/unity/**/*.gif   filter=lfs diff=lfs merge=lfs -text
+apps/unity/**/*.bmp   filter=lfs diff=lfs merge=lfs -text
+
+# Fonts (Thai TMP source fonts)
+apps/unity/**/*.ttf   filter=lfs diff=lfs merge=lfs -text
+apps/unity/**/*.otf   filter=lfs diff=lfs merge=lfs -text
+
+# Audio
+apps/unity/**/*.wav   filter=lfs diff=lfs merge=lfs -text
+apps/unity/**/*.mp3   filter=lfs diff=lfs merge=lfs -text
+apps/unity/**/*.ogg   filter=lfs diff=lfs merge=lfs -text
+apps/unity/**/*.aif   filter=lfs diff=lfs merge=lfs -text
+apps/unity/**/*.aiff  filter=lfs diff=lfs merge=lfs -text
+
+# Video
+apps/unity/**/*.mp4   filter=lfs diff=lfs merge=lfs -text
+apps/unity/**/*.mov   filter=lfs diff=lfs merge=lfs -text
+apps/unity/**/*.webm  filter=lfs diff=lfs merge=lfs -text
+
+# 3D models
+apps/unity/**/*.fbx   filter=lfs diff=lfs merge=lfs -text
+apps/unity/**/*.obj   filter=lfs diff=lfs merge=lfs -text
+apps/unity/**/*.blend filter=lfs diff=lfs merge=lfs -text
+
+# Native plugins
+apps/unity/**/*.dll   filter=lfs diff=lfs merge=lfs -text
+apps/unity/**/*.so    filter=lfs diff=lfs merge=lfs -text
+apps/unity/**/*.a     filter=lfs diff=lfs merge=lfs -text

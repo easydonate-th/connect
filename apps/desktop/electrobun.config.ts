@@ -1,0 +1,23 @@
+import type { ElectrobunConfig } from 'electrobun'
+
+export default {
+  app: {
+    name: 'EasyDonate Connect',
+    identifier: 'connect.ezdn.app',
+    version: '0.0.0-exp.1',
+  },
+  build: {
+    mainProcess: 'cottontail',
+    cottontail: {
+      entrypoint: 'src/bun/index.ts',
+    },
+    copy: {
+      './dist/index.html': 'views/mainview/index.html',
+      './dist/assets': 'views/mainview/assets',
+    },
+    watchIgnore: ['dist/**'],
+    mac: { bundleCEF: false },
+    linux: { bundleCEF: false },
+    win: { bundleCEF: false },
+  },
+} satisfies ElectrobunConfig
