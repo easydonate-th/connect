@@ -1,6 +1,6 @@
 # VRChat
 
-Donation data is send via MIDI or OSC from the desktop app to the VRChat client (or unity)
+Donation data is sent via MIDI or OSC from the desktop app to the VRChat client (or Unity)
 
 ```text
 Alert widget
@@ -25,7 +25,7 @@ World Instance
 ## Installation
 
 1. Install [loopMIDI](https://www.tobias-erichsen.de/software/loopmidi.html)
-2. Install the [lastest release](https://github.com/easydonate-th/connect/releases) of the desktop app
+2. Install the [latest release](https://github.com/easydonate-th/connect/releases) of the desktop app
 3. Add port on the loopMIDI application
 
 ![loopMIDI Port](image.png)
@@ -85,8 +85,6 @@ Example prefabs is in the Assets/EasyDonateSDK/Examples folder
 1. Pick your MIDI port in **VRChat SDK > Utilities > Midi** before entering Play mode.
 2. Turn on ClientSim
 3. Enter Play mode and click **Send test donation** in the desktop app or test widget button in the dashboard
-
-To test in VRChat, launch it with `--midi`, join the world and click **Send test donation**.
 
 # OSC
 

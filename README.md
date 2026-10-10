@@ -1,6 +1,6 @@
 # EasyDonate Connect
 
-Cconnects to your [EasyDonate](https://easydonate.app) alert widget and forwards to your integrations
+Connects to your [EasyDonate](https://easydonate.app) alert widget and forwards donations to your integrations
 
 ## Documentation
 
