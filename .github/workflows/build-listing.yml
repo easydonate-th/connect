@@ -1,6 +1,3 @@
-# Builds the VPM listing (index.json) and its landing page from every release
-# zip in this repo and deploys them to GitHub Pages. Listing info comes from
-# apps/unity/vpm/source.json; the page template is apps/unity/vpm/Website.
 name: Build VPM Listing
 
 on:

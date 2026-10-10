@@ -1,6 +1,3 @@
-# Builds the Windows desktop app (apps/desktop) with Electrobun and releases it
-# as desktop-v<version>, using app.version in electrobun.config.ts. Versions
-# with a pre-release part (e.g. 0.1.0-beta.1) become GitHub pre-releases.
 name: Build Desktop Release
 
 on:

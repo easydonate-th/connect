@@ -1,6 +1,3 @@
-# Releases the Unity SDK package (apps/unity/Packages/app.easydonate.sdk) as
-# sdk-v<version>, using the version in its package.json. Build VPM Listing
-# runs after it and adds the new zip to the VPM listing.
 name: Build SDK Release
 
 on:
