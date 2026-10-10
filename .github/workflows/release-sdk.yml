@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
 
       - name: Read package version
         run: |
@@ -47,7 +47,7 @@ jobs:
         run: find "Packages/$packageName" -name '*.meta' > metaList
 
       - name: Create UnityPackage
-        uses: pCYSl5EDgo/create-unitypackage@b5c57408698b1fab8b3a84d4b67f767b8b7c0be9 # v1.2.3
+        uses: pCYSl5EDgo/create-unitypackage@v1.2.3
         with:
           working-folder: ${{ env.projectPath }}
           package-path: ../../${{ env.unityPackage }}

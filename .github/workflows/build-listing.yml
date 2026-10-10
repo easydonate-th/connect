@@ -40,24 +40,24 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
 
       - name: Checkout package-list-action
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           repository: vrchat-community/package-list-action
-          ref: cb31c3b5d17d1070d7741c61de2ca1b219224039
+          ref: cb31c3b5d17d1070d7741c61de2ca1b219224039 # main, 2025-01-21
           path: ${{ env.pathToCi }}
           clean: false
 
       # package-list-action targets net6.0 and net8.0 only
       - name: Setup .NET
-        uses: actions/setup-dotnet@v6
+        uses: actions/setup-dotnet@v6.0.0
         with:
           dotnet-version: 8.0.x
 
       - name: Restore cache
-        uses: actions/cache@v6
+        uses: actions/cache@v6.1.0
         with:
           path: |
             ${{ env.pathToCi }}/.nuke/temp
@@ -75,13 +75,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Pages
-        uses: actions/configure-pages@v6
+        uses: actions/configure-pages@v6.0.0
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v5
+        uses: actions/upload-pages-artifact@v5.0.0
         with:
           path: ${{ env.listingPath }}/Website
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@v5.0.1

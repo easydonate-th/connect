@@ -1,0 +1,64 @@
+# Builds the Windows desktop app (apps/desktop) with Electrobun and releases it
+# as desktop-v<version>, using app.version in electrobun.config.ts. Versions
+# with a pre-release part (e.g. 0.1.0-beta.1) become GitHub pre-releases.
+name: Build Desktop Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    shell: bash
+    working-directory: apps/desktop
+
+jobs:
+  release:
+    # Electrobun builds for the host, and the app is Windows only (winmm, WebView2)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2.2.0
+        with:
+          bun-version-file: package.json
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Read app version
+        run: |
+          version=$(bun -e "const { default: config } = await import('./electrobun.config.ts'); console.log(config.app.version)")
+          tag="desktop-v$version"
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null; then
+            echo "::error::$tag already exists. Bump app.version in electrobun.config.ts first."
+            exit 1
+          fi
+          {
+            echo "version=$version"
+            echo "tag=$tag"
+          } >> "$GITHUB_ENV"
+
+      # --bun runs the electrobun and vite CLIs on Bun instead of Node
+      - name: Build
+        run: bun run --bun build
+
+      # artifacts/ holds the installer zip plus the update bundle and manifest
+      # that Electrobun's updater reads once release.baseUrl is set
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          prerelease=()
+          if [[ $version == *-* ]]; then
+            prerelease=(--prerelease)
+          fi
+          gh release create "$tag" artifacts/* \
+            --target "$GITHUB_SHA" \
+            --title "EasyDonate Connect $version" \
+            --notes "Download win-x64-EasyDonateConnect-Setup.zip, extract it and run EasyDonate Connect-Setup.exe." \
+            "${prerelease[@]}"
