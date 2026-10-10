@@ -13,7 +13,6 @@ defaults:
 
 jobs:
   release:
-    # Electrobun builds for the host, and the app is Windows only (winmm, WebView2)
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -40,12 +39,9 @@ jobs:
             echo "tag=$tag"
           } >> "$GITHUB_ENV"
 
-      # --bun runs the electrobun and vite CLIs on Bun instead of Node
       - name: Build
         run: bun run --bun build
 
-      # artifacts/ holds the installer zip plus the update bundle and manifest
-      # that Electrobun's updater reads once release.baseUrl is set
       - name: Create release
         env:
           GH_TOKEN: ${{ github.token }}

@@ -32,13 +32,10 @@ jobs:
             echo "unityPackage=$packageName-$version.unitypackage"
           } >> "$GITHUB_ENV"
 
-      # VCC reads package.json from the zip root, so zip the package's contents
       - name: Create package zip
         working-directory: ${{ env.projectPath }}/Packages/${{ env.packageName }}
         run: zip -r "$GITHUB_WORKSPACE/$zipFile" .
 
-      # Paths are relative to the Unity project, so the .unitypackage imports
-      # into Packages/app.easydonate.sdk
       - name: List package meta files
         working-directory: ${{ env.projectPath }}
         run: find "Packages/$packageName" -name '*.meta' > metaList
