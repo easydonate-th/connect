@@ -41,13 +41,6 @@ The desktop app, built with [Electrobun](https://electrobun.dev) (a Bun main pro
 - `Assets/EasyDonateSDK/Examples/`: example prefabs that use the SDK. See its [README](apps/unity/Assets/EasyDonateSDK/Examples/README.md).
 - `vpm/`: the VPM listing source, published to https://easydonate-th.github.io/connect/ so VCC and ALCOM can install the SDK.
 
-### `.github/workflows`
-
-| Workflow | What it does |
-| --- | --- |
-| `release.yml` | Builds the Windows app and the SDK (package zip, `.unitypackage` and examples `.unitypackage`) and releases them together as `Release-<DDMMYYYY>`. The release notes list the app version (`app.version` in `apps/desktop/electrobun.config.ts`) and the SDK version (its `package.json`). |
-| `build-listing.yml` | Builds the VPM listing from the SDK releases and deploys it to GitHub Pages. |
-
 ## Development
 
 Requires [Bun](https://bun.sh) 1.4.3. The desktop app runs on Windows only.
