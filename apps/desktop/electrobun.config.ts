@@ -10,7 +10,7 @@ export default {
     mainProcess: 'bun',
     bun: {
       // @ts-expect-error - internal versioning
-      version: '1.4.2',
+      version: '1.4.3',
       entrypoint: 'src/bun/index.ts',
       minify: true,
     },
@@ -19,8 +19,8 @@ export default {
       './dist/assets': 'views/mainview/assets',
     },
     watchIgnore: ['dist/**'],
-    mac: { bundleCEF: false },
-    linux: { bundleCEF: false },
-    win: { bundleCEF: false },
+    // mac: { bundleCEF: false },
+    // linux: { bundleCEF: false },
+    win: { bundleCEF: false, icon: 'icons/icon.ico' },
   },
 } satisfies ElectrobunConfig

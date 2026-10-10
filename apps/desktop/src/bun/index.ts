@@ -1,5 +1,6 @@
 import { ApplicationMenu, BrowserWindow, Updater } from 'electrobun/main'
 
+import { setWindowIcon } from './icon'
 import { setLogSink } from './logger'
 import { createAppRPC } from './rpc'
 import { setWebView2Arguments } from './webview2'
@@ -34,6 +35,8 @@ const mainWindow = new BrowserWindow({
   rpc: createAppRPC(),
   frame: { width: 800, height: 720, x: 200, y: 200 },
 })
+
+setWindowIcon(mainWindow)
 
 ApplicationMenu.setApplicationMenu([
   {
