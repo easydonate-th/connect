@@ -6,6 +6,10 @@ on:
 permissions:
   contents: read
 
+# Runs wait for each other, so two runs on one day don't pick the same tag
+concurrency:
+  group: release
+
 env:
   projectPath: apps/unity
   packageName: app.easydonate.sdk
@@ -15,7 +19,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.version.outputs.tag }}
-      releaseDate: ${{ steps.version.outputs.releaseDate }}
       appVersion: ${{ steps.version.outputs.appVersion }}
       sdkVersion: ${{ steps.version.outputs.sdkVersion }}
     steps:
@@ -28,21 +31,22 @@ jobs:
           bun-version-file: package.json
 
       # The tag is the release date in Thai time, so a release made after
-      # midnight there doesn't take the previous UTC day
+      # midnight there doesn't take the previous UTC day, plus that day's
+      # release count. It follows the highest count so far rather than counting
+      # tags, since deleting a release leaves its tag; a tag without a count,
+      # from when there was one release a day, counts as 1
       - name: Read versions
         id: version
         run: |
           appVersion=$(cd apps/desktop && bun -e "const { default: config } = await import('./electrobun.config.ts'); console.log(config.app.version)")
           sdkVersion=$(jq -r .version "$projectPath/Packages/$packageName/package.json")
-          releaseDate=$(TZ=Asia/Bangkok date +%d/%m/%Y)
-          tag="Release-${releaseDate//\//}"
-          if git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null; then
-            echo "::error::$tag already exists. Only one release can be made per day."
-            exit 1
-          fi
+          date=$(TZ=Asia/Bangkok date +%d%m%Y)
+          last=$(git ls-remote --tags --refs origin "refs/tags/Release-$date*" \
+            | sed -nE "s|.*refs/tags/Release-$date(-([0-9]+))?$|\2|p" \
+            | sed 's/^$/1/' | sort -n | tail -n1)
+          tag="Release-$date-$(( ${last:-0} + 1 ))"
           {
             echo "tag=$tag"
-            echo "releaseDate=$releaseDate"
             echo "appVersion=$appVersion"
             echo "sdkVersion=$sdkVersion"
           } >> "$GITHUB_OUTPUT"
@@ -128,7 +132,6 @@ jobs:
       GH_REPO: ${{ github.repository }}
       GH_TOKEN: ${{ github.token }}
       tag: ${{ needs.prepare.outputs.tag }}
-      releaseDate: ${{ needs.prepare.outputs.releaseDate }}
       appVersion: ${{ needs.prepare.outputs.appVersion }}
       sdkVersion: ${{ needs.prepare.outputs.sdkVersion }}
     steps:
@@ -171,6 +174,6 @@ jobs:
           fi
           gh release create "$tag" out/* \
             --target "$GITHUB_SHA" \
-            --title "Release $releaseDate" \
+            --title "$tag" \
             --notes-file notes.md \
             "${prerelease[@]}"
