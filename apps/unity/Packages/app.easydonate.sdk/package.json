@@ -2,8 +2,22 @@
   "name": "app.easydonate.sdk",
   "displayName": "EasyDonateSDK",
   "version": "1.0.0",
-  "description": ".",
+  "description": "Receives EasyDonate donations from EasyDonate Connect over MIDI, syncs them to every player and plays effects with Donate Triggers or your own UdonSharp listeners.",
+  "keywords": [
+    "donation",
+    "easydonate",
+    "midi",
+    "udonsharp",
+    "vrchat"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "EasyDonate",
+    "url": "https://easydonate.app"
+  },
+  "documentationUrl": "https://github.com/easydonate-th/connect/blob/main/apps/unity/Packages/app.easydonate.sdk/README.md",
   "hideInEditor": false,
+  "licensesUrl": "https://github.com/easydonate-th/connect/blob/main/apps/unity/Packages/app.easydonate.sdk/LICENSE.md",
   "unity": "2022.3",
   "vpmDependencies": {
     "com.vrchat.worlds": "^3.10.5"

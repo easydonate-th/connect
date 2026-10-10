@@ -4,6 +4,13 @@ Shows EasyDonate donations inside a VRChat world. The streamer runs EasyDonate C
 
 Requires VRChat SDK Worlds 3.10.5 or later (UdonSharp is included in the SDK).
 
+## Install
+
+1. Open https://easydonate-th.github.io/connect/ and click **Add to VCC**. Or, in VCC or ALCOM, go to **Settings > Packages > Add Repository** and add `https://easydonate-th.github.io/connect/index.json`.
+2. Open your world project with **Manage Project** and add **EasyDonateSDK**.
+
+Each release also has a `.unitypackage` for projects that do not use VCC.
+
 ## Setup
 
 1. In EasyDonate Connect, turn on **VRC/MIDI**, pick your loopMIDI port and a channel, and save.

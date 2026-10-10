@@ -1,0 +1,114 @@
+<!doctype html>
+<!--
+  Scriban template. The Build VPM Listing workflow renders it with
+  vrchat-community/package-list-action: `listingInfo` comes from
+  ../source.json and `packages` holds the newest version of each package
+  found in this repo's release zips.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ listingInfo.Name | html.escape }} VPM Listing</title>
+    <meta
+      name="description"
+      content="{{ listingInfo.Description | html.escape }}"
+    />
+    <link rel="icon" href="favicon.ico" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero">
+        <p class="eyebrow">VPM Listing</p>
+        <h1>{{ listingInfo.Name | html.escape }}</h1>
+        <p class="lead">{{ listingInfo.Description | html.escape }}</p>
+        <p class="muted">
+          Published by
+          <a href="{{ listingInfo.Author.Url | html.escape }}">
+            {{- listingInfo.Author.Name | html.escape -}}
+          </a>
+        </p>
+      </header>
+
+      <section class="card" aria-labelledby="add-title">
+        <h2 id="add-title">Add to VRChat Creator Companion</h2>
+        <div class="url-row">
+          <input
+            id="listing-url"
+            class="url-field"
+            readonly
+            aria-label="Listing URL"
+            value="{{ listingInfo.Url | html.escape }}"
+          />
+          <button type="button" class="button" data-copy="listing-url">
+            Copy
+          </button>
+          <a
+            class="button primary"
+            href="vcc://vpm/addRepo?url={{ listingInfo.Url | html.url_encode }}"
+          >
+            Add to VCC
+          </a>
+        </div>
+        <details class="help">
+          <summary>Add the listing by hand</summary>
+          <ol>
+            <li>
+              Open VCC (or ALCOM) and go to <b>Settings &gt; Packages</b>.
+            </li>
+            <li>Click <b>Add Repository</b> and paste the listing URL.</li>
+            <li>Click <b>Add</b>, then <b>I Understand</b>.</li>
+            <li>
+              Open your world project, click <b>Manage Project</b> and add the
+              packages below.
+            </li>
+          </ol>
+        </details>
+      </section>
+
+      <section aria-labelledby="packages-title">
+        <h2 id="packages-title">Packages</h2>
+        {{~ for package in packages ~}}
+        <article class="card package">
+          <div class="package-head">
+            <h3>{{ package.DisplayName | html.escape }}</h3>
+            <span class="badge">v{{ package.Version | html.escape }}</span>
+            <span class="badge">{{ package.Type | html.escape }}</span>
+          </div>
+          <code class="package-id">{{ package.Name | html.escape }}</code>
+          <p>{{ package.Description | html.escape }}</p>
+          {{~ if package.Dependencies.size > 0 ~}}
+          <p class="muted deps-title">Requires</p>
+          <ul class="deps">
+            {{~ for dependency in package.Dependencies ~}}
+            <li>
+              <code>{{ dependency.Name | html.escape }}</code>
+              {{ dependency.Version | html.escape }}
+            </li>
+            {{~ end ~}}
+          </ul>
+          {{~ end ~}}
+          <div class="package-links">
+            <a class="button" href="{{ package.ZipUrl | html.escape }}">
+              Download .zip
+            </a>
+            {{~ if package.LicenseUrl ~}}
+            <a href="{{ package.LicenseUrl | html.escape }}"
+              >{{ package.License | html.escape }} license</a
+            >
+            {{~ end ~}}
+          </div>
+        </article>
+        {{~ end ~}}
+      </section>
+
+      <footer class="muted">
+        <a href="{{ listingInfo.InfoLink.Url | html.escape }}">
+          {{- listingInfo.InfoLink.Text | html.escape -}}
+        </a>
+      </footer>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

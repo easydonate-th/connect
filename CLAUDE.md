@@ -11,7 +11,7 @@ EasyDonate Connect: a desktop companion app that connects to an EasyDonate alert
 Bun monorepo managed with Turborepo (`bun@1.4.3`, workspaces `apps/*` and `packages/*`):
 
 - `apps/desktop` (`@ezdn/desktop`) — Electrobun desktop app (Bun main process + React 19 webview).
-- `apps/unity` — Unity/VRChat project placeholder (currently empty; `.gitignore` has VRChat SDK / UdonSharp entries for it).
+- `apps/unity` — Unity/VRChat world project. Only the `app.easydonate.sdk` VPM package (`Packages/`) and its example prefabs (`Assets/EasyDonateSDK/Examples`) are tracked (see `apps/unity/.gitignore`). `vpm/` holds the VPM listing: `source.json` and a Scriban-templated `Website/`, which `.github/workflows/build-listing.yml` renders with `vrchat-community/package-list-action` and deploys to GitHub Pages (`https://easydonate-th.github.io/connect/index.json`). VCC downloads release zips without auth, so the listing only works while the repo is public.
 - `packages/` — empty.
 
 ## Commands
@@ -31,6 +31,8 @@ Root (run from repo root):
 - `bun run dev:hmr` — runs Vite dev server on port 5173 alongside the app; the main process detects it and loads the webview from `http://localhost:5173` for HMR.
 - `bun run start` — same as `dev` without `--watch`.
 - `bun run build` / `bun run build:canary` — production builds (`--env=stable` / `--env=canary`).
+
+Unity SDK release: bump `version` in `apps/unity/Packages/app.easydonate.sdk/package.json`, merge to `main`, then run `gh workflow run release-sdk.yml`. It tags `sdk-v<version>` and attaches the package zip and `.unitypackage`; Build VPM Listing then adds the zip to the listing and redeploys Pages.
 
 There is no test runner or test suite yet (oxlint config includes the vitest preset in anticipation).
 

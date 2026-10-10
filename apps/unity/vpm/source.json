@@ -1,0 +1,15 @@
+{
+  "name": "EasyDonate",
+  "id": "app.easydonate.vpm",
+  "url": "https://easydonate-th.github.io/connect/index.json",
+  "description": "VRChat packages that bring EasyDonate donations into your world.",
+  "author": {
+    "name": "EasyDonate",
+    "url": "https://easydonate.app"
+  },
+  "infoLink": {
+    "text": "easydonate.app",
+    "url": "https://easydonate.app"
+  },
+  "githubRepos": ["easydonate-th/connect"]
+}
