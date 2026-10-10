@@ -65,8 +65,15 @@ export const getMIDIDevices = () => {
   return names
 }
 
-/** Opens the MIDI output port named `name`, sends `messages`, and closes it. */
-export const sendMIDI = (name: string, messages: MIDIMessage[]) => {
+/**
+ * Opens the MIDI output port named `name`, sends `messages` in chunks of
+ * `chunkSize` with `interval` milliseconds between chunks, and closes it.
+ */
+export const sendMIDI = async (
+  name: string,
+  messages: MIDIMessage[],
+  { chunkSize, interval }: { chunkSize: number; interval: number }
+) => {
   const id = getMIDIDevices().indexOf(name)
 
   if (id === -1) {
@@ -80,10 +87,19 @@ export const sendMIDI = (name: string, messages: MIDIMessage[]) => {
   const handle = handleOut[0] ?? 0n
 
   try {
-    for (const [status, data1, data2] of messages) {
-      // Packed little-endian: status, data1, data2
-      const packed = status + data1 * 0x1_00 + data2 * 0x1_00_00
-      check(api.midiOutShortMsg(handle, packed), `Sending to "${name}"`)
+    for (let start = 0; start < messages.length; start += chunkSize) {
+      if (start > 0) {
+        await Bun.sleep(interval)
+      }
+
+      for (const [status, data1, data2] of messages.slice(
+        start,
+        start + chunkSize
+      )) {
+        // Packed little-endian: status, data1, data2
+        const packed = status + data1 * 0x1_00 + data2 * 0x1_00_00
+        check(api.midiOutShortMsg(handle, packed), `Sending to "${name}"`)
+      }
     }
   } finally {
     api.midiOutClose(handle)
