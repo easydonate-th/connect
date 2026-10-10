@@ -1,5 +1,7 @@
 # VRChat
 
+<img width="800" height="450" alt="ezgif-4e13876ae0a294de" src="https://github.com/user-attachments/assets/12939f59-07c6-4456-9358-635e5ef9572f" />
+
 Donation data is sent via MIDI or OSC from the desktop app to the VRChat client (or Unity)
 
 ```text
