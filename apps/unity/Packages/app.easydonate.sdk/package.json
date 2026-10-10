@@ -1,0 +1,11 @@
+{
+  "name": "app.easydonate.sdk",
+  "displayName": "EasyDonateSDK",
+  "version": "1.0.0",
+  "description": ".",
+  "hideInEditor": false,
+  "unity": "2022.3",
+  "vpmDependencies": {
+    "com.vrchat.worlds": "^3.10.5"
+  }
+}
