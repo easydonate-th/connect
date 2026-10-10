@@ -1,15 +1,16 @@
-import { ApplicationMenu, BrowserWindow, Updater } from 'electrobun/main'
+import { ApplicationMenu, BrowserWindow, Updater, Utils } from 'electrobun/main'
 
 import { setWindowIcon } from './icon'
 import { setLogSink } from './logger'
 import { createAppRPC } from './rpc'
+import { acquireSingleInstance } from './single-instance'
 import { setWebView2Arguments } from './webview2'
 
-setWebView2Arguments()
+const APP_NAME = 'EasyDonate Connect'
+
+const channel = await Updater.localInfo.channel()
 
 const getMainViewUrl = async () => {
-  const channel = await Updater.localInfo.channel()
-
   if (channel === 'dev') {
     try {
       const DEV_SERVER_URL = `http://localhost:5173`
@@ -19,7 +20,7 @@ const getMainViewUrl = async () => {
       return DEV_SERVER_URL
     } catch {
       console.log(
-        "Vite dev server not running. Run 'hutch run dev:hmr' for HMR support."
+        "Vite dev server not running. Run 'bun run hmr' for HMR support."
       )
     }
   }
@@ -27,37 +28,51 @@ const getMainViewUrl = async () => {
   return 'views://mainview/index.html'
 }
 
-const url = await getMainViewUrl()
+const startApp = async () => {
+  setWebView2Arguments()
 
-const mainWindow = new BrowserWindow({
-  title: 'EasyDonate Connect',
-  url,
-  rpc: createAppRPC(),
-  frame: { width: 800, height: 720, x: 200, y: 200 },
-})
+  const url = await getMainViewUrl()
 
-setWindowIcon(mainWindow)
+  const mainWindow = new BrowserWindow({
+    title: APP_NAME,
+    url,
+    rpc: createAppRPC(),
+    frame: { width: 800, height: 720, x: 200, y: 200 },
+  })
 
-ApplicationMenu.setApplicationMenu([
-  {
-    label: 'App',
-    submenu: [{ role: 'quit' }],
-  },
-  {
-    // Needed on macOS for copy/paste shortcuts to work in inputs
-    label: 'Edit',
-    submenu: [
-      { role: 'undo' },
-      { role: 'redo' },
-      { type: 'separator' },
-      { role: 'cut' },
-      { role: 'copy' },
-      { role: 'paste' },
-      { role: 'selectAll' },
-    ],
-  },
-])
+  setWindowIcon(mainWindow)
 
-setLogSink(entry => mainWindow.webview.rpc?.send.log(entry))
+  ApplicationMenu.setApplicationMenu([
+    {
+      label: 'App',
+      submenu: [{ role: 'quit' }],
+    },
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        { role: 'selectAll' },
+      ],
+    },
+  ])
 
-console.log(`${mainWindow.title} app started!`)
+  setLogSink(entry => mainWindow.webview.rpc?.send.log(entry))
+
+  console.log(`${mainWindow.title} app started!`)
+}
+
+if (acquireSingleInstance(`app.ezdn.connect-${channel}`)) {
+  await startApp()
+} else {
+  await Utils.showMessageBox({
+    type: 'info',
+    title: APP_NAME,
+    message: `${APP_NAME} is already running.`,
+  })
+  Utils.quit()
+}

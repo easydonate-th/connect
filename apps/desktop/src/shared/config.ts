@@ -58,8 +58,13 @@ export const isValidOSCPort = (port: number) =>
 export const isValidMIDIChannel = (channel: number) =>
   isIntInRange(channel, MIDI_CHANNEL_RANGE)
 
+/** MIDI output needs a device once it is enabled. */
+export const isValidMIDIDevice = ({ enabled, deviceName }: MIDIConfig) =>
+  !enabled || deviceName.trim() !== ''
+
 /** True when the OSC and MIDI fields hold usable values. */
 export const isValidConfig = ({ vrc }: Config) =>
   isValidOSCHost(vrc.osc.host) &&
   isValidOSCPort(vrc.osc.port) &&
+  isValidMIDIDevice(vrc.midi) &&
   isValidMIDIChannel(vrc.midi.channel)

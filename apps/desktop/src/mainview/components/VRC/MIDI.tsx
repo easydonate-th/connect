@@ -22,6 +22,7 @@ import { useMIDIDevices } from '~/hooks/use-midi-devices'
 
 import {
   isValidMIDIChannel,
+  isValidMIDIDevice,
   MIDI_CHANNEL_RANGE,
   MIDIConfig,
 } from '../../../shared/config'
@@ -37,11 +38,14 @@ const MIDI = ({ value, onChange }: MIDIProps) => {
   const isDeviceFound = devices.includes(value.deviceName)
   const isDeviceMissing =
     value.deviceName !== '' && !isDeviceFound && !isScanning
-  // Keep a saved device in the list while its port is missing
-  const options =
+  const isDeviceUnset = !isValidMIDIDevice(value)
+  // Keep a saved device in the list while its port is missing. Radix Select
+  // rejects empty item values, so unnamed ports are left out.
+  const options = (
     value.deviceName === '' || isDeviceFound
       ? devices
       : [value.deviceName, ...devices]
+  ).filter(name => name !== '')
 
   return (
     <OutputCard
@@ -53,7 +57,7 @@ const MIDI = ({ value, onChange }: MIDIProps) => {
       onEnabledChange={enabled => onChange({ enabled })}
     >
       <FieldGroup className="grid grid-cols-[1fr_8rem] gap-4">
-        <Field data-invalid={isDeviceMissing}>
+        <Field data-invalid={isDeviceMissing || isDeviceUnset}>
           <FieldLabel htmlFor="midi-device">Device</FieldLabel>
           <div className="flex gap-2">
             <Select
@@ -63,7 +67,7 @@ const MIDI = ({ value, onChange }: MIDIProps) => {
               <SelectTrigger
                 id="midi-device"
                 className="min-w-0 flex-1"
-                aria-invalid={isDeviceMissing}
+                aria-invalid={isDeviceMissing || isDeviceUnset}
               >
                 <SelectValue
                   placeholder={
@@ -94,6 +98,8 @@ const MIDI = ({ value, onChange }: MIDIProps) => {
           </div>
           {isDeviceMissing ? (
             <FieldError>Device not found. Is loopMIDI running?</FieldError>
+          ) : isDeviceUnset ? (
+            <FieldError>Select a device to send donations.</FieldError>
           ) : (
             <FieldDescription>
               loopMIDI port that VRChat reads from.

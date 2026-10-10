@@ -6,6 +6,7 @@ import { AppRPC } from '../../shared/rpc'
 import { addLog } from './logs'
 
 const rpc = Electroview.defineRPC<AppRPC>({
+  maxRequestTime: 10_000,
   handlers: {
     requests: {},
     messages: {
