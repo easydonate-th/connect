@@ -91,7 +91,7 @@ const App = () => {
             EasyDonate Connect
           </h1>
           <p className="text-muted-foreground text-sm">
-            Forward donations to your destination.
+            Forward donations to your destination
           </p>
         </header>
         <WidgetConnection
