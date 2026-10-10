@@ -1,28 +1,14 @@
 # EasyDonate Connect
 
-EasyDonate Connect is a Windows desktop app that connects to your [EasyDonate](https://easydonate.app) alert widget and forwards each donation to the apps you stream with. VRChat is supported today; Warudo and VTube Studio are in progress.
+Cconnects to your [EasyDonate](https://easydonate.app) alert widget and forwards to your integrations
 
 ## Documentation
 
-- [VRChat](docs/VRChat/README.md): send donations to VRChat worlds over MIDI with the EasyDonate SDK, or to OSC tools.
-- [Warudo](docs/Warudo/README.md) (work in progress)
-- [VTube Studio](docs/VTube%20Studio/README.md) (work in progress)
+### [VRChat](docs/VRChat/README.md)
 
-Each page covers installation and usage.
+### [Warudo](docs/Warudo/README.md) (work in progress)
 
-## How it works
-
-```text
-EasyDonate alert widget
-        │ WebSocket
-        ▼
-EasyDonate Connect (desktop app)
-        │ MIDI through a loopMIDI port
-        ▼
-VRChat (EasyDonate SDK in the world)
-```
-
-EasyDonate Connect listens to the same socket as your alert widget. Each donation goes to every output turned on in its saved settings (MIDI and OSC for VRChat). In VRChat, the EasyDonate SDK receives the donation on the streamer's client, syncs it to every player in the instance and plays the world's effects.
+### [VTube Studio](docs/VTube%20Studio/README.md) (work in progress)
 
 ## Project outline
 
