@@ -45,8 +45,7 @@ The desktop app, built with [Electrobun](https://electrobun.dev) (a Bun main pro
 
 | Workflow | What it does |
 | --- | --- |
-| `release-desktop.yml` | Builds the Windows app and releases it as `desktop-v<version>`, using `app.version` in `apps/desktop/electrobun.config.ts`. |
-| `release-sdk.yml` | Releases the SDK as `sdk-v<version>` with a package zip and a `.unitypackage`, using the version in its `package.json`. |
+| `release.yml` | Builds the Windows app and the SDK (package zip, `.unitypackage` and examples `.unitypackage`) and releases them together as `Release-<DDMMYYYY>`. The release notes list the app version (`app.version` in `apps/desktop/electrobun.config.ts`) and the SDK version (its `package.json`). |
 | `build-listing.yml` | Builds the VPM listing from the SDK releases and deploys it to GitHub Pages. |
 
 ## Development

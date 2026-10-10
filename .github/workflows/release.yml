@@ -1,0 +1,189 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  projectPath: apps/unity
+  packageName: app.easydonate.sdk
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      releaseDate: ${{ steps.version.outputs.releaseDate }}
+      appVersion: ${{ steps.version.outputs.appVersion }}
+      sdkVersion: ${{ steps.version.outputs.sdkVersion }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2.2.0
+        with:
+          bun-version-file: package.json
+
+      # The tag is the release date in Thai time, so a release made after
+      # midnight there doesn't take the previous UTC day
+      - name: Read versions
+        id: version
+        run: |
+          appVersion=$(cd apps/desktop && bun -e "const { default: config } = await import('./electrobun.config.ts'); console.log(config.app.version)")
+          sdkVersion=$(jq -r .version "$projectPath/Packages/$packageName/package.json")
+          releaseDate=$(TZ=Asia/Bangkok date +%d/%m/%Y)
+          tag="Release-${releaseDate//\//}"
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null; then
+            echo "::error::$tag already exists. Only one release can be made per day."
+            exit 1
+          fi
+          {
+            echo "tag=$tag"
+            echo "releaseDate=$releaseDate"
+            echo "appVersion=$appVersion"
+            echo "sdkVersion=$sdkVersion"
+          } >> "$GITHUB_OUTPUT"
+
+  sdk:
+    needs: prepare
+    runs-on: ubuntu-latest
+    env:
+      version: ${{ needs.prepare.outputs.sdkVersion }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          lfs: true
+
+      - name: Set file names
+        run: |
+          mkdir out
+          {
+            echo "zipFile=$packageName-$version.zip"
+            echo "unityPackage=$packageName-$version.unitypackage"
+            echo "examplesPackage=$packageName.examples-$version.unitypackage"
+          } >> "$GITHUB_ENV"
+
+      - name: Create package zip
+        working-directory: ${{ env.projectPath }}/Packages/${{ env.packageName }}
+        run: zip -r "$GITHUB_WORKSPACE/out/$zipFile" .
+
+      - name: List package meta files
+        working-directory: ${{ env.projectPath }}
+        run: find "Packages/$packageName" -name '*.meta' > metaList
+
+      - name: Create UnityPackage
+        uses: pCYSl5EDgo/create-unitypackage@v1.2.3
+        with:
+          working-folder: ${{ env.projectPath }}
+          package-path: ../../out/${{ env.unityPackage }}
+          include-files: metaList
+
+      - name: List example meta files
+        working-directory: ${{ env.projectPath }}
+        run: find Assets/EasyDonateSDK Assets/EasyDonateSDK.meta -name '*.meta' > examplesMetaList
+
+      - name: Create examples UnityPackage
+        uses: pCYSl5EDgo/create-unitypackage@v1.2.3
+        with:
+          working-folder: ${{ env.projectPath }}
+          package-path: ../../out/${{ env.examplesPackage }}
+          include-files: examplesMetaList
+
+      - name: Copy package manifest
+        run: cp "$projectPath/Packages/$packageName/package.json" out/
+
+      - name: Upload SDK files
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: sdk
+          path: out/
+          if-no-files-found: error
+
+  desktop:
+    needs: prepare
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: apps/desktop
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2.2.0
+        with:
+          bun-version-file: package.json
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build
+        run: bun run --bun build
+
+      - name: Upload desktop files
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: desktop
+          path: apps/desktop/artifacts/
+          if-no-files-found: error
+
+  release:
+    needs: [prepare, sdk, desktop]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+      tag: ${{ needs.prepare.outputs.tag }}
+      releaseDate: ${{ needs.prepare.outputs.releaseDate }}
+      appVersion: ${{ needs.prepare.outputs.appVersion }}
+      sdkVersion: ${{ needs.prepare.outputs.sdkVersion }}
+    steps:
+      - name: Download release files
+        uses: actions/download-artifact@v8.0.2
+        with:
+          path: out
+          merge-multiple: true
+
+      # Build VPM Listing adds every release zip that has a package.json at its
+      # root, so an SDK version already released once would be listed twice
+      - name: Skip released SDK zip
+        run: |
+          zipFile="$packageName-$sdkVersion.zip"
+          assets=$(gh api "repos/$GH_REPO/releases" --paginate --jq '.[].assets[].name')
+          if grep -qxF "$zipFile" <<< "$assets"; then
+            echo "::notice::SDK $sdkVersion is already released, so $zipFile is not attached again."
+            rm "out/$zipFile"
+          fi
+
+      - name: Create release
+        run: |
+          cat > notes.md <<EOF
+          ## Versions
+
+          - EasyDonate Connect (desktop app): $appVersion
+          - EasyDonate SDK ($packageName): $sdkVersion
+
+          ## Desktop app
+
+          Download win-x64-EasyDonateConnect-Setup.zip, extract it and run EasyDonate Connect-Setup.exe.
+
+          ## SDK
+
+          Install with VCC: add https://easydonate-th.github.io/connect/index.json to your repositories, or import $packageName-$sdkVersion.unitypackage. For the example prefabs, import $packageName.examples-$sdkVersion.unitypackage after the SDK.
+          EOF
+          prerelease=()
+          if [[ $appVersion == *-* || $sdkVersion == *-* ]]; then
+            prerelease=(--prerelease)
+          fi
+          gh release create "$tag" out/* \
+            --target "$GITHUB_SHA" \
+            --title "Release $releaseDate" \
+            --notes-file notes.md \
+            "${prerelease[@]}"

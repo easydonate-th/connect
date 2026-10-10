@@ -32,7 +32,7 @@ Root (run from repo root):
 - `bun run start` — same as `dev` without `--watch`.
 - `bun run build` / `bun run build:canary` — production builds (`--env=stable` / `--env=canary`).
 
-Unity SDK release: bump `version` in `apps/unity/Packages/app.easydonate.sdk/package.json`, merge to `main`, then run `gh workflow run release-sdk.yml`. It tags `sdk-v<version>` and attaches the package zip and `.unitypackage`; Build VPM Listing then adds the zip to the listing and redeploys Pages.
+Release: bump `app.version` in `apps/desktop/electrobun.config.ts` and/or `version` in `apps/unity/Packages/app.easydonate.sdk/package.json`, merge to `main`, then run `gh workflow run release.yml`. It makes one release tagged `Release-<DDMMYYYY>` (Asia/Bangkok date, so one per day) whose notes list both versions, with the desktop build artifacts, the SDK `.unitypackage` and an examples `.unitypackage` built from `Assets/EasyDonateSDK` (checkout uses LFS for its audio and font). The SDK package zip is attached only if no earlier release has that SDK version, because Build VPM Listing adds every release zip with a root `package.json` (the desktop Setup zip has none) and would otherwise list the version twice; Build VPM Listing then redeploys Pages.
 
 There is no test runner or test suite yet (oxlint config includes the vitest preset in anticipation).
 

@@ -2,10 +2,10 @@ name: Build VPM Listing
 
 on:
   workflow_dispatch:
-  # Releases made by Build SDK Release use GITHUB_TOKEN, which does not fire
+  # Releases made by the Release workflow use GITHUB_TOKEN, which does not fire
   # release events, so chain on the workflow instead
   workflow_run:
-    workflows: [Build SDK Release]
+    workflows: [Release]
     types: [completed]
   release:
     types: [published, edited, unpublished, deleted]
