@@ -86,6 +86,12 @@ Example prefabs are in `app.easydonate.sdk.examples-<version>.unitypackage` on t
 2. Turn on ClientSim
 3. Enter Play mode and click **Send test donation** in the desktop app or test widget button in the dashboard
 
+### Testing world
+
+[EasyDonateSDK Testing World](https://vrchat.com/home/world/wrld_bd94961b-b8bf-41ac-965b-fe8c878ea394)
+
+Make sure you have the loopMIDI running with port named "EZDN Connect" and the desktop app point to it at channel 1
+
 # OSC
 
 The **OSC** output sends each donation over UDP to **Host** and **Port** (default `127.0.0.1:9000`) as four messages:
