@@ -64,7 +64,6 @@ jobs:
           {
             echo "zipFile=$packageName-$version.zip"
             echo "unityPackage=$packageName-$version.unitypackage"
-            echo "examplesPackage=$packageName.examples-$version.unitypackage"
           } >> "$GITHUB_ENV"
 
       - name: Create package zip
@@ -81,20 +80,6 @@ jobs:
           working-folder: ${{ env.projectPath }}
           package-path: ../../out/${{ env.unityPackage }}
           include-files: metaList
-
-      - name: List example meta files
-        working-directory: ${{ env.projectPath }}
-        run: find Assets/EasyDonateSDK Assets/EasyDonateSDK.meta -name '*.meta' > examplesMetaList
-
-      - name: Create examples UnityPackage
-        uses: pCYSl5EDgo/create-unitypackage@v1.2.3
-        with:
-          working-folder: ${{ env.projectPath }}
-          package-path: ../../out/${{ env.examplesPackage }}
-          include-files: examplesMetaList
-
-      - name: Copy package manifest
-        run: cp "$projectPath/Packages/$packageName/package.json" out/
 
       - name: Upload SDK files
         uses: actions/upload-artifact@v7.0.2
@@ -125,11 +110,13 @@ jobs:
       - name: Build
         run: bun run --bun build
 
+      # Only the installer is released: the tar.zst and update.json serve
+      # Electrobun's updater, which has no release.baseUrl to fetch them from
       - name: Upload desktop files
         uses: actions/upload-artifact@v7.0.2
         with:
           name: desktop
-          path: apps/desktop/artifacts/
+          path: apps/desktop/artifacts/*-Setup.zip
           if-no-files-found: error
 
   release:
@@ -176,7 +163,7 @@ jobs:
 
           ## SDK
 
-          Install with VCC: add https://easydonate-th.github.io/connect/index.json to your repositories, or import $packageName-$sdkVersion.unitypackage. For the example prefabs, import $packageName.examples-$sdkVersion.unitypackage after the SDK.
+          Install with VCC: add https://easydonate-th.github.io/connect/index.json to your repositories, or import $packageName-$sdkVersion.unitypackage. Both include the example prefabs in the package's Examples folder. Installing with VCC deletes Assets/EasyDonateSDK, where older releases put the examples; if you use the .unitypackage, delete that folder before you import it.
           EOF
           prerelease=()
           if [[ $appVersion == *-* || $sdkVersion == *-* ]]; then

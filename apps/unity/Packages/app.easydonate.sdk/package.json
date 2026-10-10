@@ -1,7 +1,7 @@
 {
   "name": "app.easydonate.sdk",
   "displayName": "EasyDonateSDK",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Receives EasyDonate donations from EasyDonate Connect over MIDI, syncs them to every player and plays effects with Donate Triggers or your own UdonSharp listeners.",
   "keywords": [
     "donation",
@@ -17,6 +17,9 @@
   },
   "documentationUrl": "https://github.com/easydonate-th/connect/blob/main/apps/unity/Packages/app.easydonate.sdk/README.md",
   "hideInEditor": false,
+  "legacyFolders": {
+    "Assets\\EasyDonateSDK": "05ce87b105f17a743b62b478758a2ca9"
+  },
   "licensesUrl": "https://github.com/easydonate-th/connect/blob/main/apps/unity/Packages/app.easydonate.sdk/LICENSE.md",
   "unity": "2022.3",
   "vpmDependencies": {

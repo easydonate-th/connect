@@ -11,7 +11,7 @@ EasyDonate Connect: a desktop companion app that connects to an EasyDonate alert
 Bun monorepo managed with Turborepo (`bun@1.4.3`, workspaces `apps/*` and `packages/*`):
 
 - `apps/desktop` (`@ezdn/desktop`) — Electrobun desktop app (Bun main process + React 19 webview).
-- `apps/unity` — Unity/VRChat world project. Only the `app.easydonate.sdk` VPM package (`Packages/`) and its example prefabs (`Assets/EasyDonateSDK/Examples`) are tracked (see `apps/unity/.gitignore`). `vpm/` holds the VPM listing: `source.json` and a Scriban-templated `Website/`, which `.github/workflows/build-listing.yml` renders with `vrchat-community/package-list-action` and deploys to GitHub Pages (`https://easydonate-th.github.io/connect/index.json`). VCC downloads release zips without auth, so the listing only works while the repo is public.
+- `apps/unity` — Unity/VRChat world project. Only the `app.easydonate.sdk` VPM package (`Packages/`) is tracked (see `apps/unity/.gitignore`). Its example prefabs live inside it in `Examples/`, with their own `EasyDonate.SDK.Examples` asmdef and U# assembly asset, so both VCC and the `.unitypackage` ship them; `legacyFolders` in its `package.json` makes VCC delete `Assets/EasyDonateSDK`, where SDK 1.0.0's separate examples package put them. `vpm/` holds the VPM listing: `source.json` and a Scriban-templated `Website/`, which `.github/workflows/build-listing.yml` renders with `vrchat-community/package-list-action` and deploys to GitHub Pages (`https://easydonate-th.github.io/connect/index.json`). VCC downloads release zips without auth, so the listing only works while the repo is public.
 - `packages/` — empty.
 
 ## Commands
@@ -32,7 +32,7 @@ Root (run from repo root):
 - `bun run start` — same as `dev` without `--watch`.
 - `bun run build` / `bun run build:canary` — production builds (`--env=stable` / `--env=canary`).
 
-Release: bump `app.version` in `apps/desktop/electrobun.config.ts` and/or `version` in `apps/unity/Packages/app.easydonate.sdk/package.json`, merge to `main`, then run `gh workflow run release.yml`. It makes one release tagged `Release-<DDMMYYYY>` (Asia/Bangkok date, so one per day) whose notes list both versions, with the desktop build artifacts, the SDK `.unitypackage` and an examples `.unitypackage` built from `Assets/EasyDonateSDK` (checkout uses LFS for its audio and font). The SDK package zip is attached only if no earlier release has that SDK version, because Build VPM Listing adds every release zip with a root `package.json` (the desktop Setup zip has none) and would otherwise list the version twice; Build VPM Listing then redeploys Pages.
+Release: bump `app.version` in `apps/desktop/electrobun.config.ts` and/or `version` in `apps/unity/Packages/app.easydonate.sdk/package.json`, merge to `main`, then run `gh workflow run release.yml`. It makes one release tagged `Release-<DDMMYYYY>` (Asia/Bangkok date, so one per day) whose notes list both versions, with the desktop Setup zip (the updater's `tar.zst` and `update.json` are left out, since there is no `release.baseUrl`) and the SDK `.unitypackage` (checkout uses LFS for the examples' audio and font). The SDK package zip is attached only if no earlier release has that SDK version, because Build VPM Listing adds every release zip with a root `package.json` (the desktop Setup zip has none) and would otherwise list the version twice; Build VPM Listing then redeploys Pages.
 
 There is no test runner or test suite yet (oxlint config includes the vitest preset in anticipation).
 

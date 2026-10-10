@@ -76,7 +76,7 @@ World Instance
 
 > The receiver automatically syncs the donation history and totals to all players in the world.
 
-Example prefabs are in `app.easydonate.sdk.examples-<version>.unitypackage` on the [latest release](https://github.com/easydonate-th/connect/releases). Import it after the SDK to get the `Assets/EasyDonateSDK/Examples` folder.
+Example prefabs come with the SDK, in the `Examples` folder under **Packages > EasyDonateSDK** in the Project window.
 
 ![alt text](image-8.png)
 

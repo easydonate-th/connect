@@ -9,7 +9,7 @@ Requires VRChat SDK Worlds 3.10.5 or later (UdonSharp is included in the SDK).
 1. Open https://easydonate-th.github.io/connect/ and click **Add to VCC**. Or, in VCC or ALCOM, go to **Settings > Packages > Add Repository** and add `https://easydonate-th.github.io/connect/index.json`.
 2. Open your world project with **Manage Project** and add **EasyDonateSDK**.
 
-Each release also has a `.unitypackage` for projects that do not use VCC, and `app.easydonate.sdk.examples-<version>.unitypackage` with example prefabs (import it after the SDK).
+Each release also has a `.unitypackage` for projects that do not use VCC. Either way, the package includes example prefabs in its `Examples` folder (see its [README](Examples/README.md)). SDK 1.0.0 shipped them separately in `Assets/EasyDonateSDK`: VCC deletes that folder when it updates the SDK, but before importing the `.unitypackage`, delete it yourself.
 
 ## Setup
 

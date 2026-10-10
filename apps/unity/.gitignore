@@ -10,11 +10,8 @@
 /[Bb]uilds/
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
-# Only the EasyDonate examples are tracked from Assets/; a parent directory
-# that is ignored cannot be re-included, so ignore its contents instead
-/Assets/*
-!/Assets/EasyDonateSDK/
-!/Assets/EasyDonateSDK.meta
+# Nothing in Assets/ is tracked; the examples ship inside the app.easydonate.sdk package
+/Assets/
 ProjectSettings/
 
 # MemoryCaptures can get excessive in size.

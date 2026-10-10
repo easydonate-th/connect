@@ -20,7 +20,7 @@ Bun monorepo managed with Turborepo.
 │   ├── desktop/                        EasyDonate Connect
 │   └── unity/                          Unity project for VRChat worlds
 │       ├── Packages/app.easydonate.sdk/    EasyDonate SDK (VPM package)
-│       ├── Assets/EasyDonateSDK/Examples/  Example prefabs
+│       │   └── Examples/                   Example prefabs
 │       └── vpm/                            VPM listing and its website
 ├── docs/                               User documentation per integration
 └── packages/                           Shared packages (empty for now)
@@ -37,7 +37,7 @@ The desktop app, built with [Electrobun](https://electrobun.dev) (a Bun main pro
 ### `apps/unity`
 
 - `Packages/app.easydonate.sdk/`: the EasyDonate SDK for VRChat worlds. It receives donations over MIDI, syncs them to every player and runs Donate Triggers or your own UdonSharp listeners. See its [README](apps/unity/Packages/app.easydonate.sdk/README.md).
-- `Assets/EasyDonateSDK/Examples/`: example prefabs that use the SDK. See its [README](apps/unity/Assets/EasyDonateSDK/Examples/README.md).
+- `Packages/app.easydonate.sdk/Examples/`: example prefabs that use the SDK, shipped with the package. See its [README](apps/unity/Packages/app.easydonate.sdk/Examples/README.md).
 - `vpm/`: the VPM listing source, published to https://easydonate-th.github.io/connect/ so VCC and ALCOM can install the SDK.
 
 ## Development
