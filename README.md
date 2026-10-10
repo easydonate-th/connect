@@ -23,8 +23,7 @@ Bun monorepo managed with Turborepo.
 │       ├── Assets/EasyDonateSDK/Examples/  Example prefabs
 │       └── vpm/                            VPM listing and its website
 ├── docs/                               User documentation per integration
-├── packages/                           Shared packages (empty for now)
-└── .github/workflows/                  Release and VPM listing workflows
+└── packages/                           Shared packages (empty for now)
 ```
 
 ### `apps/desktop`
