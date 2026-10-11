@@ -31,9 +31,7 @@ export const forwardDonation = async (
   }
 
   if (outputs.length === 0) {
-    logger.warn(
-      `Donation ${donation.referenceNo} not forwarded | No integrations enabled`
-    )
+    logger.warn(`Donation ${donation.referenceNo}| No integrations enabled`)
 
     return
   }

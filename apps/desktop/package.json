@@ -9,7 +9,6 @@
     "build:canary": "electrobun prepare && vite build && electrobun build --env=canary"
   },
   "dependencies": {
-    "@fontsource-variable/geist": "5.3.0",
     "class-variance-authority": "0.7.1",
     "cn": "0.4.0",
     "electrobun": "2.0.3-beta.18",

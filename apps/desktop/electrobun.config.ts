@@ -4,7 +4,7 @@ export default {
   app: {
     name: 'EasyDonate Connect',
     identifier: 'app.easydonate.connect',
-    version: '1.3.2',
+    version: '1.3.3',
   },
   build: {
     mainProcess: 'bun',
@@ -19,8 +19,8 @@ export default {
       './dist/assets': 'views/mainview/assets',
     },
     watchIgnore: ['dist/**'],
-    mac: { bundleCEF: false },
-    linux: { bundleCEF: false },
+    mac: { bundleCEF: false, icons: 'icons/icon.iconset' },
+    linux: { bundleCEF: false, icon: 'icons/icon.ico' },
     win: { bundleCEF: false, icon: 'icons/icon.ico' },
   },
 } satisfies ElectrobunConfig
