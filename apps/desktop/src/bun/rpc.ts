@@ -37,6 +37,7 @@ export const createAppRPC = () =>
         importVTSImages: () => importVTSImages(),
         openDataFolder: () => openDataFolder(),
         getAppVersion: () => getAppVersion(),
+        getPlatform: () => process.platform,
         checkForUpdate: () => checkForUpdate(),
         openExternal: url => openExternal(url),
       },

@@ -85,7 +85,21 @@ jobs:
 
   desktop:
     needs: prepare
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-latest
+            target: win-x64
+            installer: '*-Setup.zip'
+          # Pinned, since the macos-latest alias can move to another macOS
+          - runner: macos-15
+            target: macos-arm64
+            installer: '*.dmg'
+          - runner: ubuntu-latest
+            target: linux-x64
+            installer: '*-Setup.tar.gz'
+    runs-on: ${{ matrix.runner }}
     defaults:
       run:
         shell: bash
@@ -108,8 +122,8 @@ jobs:
       - name: Upload desktop files
         uses: actions/upload-artifact@v7.0.2
         with:
-          name: desktop
-          path: apps/desktop/artifacts/*-Setup.zip
+          name: desktop-${{ matrix.target }}
+          path: apps/desktop/artifacts/${{ matrix.installer }}
           if-no-files-found: error
 
   release:
@@ -149,7 +163,11 @@ jobs:
 
           ## Desktop app
 
-          Download win-x64-EasyDonateConnect-Setup.zip, extract it and run EasyDonate Connect-Setup.exe
+          - Windows: download win-x64-EasyDonateConnect-Setup.zip, extract it and run EasyDonate Connect-Setup.exe
+          - macOS (Apple silicon): download macos-arm64-EasyDonateConnect.dmg, open it and drag EasyDonate Connect to Applications
+          - Linux (x64): download linux-x64-EasyDonateConnect-Setup.tar.gz, extract it and run installer
+
+          MIDI works on Windows only
 
           ## SDK
 

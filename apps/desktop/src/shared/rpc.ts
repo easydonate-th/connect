@@ -43,6 +43,8 @@ export type AppRPC = {
       openDataFolder: { params: undefined; response: string }
       importVTSImages: { params: undefined; response: VTSImageImport }
       getAppVersion: { params: undefined; response: string }
+      /** `process.platform` of the main process */
+      getPlatform: { params: undefined; response: string }
       checkForUpdate: { params: undefined; response: UpdateCheck }
       openExternal: { params: string; response: string }
     }

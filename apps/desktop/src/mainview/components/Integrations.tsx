@@ -1,5 +1,6 @@
 import { BoxIcon, Gamepad2Icon, VideoIcon } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { use } from 'react'
 import type { ReactNode } from 'react'
 
 import {
@@ -13,6 +14,9 @@ import { Card, CardHeader, CardTitle } from '~/components/ui/card'
 import MIDI from '~/components/VRC/MIDI'
 import OSC from '~/components/VRC/OSC'
 import Throw from '~/components/VTS/Throw'
+import { platformPromise } from '~/libs/platform'
+
+import { isOutputSupported } from '../../shared/platform'
 
 type CategoryLabelProps = {
   icon: LucideIcon
@@ -33,38 +37,47 @@ type IntegrationsProps = {
   onSendTest: () => void
 }
 
-const Integrations = ({ canSendTest, onSendTest }: IntegrationsProps) => (
-  <Card className="gap-0 py-0">
-    <CardHeader className="border-b py-4">
-      <CardTitle>Integrations</CardTitle>
-    </CardHeader>
-    <Accordion type="multiple">
-      <AccordionItem value="vrchat">
-        <AccordionTrigger className="hover:bg-muted items-center rounded-none px-4 py-4 hover:no-underline">
-          <CategoryLabel icon={Gamepad2Icon} name="VRChat" />
-        </AccordionTrigger>
-        <AccordionContent className="flex h-auto flex-col gap-4 px-4 pt-px pb-4">
-          <OSC />
-          <MIDI />
-        </AccordionContent>
-      </AccordionItem>
-      <AccordionItem value="vtube-studio">
-        <AccordionTrigger className="hover:bg-muted items-center rounded-none px-4 py-4 hover:no-underline">
-          <CategoryLabel icon={VideoIcon} name="VTube Studio" />
-        </AccordionTrigger>
-        <AccordionContent className="flex h-auto flex-col gap-4 px-4 pt-px pb-4">
-          <Throw canSendTest={canSendTest} onSendTest={onSendTest} />
-        </AccordionContent>
-      </AccordionItem>
-      <AccordionItem value="warudo" disabled>
-        <AccordionTrigger className="hover:bg-muted items-center rounded-none px-4 py-4 hover:no-underline">
-          <CategoryLabel icon={BoxIcon} name="Warudo">
-            <Badge variant="secondary">Coming soon</Badge>
-          </CategoryLabel>
-        </AccordionTrigger>
-      </AccordionItem>
-    </Accordion>
-  </Card>
-)
+const Integrations = ({ canSendTest, onSendTest }: IntegrationsProps) => {
+  const platform = use(platformPromise)
+
+  // An unknown platform shows every output, and the main process still skips
+  // the ones it can't run
+  const isMIDISupported =
+    platform === null || isOutputSupported('midi', platform)
+
+  return (
+    <Card className="gap-0 py-0">
+      <CardHeader className="border-b py-4">
+        <CardTitle>Integrations</CardTitle>
+      </CardHeader>
+      <Accordion type="multiple">
+        <AccordionItem value="vrchat">
+          <AccordionTrigger className="hover:bg-muted items-center rounded-none px-4 py-4 hover:no-underline">
+            <CategoryLabel icon={Gamepad2Icon} name="VRChat" />
+          </AccordionTrigger>
+          <AccordionContent className="flex h-auto flex-col gap-4 px-4 pt-px pb-4">
+            <OSC />
+            <MIDI isSupported={isMIDISupported} />
+          </AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="vtube-studio">
+          <AccordionTrigger className="hover:bg-muted items-center rounded-none px-4 py-4 hover:no-underline">
+            <CategoryLabel icon={VideoIcon} name="VTube Studio" />
+          </AccordionTrigger>
+          <AccordionContent className="flex h-auto flex-col gap-4 px-4 pt-px pb-4">
+            <Throw canSendTest={canSendTest} onSendTest={onSendTest} />
+          </AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="warudo" disabled>
+          <AccordionTrigger className="hover:bg-muted items-center rounded-none px-4 py-4 hover:no-underline">
+            <CategoryLabel icon={BoxIcon} name="Warudo">
+              <Badge variant="secondary">Coming soon</Badge>
+            </CategoryLabel>
+          </AccordionTrigger>
+        </AccordionItem>
+      </Accordion>
+    </Card>
+  )
+}
 
 export default Integrations

@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useController, useFormContext } from 'react-hook-form'
 
+import { Badge } from '~/components/ui/badge'
 import {
   Card,
   CardAction,
@@ -21,6 +22,8 @@ type OutputCardProps = {
   icon: LucideIcon
   title: string
   description: string
+  /** `false` replaces the switch and the fields with a badge */
+  isSupported?: boolean
   children: ReactNode
 }
 
@@ -30,6 +33,7 @@ const OutputCard = ({
   icon: Icon,
   title,
   description,
+  isSupported = true,
   children,
 }: OutputCardProps) => {
   const { control } = useFormContext<Config>()
@@ -43,25 +47,32 @@ const OutputCard = ({
         <CardTitle id={titleId} className="flex items-center gap-2">
           <Icon className="text-muted-foreground size-4" />
           {title}
+          {!isSupported && (
+            <Badge variant="secondary">Platform not supported</Badge>
+          )}
         </CardTitle>
         <CardDescription>{description}</CardDescription>
-        <CardAction>
-          <Switch
-            checked={enabled.value}
-            onCheckedChange={isChecked => enabled.onChange(isChecked)}
-            aria-labelledby={titleId}
-          />
-        </CardAction>
+        {isSupported && (
+          <CardAction>
+            <Switch
+              checked={enabled.value}
+              onCheckedChange={isChecked => enabled.onChange(isChecked)}
+              aria-labelledby={titleId}
+            />
+          </CardAction>
+        )}
       </CardHeader>
-      <CardContent>
-        <fieldset
-          disabled={!enabled.value}
-          aria-labelledby={titleId}
-          className="transition-opacity disabled:opacity-60"
-        >
-          {children}
-        </fieldset>
-      </CardContent>
+      {isSupported && (
+        <CardContent>
+          <fieldset
+            disabled={!enabled.value}
+            aria-labelledby={titleId}
+            className="transition-opacity disabled:opacity-60"
+          >
+            {children}
+          </fieldset>
+        </CardContent>
+      )}
     </Card>
   )
 }

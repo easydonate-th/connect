@@ -3,8 +3,7 @@ import { Updater } from 'electrobun/main'
 import type { UpdateCheck } from '../../shared/rpc'
 import { logger } from '../logger'
 
-const DESKTOP_VERSION_PATTERN =
-  /EasyDonate Connect \(desktop app\): (?<version>\S+)/u
+const DESKTOP_VERSION_PATTERN = /EasyDonate Connect: (?<version>\S+)/u
 
 type Release = { html_url: string; body: string | null }
 

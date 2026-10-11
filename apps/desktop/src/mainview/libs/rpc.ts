@@ -34,6 +34,7 @@ export const importVTSImages = () =>
   rpc.request.importVTSImages(undefined, { maxRequestTime: Infinity })
 export const openDataFolder = () => rpc.request.openDataFolder()
 export const getAppVersion = () => rpc.request.getAppVersion()
+export const getPlatform = () => rpc.request.getPlatform()
 export const checkForUpdate = () => rpc.request.checkForUpdate()
 export const openExternal = (url: string) => rpc.request.openExternal(url)
 export const sendDonation = (donation: Donation) => rpc.send.donation(donation)

@@ -23,7 +23,11 @@ import { useMIDIDevices } from '~/hooks/use-midi-devices'
 
 import { Config, MIDI_CHANNEL_RANGE } from '../../../shared/config'
 
-const MIDI = () => {
+type MIDIProps = {
+  isSupported: boolean
+}
+
+const MIDI = ({ isSupported }: MIDIProps) => {
   const { devices, isScanning, scan } = useMIDIDevices()
 
   const { control } = useFormContext<Config>()
@@ -50,6 +54,7 @@ const MIDI = () => {
       icon={PianoIcon}
       title="MIDI"
       description="Send donations to VRChat through a MIDI device."
+      isSupported={isSupported}
     >
       <FieldGroup className="grid grid-cols-[1fr_8rem] gap-4">
         <Field data-invalid={isDeviceMissing || deviceError !== undefined}>

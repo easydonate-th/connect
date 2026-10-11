@@ -1,5 +1,6 @@
 import type { Config } from '../../shared/config'
 import type { Donation } from '../../shared/donation'
+import { isOutputSupported } from '../../shared/platform'
 import { logger } from '../logger'
 import { sendDonationMIDI } from './vrc/midi'
 import { sendDonationOSC } from './vrc/osc'
@@ -17,7 +18,8 @@ export const forwardDonation = async (
       send: () => sendDonationOSC(donation, vrc.osc),
     })
   }
-  if (vrc.midi.enabled) {
+  // A config copied from Windows can have MIDI enabled where it can't run
+  if (vrc.midi.enabled && isOutputSupported('midi', process.platform)) {
     outputs.push({
       name: 'MIDI',
       send: () => sendDonationMIDI(donation, vrc.midi),

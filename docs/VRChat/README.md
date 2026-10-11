@@ -19,6 +19,7 @@ World Instance
 
 ## Requirements
 
+- Windows. The MIDI output works on Windows only, so the macOS and Linux apps show it as "Platform not supported"
 - [loopMIDI](https://www.tobias-erichsen.de/software/loopmidi.html), required to create virtual midi device
 - [EasyDonate](https://easydonate.app) account
 - For world creators: Unity 2022.3 and VRChat SDK Worlds 3.10.5 or later
