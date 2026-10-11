@@ -132,10 +132,7 @@ const WidgetConnection = ({
               </Button>
             </div>
             {isUrlInvalid ? (
-              <FieldError id="widget-url-hint">
-                Invalid widget URL. Copy the full URL including its query
-                string.
-              </FieldError>
+              <FieldError id="widget-url-hint">Invalid widget URL</FieldError>
             ) : (
               <FieldDescription id="widget-url-hint">
                 {describeLastDonation(lastDonation)}

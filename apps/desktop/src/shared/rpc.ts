@@ -44,7 +44,6 @@ export type AppRPC = {
       importVTSImages: { params: undefined; response: VTSImageImport }
       getAppVersion: { params: undefined; response: string }
       checkForUpdate: { params: undefined; response: UpdateCheck }
-      /** Only opens pages of the app's GitHub repository */
       openExternal: { params: string; response: string }
     }
     messages: {

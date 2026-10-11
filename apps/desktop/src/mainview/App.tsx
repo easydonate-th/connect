@@ -58,8 +58,7 @@ const App = () => {
         <main
           className={cn(
             'container mx-auto flex max-w-3xl flex-col gap-6 px-4 py-10',
-            // Keeps the bottom row clear of the unsaved changes toast
-            isDirty && 'pb-32'
+            { 'pb-32': isDirty }
           )}
         >
           <header className="flex flex-col gap-1 text-center">

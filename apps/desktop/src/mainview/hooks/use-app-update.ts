@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
-import { openLink } from '~/libs/links'
 import { log } from '~/libs/logs'
-import { checkForUpdate, getAppVersion } from '~/libs/rpc'
+import { checkForUpdate, getAppVersion, openExternal } from '~/libs/rpc'
 
 import type { UpdateCheck } from '../../shared/rpc'
 
@@ -16,7 +15,7 @@ const runCheck = async () => {
         description: `You have version ${update.currentVersion}.`,
         action: {
           label: 'Download',
-          onClick: () => openLink(update.releaseUrl),
+          onClick: () => openExternal(update.releaseUrl),
         },
       })
     } else {

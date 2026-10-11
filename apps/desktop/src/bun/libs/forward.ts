@@ -32,14 +32,12 @@ export const forwardDonation = async (
 
   if (outputs.length === 0) {
     logger.warn(
-      `Donation ${donation.referenceNo} not forwarded because no output is enabled in the saved settings`
+      `Donation ${donation.referenceNo} not forwarded | No integrations enabled`
     )
 
     return
   }
 
-  // Promise.try turns a synchronous throw into a rejection, so one output
-  // failing never stops the others
   const results = await Promise.allSettled(
     outputs.map(output => Promise.try(output.send))
   )

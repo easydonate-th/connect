@@ -4,7 +4,7 @@ import { useFieldArray, useFormContext } from 'react-hook-form'
 
 import TestDonationButton from '~/components/TestDonationButton'
 import { Button } from '~/components/ui/button'
-import { Field, FieldDescription, FieldLabel } from '~/components/ui/field'
+import { Field, FieldLabel } from '~/components/ui/field'
 import RuleItemsDialog from '~/components/VTS/RuleItemsDialog'
 import RuleZonesDialog from '~/components/VTS/RuleZonesDialog'
 import ThrowRule from '~/components/VTS/ThrowRule'
@@ -80,12 +80,6 @@ const ThrowRules = ({ canSendTest, onSendTest }: ThrowRulesProps) => {
           />
         ))}
       </ul>
-      <FieldDescription>
-        A donation uses the rule with the highest Min THB it reaches, and throws
-        nothing below every rule. The rule picks each item at random from both
-        tabs, or with Custom image, from the items you choose. Each item hits
-        one of the rule’s hit zones at random.
-      </FieldDescription>
       {dialog?.kind === 'items' && (
         <RuleItemsDialog index={dialog.index} onClose={closeDialog} />
       )}

@@ -16,9 +16,7 @@ import {
 } from '~/components/ui/card'
 import { Spinner } from '~/components/ui/spinner'
 import { useAppUpdate } from '~/hooks/use-app-update'
-import { openLink } from '~/libs/links'
-
-import { REPOSITORY_URL } from '../../shared/repository'
+import { openExternal } from '~/libs/rpc'
 
 const Settings = () => {
   const { version, update, isChecking, check } = useAppUpdate()
@@ -43,12 +41,19 @@ const Settings = () => {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => openLink(REPOSITORY_URL)}>
+          <Button
+            variant="outline"
+            onClick={() =>
+              openExternal(
+                'https://github.com/easydonate-th/connect/releases/latest'
+              )
+            }
+          >
             <ExternalLinkIcon />
             GitHub
           </Button>
           {update?.updateAvailable ? (
-            <Button onClick={() => openLink(update.releaseUrl)}>
+            <Button onClick={() => openExternal(update.releaseUrl)}>
               <DownloadIcon />
               Download update
             </Button>

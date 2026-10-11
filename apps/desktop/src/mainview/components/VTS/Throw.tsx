@@ -20,7 +20,6 @@ import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
 import {
   Field,
-  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
@@ -158,13 +157,7 @@ const Throw = ({ canSendTest, onSendTest }: ThrowProps) => {
               placeholder="127.0.0.1"
               aria-invalid={hostError !== undefined}
             />
-            {hostError ? (
-              <FieldError>{hostError.message}</FieldError>
-            ) : (
-              <FieldDescription>
-                Turn on “Allow Plugin API access” in VTube Studio.
-              </FieldDescription>
-            )}
+            {hostError && <FieldError>{hostError.message}</FieldError>}
           </Field>
           <NumberField
             name="vts.throw.port"
@@ -298,13 +291,7 @@ const Throw = ({ canSendTest, onSendTest }: ThrowProps) => {
             <FieldError>Some items are not in VTube Studio.</FieldError>
           ) : itemsError ? (
             <FieldError>{itemsError.message}</FieldError>
-          ) : (
-            <FieldDescription>
-              {isScanning
-                ? 'Allow the plugin in VTube Studio if it asks.'
-                : 'Rules throw from both tabs, or with Custom image, only what you choose. VTube Studio asks to allow your images the first time a rule throws one.'}
-            </FieldDescription>
-          )}
+          ) : null}
         </Field>
         <div className="grid grid-cols-5 gap-4">
           {MOTION_FIELDS.map(({ field, label, step }) => (

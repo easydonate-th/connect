@@ -3,8 +3,8 @@ import type { ElectrobunConfig } from 'electrobun'
 export default {
   app: {
     name: 'EasyDonate Connect',
-    identifier: 'app.ezdn.connect',
-    version: '1.2.0',
+    identifier: 'app.easydonate.connect',
+    version: '1.3.2',
   },
   build: {
     mainProcess: 'bun',

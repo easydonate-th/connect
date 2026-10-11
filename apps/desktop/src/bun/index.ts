@@ -4,9 +4,6 @@ import { setWindowIcon } from './icon'
 import { setLogSink } from './logger'
 import { createAppRPC } from './rpc'
 import { acquireSingleInstance } from './single-instance'
-import { setWebView2Arguments } from './webview2'
-
-const APP_NAME = 'EasyDonate Connect'
 
 const channel = await Updater.localInfo.channel()
 
@@ -28,13 +25,11 @@ const getMainViewUrl = async () => {
   return 'views://mainview/index.html'
 }
 
-const startApp = async () => {
-  setWebView2Arguments()
-
+const main = async () => {
   const url = await getMainViewUrl()
 
   const mainWindow = new BrowserWindow({
-    title: APP_NAME,
+    title: 'EasyDonate Connect',
     url,
     rpc: createAppRPC(),
     // Serves `userData` as `appdata://`, for thumbnails of the user's images
@@ -64,17 +59,15 @@ const startApp = async () => {
   ])
 
   setLogSink(entry => mainWindow.webview.rpc?.send.log(entry))
-
-  console.log(`${mainWindow.title} started`)
 }
 
 if (acquireSingleInstance(`app.ezdn.connect-${channel}`)) {
-  await startApp()
+  await main()
 } else {
   await Utils.showMessageBox({
     type: 'info',
-    title: APP_NAME,
-    message: `${APP_NAME} is already running.`,
+    title: 'EasyDonate Connect',
+    message: 'Application is already running',
   })
   Utils.quit()
 }

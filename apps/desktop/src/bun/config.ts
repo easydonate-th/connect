@@ -5,9 +5,7 @@ import path from 'node:path'
 import { Config, ConfigSchema, createDefaultConfig } from '../shared/config'
 import { logger } from './logger'
 
-const CONFIG_FILE_NAME = 'config.json'
-
-const getConfigPath = () => path.join(Utils.paths.userData, CONFIG_FILE_NAME)
+const getConfigPath = () => path.join(Utils.paths.userData, 'config.json')
 
 const readConfigFile = (): Config => {
   const configPath = getConfigPath()

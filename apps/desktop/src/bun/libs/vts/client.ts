@@ -64,7 +64,7 @@ const openSocket = async ({ host, port }: Endpoint) => {
   const fail = () =>
     reject(
       new Error(
-        `Cannot connect to VTube Studio at ${host}:${port}. Turn on “Allow Plugin API access” in VTube Studio and check the port.`
+        `Cannot connect to VTube Studio at ${host}:${port}. Turn on “Allow Plugin API access” in VTube Studio`
       )
     )
 

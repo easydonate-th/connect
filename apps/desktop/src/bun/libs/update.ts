@@ -1,10 +1,7 @@
 import { Updater } from 'electrobun/main'
 
-import { REPOSITORY } from '../../shared/repository'
 import type { UpdateCheck } from '../../shared/rpc'
 import { logger } from '../logger'
-
-const LATEST_RELEASE_URL = `https://api.github.com/repos/${REPOSITORY}/releases/latest`
 
 const DESKTOP_VERSION_PATTERN =
   /EasyDonate Connect \(desktop app\): (?<version>\S+)/u
@@ -14,10 +11,13 @@ type Release = { html_url: string; body: string | null }
 export const getAppVersion = () => Updater.localInfo.version()
 
 export const checkForUpdate = async (): Promise<UpdateCheck> => {
-  const response = await fetch(LATEST_RELEASE_URL, {
-    headers: { Accept: 'application/vnd.github+json' },
-    signal: AbortSignal.timeout(8000),
-  })
+  const response = await fetch(
+    `https://api.github.com/repos/easydonate-th/connect/releases/latest`,
+    {
+      headers: { Accept: 'application/vnd.github+json' },
+      signal: AbortSignal.timeout(8000),
+    }
+  )
 
   if (!response.ok) {
     throw new Error(
