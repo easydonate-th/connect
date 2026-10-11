@@ -1,7 +1,5 @@
 # EasyDonate Connect
 
-Connects to your [EasyDonate](https://easydonate.app) alert widget and forwards donations to your integrations
-
 ## Documentation
 
 ### [VRChat](docs/VRChat/README.md)
