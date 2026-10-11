@@ -1,7 +1,12 @@
 pre-commit:
   jobs:
-    - name: oxfmt
-      run: bun oxfmt --no-error-on-unmatched-pattern {staged_files}
-      file_types:
-        - not symlink
+    - run: bun run fix
+      glob:
+        - '**/*.js'
+        - '**/*.jsx'
+        - '**/*.ts'
+        - '**/*.tsx'
+        - '**/*.json'
+        - '**/*.jsonc'
+        - '**/*.css'
       stage_fixed: true
