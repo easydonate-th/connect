@@ -19,7 +19,11 @@ export default {
       './dist/assets': 'views/mainview/assets',
     },
     watchIgnore: ['dist/**'],
-    mac: { bundleCEF: false, icons: 'icons/icon.iconset' },
+    mac: {
+      bundleCEF: false,
+      icons: 'icons/icon.iconset',
+      codesign: !!process.env.ELECTROBUN_DEVELOPER_ID,
+    },
     linux: { bundleCEF: false, icon: 'icons/icon.iconset/icon_512x512.png' },
     win: { bundleCEF: false, icon: 'icons/icon.ico' },
   },

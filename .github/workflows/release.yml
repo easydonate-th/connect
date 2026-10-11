@@ -96,6 +96,8 @@ jobs:
           - runner: macos-15
             target: macos-arm64
             installer: '*.dmg'
+            # "-" signs ad hoc, which needs no Apple Developer ID
+            signingIdentity: '-'
           - runner: ubuntu-latest
             target: linux-x64
             installer: '*-Setup.tar.gz'
@@ -118,6 +120,8 @@ jobs:
 
       - name: Build
         run: bun run --bun build
+        env:
+          ELECTROBUN_DEVELOPER_ID: ${{ matrix.signingIdentity }}
 
       - name: Upload desktop files
         uses: actions/upload-artifact@v7.0.2
