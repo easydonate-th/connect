@@ -5,8 +5,6 @@ on:
 
 permissions:
   contents: read
-
-# Runs wait for each other, so two runs on one day don't pick the same tag
 concurrency:
   group: release
 
@@ -24,19 +22,11 @@ jobs:
       appVersion: ${{ steps.version.outputs.appVersion }}
       sdkVersion: ${{ steps.version.outputs.sdkVersion }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v7.0.1
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2.2.0
+      - uses: actions/checkout@v7.0.1
+      - uses: oven-sh/setup-bun@v2.2.0
         with:
           bun-version-file: package.json
 
-      # The tag is the release date in Thai time, so a release made after
-      # midnight there doesn't take the previous UTC day, plus that day's
-      # release count. It follows the highest count so far rather than counting
-      # tags, since deleting a release leaves its tag; a tag without a count,
-      # from when there was one release a day, counts as 1
       - name: Read versions
         id: version
         run: |
@@ -59,8 +49,7 @@ jobs:
     env:
       version: ${{ needs.prepare.outputs.sdkVersion }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@v7.0.1
         with:
           lfs: true
 
@@ -116,8 +105,6 @@ jobs:
       - name: Build
         run: bun run --bun build
 
-      # Only the installer is released: the tar.zst and update.json serve
-      # Electrobun's updater, which has no release.baseUrl to fetch them from
       - name: Upload desktop files
         uses: actions/upload-artifact@v7.0.2
         with:
@@ -143,8 +130,6 @@ jobs:
           path: out
           merge-multiple: true
 
-      # The listing job adds every release zip that has a package.json at its
-      # root, so an SDK version already released once would be listed twice
       - name: Skip released SDK zip
         run: |
           zipFile="$packageName-$sdkVersion.zip"
@@ -159,16 +144,16 @@ jobs:
           cat > notes.md <<EOF
           ## Versions
 
-          - EasyDonate Connect (desktop app): $appVersion
-          - EasyDonate SDK ($packageName): $sdkVersion
+          - EasyDonate Connect: $appVersion
+          - EasyDonate SDK: $sdkVersion
 
           ## Desktop app
 
-          Download win-x64-EasyDonateConnect-Setup.zip, extract it and run EasyDonate Connect-Setup.exe.
+          Download win-x64-EasyDonateConnect-Setup.zip, extract it and run EasyDonate Connect-Setup.exe
 
           ## SDK
 
-          Install with VCC: add https://easydonate-th.github.io/connect/index.json to your repositories, or import $packageName-$sdkVersion.unitypackage. Both include the example prefabs in the package's Examples folder. Installing with VCC deletes Assets/EasyDonateSDK, where older releases put the examples; if you use the .unitypackage, delete that folder before you import it.
+          Install with VCC: add https://easydonate-th.github.io/connect/index.json to your repositories, or import $packageName-$sdkVersion.unitypackage. Both include the example prefabs in the package's Examples folder
           EOF
           prerelease=()
           if [[ $appVersion == *-* || $sdkVersion == *-* ]]; then
