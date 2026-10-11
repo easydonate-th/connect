@@ -1,7 +1,8 @@
-import { LinkIcon, PlugIcon, SendIcon, UnplugIcon } from 'lucide-react'
+import { LinkIcon, PlugIcon, UnplugIcon } from 'lucide-react'
 import type { SubmitEvent } from 'react'
 
 import ConnectionBadge from '~/components/ConnectionBadge'
+import TestDonationButton from '~/components/TestDonationButton'
 import { Button } from '~/components/ui/button'
 import {
   Card,
@@ -20,11 +21,6 @@ import {
 } from '~/components/ui/field'
 import { Input } from '~/components/ui/input'
 import { Switch } from '~/components/ui/switch'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '~/components/ui/tooltip'
 import type { ConnectionStatus } from '~/hooks/use-widget-socket'
 
 import type { Donation } from '../../shared/donation'
@@ -151,31 +147,12 @@ const WidgetConnection = ({
               onCheckedChange={onAutoConnectChange}
             />
             <FieldContent>
-              <FieldLabel htmlFor="auto-connect">Auto connect</FieldLabel>
+              <FieldLabel htmlFor="auto-connect" className="cursor-pointer">
+                Auto connect
+              </FieldLabel>
             </FieldContent>
           </Field>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              {/* Disabled buttons get no pointer events, so the wrapper
-                  carries the hover and focus for the tooltip */}
-              <span tabIndex={canSendTest ? undefined : 0}>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={!canSendTest}
-                  onClick={onSendTest}
-                >
-                  <SendIcon />
-                  Send test donation
-                </Button>
-              </span>
-            </TooltipTrigger>
-            {!canSendTest && (
-              <TooltipContent>
-                Disconnect the widget before sending a test donation.
-              </TooltipContent>
-            )}
-          </Tooltip>
+          <TestDonationButton canSend={canSendTest} onSend={onSendTest} />
         </div>
       </CardContent>
     </Card>

@@ -2,7 +2,6 @@
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
 
-/* Latin subset only; other scripts fall back to the system font */
 @font-face {
   font-family: 'Geist Variable';
   font-style: normal;
@@ -136,6 +135,11 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  /* Tailwind v4 gives buttons the default cursor */
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']) {
+    cursor: pointer;
   }
   html {
     @apply font-sans;

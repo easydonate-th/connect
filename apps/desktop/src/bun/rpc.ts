@@ -2,16 +2,38 @@ import { BrowserView } from 'electrobun/main'
 
 import type { AppRPC } from '../shared/rpc'
 import { getConfig, saveConfig } from './config'
-import { forwardDonation } from './libs/vrc/forward'
+import { openDataFolder } from './libs/data-folder'
+import { forwardDonation } from './libs/forward'
 import { getMIDIDevices } from './libs/vrc/midi/winmm'
+import { testVTSConnection } from './libs/vts/connection'
+import { importVTSImages, pruneVTSImages } from './libs/vts/images'
+import { getVTSItems } from './libs/vts/items'
+import { logger } from './logger'
 
 export const createAppRPC = () =>
   BrowserView.defineRPC<AppRPC>({
     handlers: {
       requests: {
         getConfig: () => getConfig(),
-        saveConfig: config => saveConfig(config),
+        saveConfig: async config => {
+          const saved = saveConfig(config)
+
+          try {
+            await pruneVTSImages(saved.vts.throw.customImages)
+          } catch (error) {
+            logger.warn(
+              'Failed to delete removed VTube Studio images',
+              error instanceof Error ? error : undefined
+            )
+          }
+
+          return saved
+        },
         getMIDIDevices: () => getMIDIDevices(),
+        getVTSItems: endpoint => getVTSItems(endpoint),
+        testVTSConnection: endpoint => testVTSConnection(endpoint),
+        importVTSImages: () => importVTSImages(),
+        openDataFolder: () => openDataFolder(),
       },
       messages: {
         donation: donation => forwardDonation(donation, getConfig()),

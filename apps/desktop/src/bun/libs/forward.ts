@@ -1,10 +1,14 @@
-import type { Config } from '../../../shared/config'
-import type { Donation } from '../../../shared/donation'
-import { logger } from '../../logger'
-import { sendDonationMIDI } from './midi'
-import { sendDonationOSC } from './osc'
+import type { Config } from '../../shared/config'
+import type { Donation } from '../../shared/donation'
+import { logger } from '../logger'
+import { sendDonationMIDI } from './vrc/midi'
+import { sendDonationOSC } from './vrc/osc'
+import { sendDonationVTS } from './vts/throw'
 
-export const forwardDonation = async (donation: Donation, { vrc }: Config) => {
+export const forwardDonation = async (
+  donation: Donation,
+  { vrc, vts }: Config
+) => {
   const outputs: { name: string; send: () => void }[] = []
 
   if (vrc.osc.enabled) {
@@ -19,10 +23,16 @@ export const forwardDonation = async (donation: Donation, { vrc }: Config) => {
       send: () => sendDonationMIDI(donation, vrc.midi),
     })
   }
+  if (vts.throw.enabled) {
+    outputs.push({
+      name: 'VTube Studio',
+      send: () => sendDonationVTS(donation, vts.throw),
+    })
+  }
 
   if (outputs.length === 0) {
     logger.warn(
-      `Donation ${donation.referenceNo} not forwarded: no VRChat output enabled in saved settings`
+      `Donation ${donation.referenceNo} not forwarded: no output enabled in saved settings`
     )
 
     return

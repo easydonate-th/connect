@@ -35,9 +35,6 @@ const copyLogs = async (lines: LogLine[]) => {
   }
 }
 
-const TOOLBAR_BUTTON_CLASS =
-  'text-zinc-400 hover:bg-white/10 hover:text-zinc-100 dark:hover:bg-white/10'
-
 const LogsPanel = () => {
   const { events, rawFrames } = useLogs()
   const [showRaw, setShowRaw] = useState(false)
@@ -45,12 +42,10 @@ const LogsPanel = () => {
   const panelRef = useRef<HTMLElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  // Bring the panel into view when it opens
   useEffect(() => {
     panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [])
 
-  // Keep the newest line visible
   useEffect(() => {
     const element = scrollRef.current
     if (element && lines.length > 0) {
@@ -76,7 +71,7 @@ const LogsPanel = () => {
           />
           <Label
             htmlFor="raw-log"
-            className="font-mono text-xs font-normal text-zinc-400"
+            className="cursor-pointer font-mono text-xs font-normal text-zinc-400"
           >
             Raw log
           </Label>
@@ -85,7 +80,7 @@ const LogsPanel = () => {
           <Button
             variant="ghost"
             size="xs"
-            className={TOOLBAR_BUTTON_CLASS}
+            className="text-zinc-400 hover:bg-white/10 hover:text-zinc-100 dark:hover:bg-white/10"
             disabled={lines.length === 0}
             onClick={() => copyLogs(lines)}
           >
@@ -95,7 +90,7 @@ const LogsPanel = () => {
           <Button
             variant="ghost"
             size="xs"
-            className={TOOLBAR_BUTTON_CLASS}
+            className="text-zinc-400 hover:bg-white/10 hover:text-zinc-100 dark:hover:bg-white/10"
             disabled={events.length === 0 && rawFrames.length === 0}
             onClick={clearLogs}
           >

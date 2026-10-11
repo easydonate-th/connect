@@ -1,5 +1,6 @@
-import { SaveIcon, TerminalIcon } from 'lucide-react'
+import { FolderOpenIcon, SaveIcon, TerminalIcon } from 'lucide-react'
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 import Integrations from '~/components/Integrations'
 import LogsPanel from '~/components/LogsPanel'
@@ -7,12 +8,23 @@ import { Button } from '~/components/ui/button'
 import { Spinner } from '~/components/ui/spinner'
 import WidgetConnection from '~/components/WidgetConnection'
 import { useConfig } from '~/hooks/use-config'
+import { useUnsavedChangesToast } from '~/hooks/use-unsaved-changes-toast'
 import { useWidgetSocket } from '~/hooks/use-widget-socket'
 import { log } from '~/libs/logs'
-import { sendDonation } from '~/libs/rpc'
+import { openDataFolder, sendDonation } from '~/libs/rpc'
+import { cn, getSocketUrl } from '~/libs/utils'
 
 import { Donation } from '../shared/donation'
-import { getSocketUrl } from './libs/utils'
+
+const showDataFolder = async () => {
+  try {
+    await openDataFolder()
+  } catch (error) {
+    const description = error instanceof Error ? error.message : undefined
+    toast.error('Failed to open data folder', { description })
+    log.error(`Failed to open data folder: ${description ?? 'unknown error'}`)
+  }
+}
 
 const App = () => {
   const {
@@ -25,10 +37,12 @@ const App = () => {
     setAutoConnect,
     updateOSC,
     updateMIDI,
+    updateVTSThrow,
     save,
   } = useConfig()
 
-  // Connects on launch only when auto connect is saved as on
+  useUnsavedChangesToast({ isDirty, isValid, isSaving, onSave: save })
+
   const [socketUrl, setSocketUrl] = useState(() =>
     savedConfig.autoConnect ? getSocketUrl(savedConfig.widgetUrl) : null
   )
@@ -46,8 +60,6 @@ const App = () => {
 
   const status = useWidgetSocket(socketUrl, handleDonation)
 
-  // Runs through the same path as a widget donation, so it reaches the
-  // outputs enabled in the saved settings
   const handleSendTest = () => {
     const timestamp = Date.now()
 
@@ -85,7 +97,13 @@ const App = () => {
 
   return (
     <div className="bg-background min-h-screen">
-      <main className="container mx-auto flex max-w-3xl flex-col gap-6 px-4 py-10">
+      <main
+        className={cn(
+          'container mx-auto flex max-w-3xl flex-col gap-6 px-4 py-10',
+          // Keeps the bottom row clear of the unsaved changes toast
+          isDirty && 'pb-32'
+        )}
+      >
         <header className="flex flex-col gap-1 text-center">
           <h1 className="font-heading text-3xl font-semibold tracking-tight">
             EasyDonate Connect
@@ -114,6 +132,10 @@ const App = () => {
           vrc={config.vrc}
           onOSCChange={updateOSC}
           onMIDIChange={updateMIDI}
+          vts={config.vts}
+          onVTSThrowChange={updateVTSThrow}
+          canSendTest={socketUrl === null}
+          onSendTest={handleSendTest}
         />
         <div className="flex items-center gap-3">
           <Button
@@ -127,10 +149,16 @@ const App = () => {
             <TerminalIcon />
             {isLogsOpen ? 'Hide logs' : 'Logs'}
           </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            className="h-11 px-4"
+            onClick={showDataFolder}
+          >
+            <FolderOpenIcon />
+            Data folder
+          </Button>
           <div className="ml-auto flex items-center gap-3">
-            {isDirty && (
-              <p className="text-muted-foreground text-sm">Unsaved changes</p>
-            )}
             <Button
               size="lg"
               className="h-11 min-w-40 px-6 text-base [&_svg:not([class*='size-'])]:size-5"

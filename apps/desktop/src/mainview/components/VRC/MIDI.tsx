@@ -1,6 +1,7 @@
 import { cn } from 'cn'
 import { PianoIcon, RefreshCwIcon } from 'lucide-react'
 
+import OutputCard from '~/components/OutputCard'
 import { Button } from '~/components/ui/button'
 import {
   Field,
@@ -17,7 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
-import OutputCard from '~/components/VRC/OutputCard'
 import { useMIDIDevices } from '~/hooks/use-midi-devices'
 
 import {

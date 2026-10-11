@@ -45,11 +45,9 @@ The desktop app, built with [Electrobun](https://electrobun.dev) (a Bun main pro
 Requires [Bun](https://bun.sh) 1.4.3. The desktop app runs on Windows only.
 
 ```sh
-bun install      # install dependencies
-bun run dev      # run every workspace in dev mode
-bun run build    # build every workspace
-bun run lint     # oxlint
-bun run fmt      # oxfmt
-```
+bun install
 
-Run `bun run dev` from `apps/desktop` to start only the desktop app. It rebuilds the UI on change.
+bun run dev
+
+bun run build
+```

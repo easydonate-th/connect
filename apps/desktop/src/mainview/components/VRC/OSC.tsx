@@ -1,5 +1,6 @@
 import { RadioTowerIcon } from 'lucide-react'
 
+import OutputCard from '~/components/OutputCard'
 import {
   Field,
   FieldDescription,
@@ -8,13 +9,8 @@ import {
   FieldLabel,
 } from '~/components/ui/field'
 import { Input } from '~/components/ui/input'
-import OutputCard from '~/components/VRC/OutputCard'
 
-import {
-  isValidOSCPort,
-  OSC_PORT_RANGE,
-  OSCConfig,
-} from '../../../shared/config'
+import { isValidPort, PORT_RANGE, OSCConfig } from '../../../shared/config'
 
 type OSCProps = {
   value: OSCConfig
@@ -23,7 +19,7 @@ type OSCProps = {
 
 const OSC = ({ value, onChange }: OSCProps) => {
   const isHostInvalid = value.host.trim() === ''
-  const isPortInvalid = !isValidOSCPort(value.port)
+  const isPortInvalid = !isValidPort(value.port)
 
   return (
     <OutputCard
@@ -59,8 +55,8 @@ const OSC = ({ value, onChange }: OSCProps) => {
           <Input
             id="osc-port"
             type="number"
-            min={OSC_PORT_RANGE.min}
-            max={OSC_PORT_RANGE.max}
+            min={PORT_RANGE.min}
+            max={PORT_RANGE.max}
             placeholder="9000"
             value={Number.isNaN(value.port) ? '' : value.port}
             onChange={event =>
@@ -70,7 +66,7 @@ const OSC = ({ value, onChange }: OSCProps) => {
           />
           {isPortInvalid && (
             <FieldError>
-              {OSC_PORT_RANGE.min}-{OSC_PORT_RANGE.max}
+              {PORT_RANGE.min}-{PORT_RANGE.max}
             </FieldError>
           )}
         </Field>

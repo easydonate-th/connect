@@ -10,6 +10,7 @@ import {
   isValidConfig,
   MIDIConfig,
   OSCConfig,
+  VTSThrowConfig,
 } from '../../shared/config'
 
 const loadInitialConfig = async (): Promise<Config> => {
@@ -70,6 +71,12 @@ export const useConfig = () => {
       vrc: { ...current.vrc, midi: { ...current.vrc.midi, ...patch } },
     }))
 
+  const updateVTSThrow = (patch: Partial<VTSThrowConfig>) =>
+    setConfig(current => ({
+      ...current,
+      vts: { ...current.vts, throw: { ...current.vts.throw, ...patch } },
+    }))
+
   const save = async () => {
     setIsSaving(true)
     const stored = await persistConfig(config)
@@ -78,7 +85,6 @@ export const useConfig = () => {
     if (stored) {
       setSavedConfig(stored)
       setConfig(stored)
-      toast.success('Settings saved')
       log.info('Settings saved')
     }
   }
@@ -93,6 +99,7 @@ export const useConfig = () => {
     setAutoConnect,
     updateOSC,
     updateMIDI,
+    updateVTSThrow,
     save,
   }
 }

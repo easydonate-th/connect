@@ -37,6 +37,8 @@ const startApp = async () => {
     title: APP_NAME,
     url,
     rpc: createAppRPC(),
+    // Serves `userData` as `appdata://`, for thumbnails of the user's images
+    allowedProtocols: { appData: true },
     frame: { width: 800, height: 720, x: 200, y: 200 },
   })
 

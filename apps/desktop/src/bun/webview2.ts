@@ -13,6 +13,9 @@ const BROWSER_ARGUMENTS = [
   // Software rendering in the browser process cuts WebView2 memory by ~45 MB
   '--disable-gpu',
   '--in-process-gpu',
+  // Windows reports reduced motion whenever its Animation effects setting is
+  // off, which strips the UI's transitions (sonner's toasts among them)
+  '--force-prefers-no-reduced-motion',
 ].join(' ')
 
 const toWideString = (text: string) => Buffer.from(`${text}\0`, 'utf16le')

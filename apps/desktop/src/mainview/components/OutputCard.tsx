@@ -21,7 +21,6 @@ type OutputCardProps = {
   children: ReactNode
 }
 
-/** Card shell shared by the VRChat outputs: header with an enable switch. */
 const OutputCard = ({
   id,
   icon: Icon,
