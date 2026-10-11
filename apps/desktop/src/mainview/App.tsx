@@ -1,7 +1,6 @@
-import { FolderOpenIcon, SaveIcon, TerminalIcon } from 'lucide-react'
+import { SaveIcon, TerminalIcon } from 'lucide-react'
 import { use, useState } from 'react'
 import { FormProvider } from 'react-hook-form'
-import { toast } from 'sonner'
 
 import Integrations from '~/components/Integrations'
 import LogsPanel from '~/components/LogsPanel'
@@ -12,19 +11,7 @@ import WidgetConnection from '~/components/WidgetConnection'
 import { initialConfigPromise, useConfigForm } from '~/hooks/use-config-form'
 import { useUnsavedChangesToast } from '~/hooks/use-unsaved-changes-toast'
 import { useWidgetConnection } from '~/hooks/use-widget-connection'
-import { log } from '~/libs/logs'
-import { openDataFolder } from '~/libs/rpc'
 import { cn } from '~/libs/utils'
-
-const showDataFolder = async () => {
-  try {
-    await openDataFolder()
-  } catch (error) {
-    const description = error instanceof Error ? error.message : undefined
-    toast.error('Failed to open data folder', { description })
-    log.error(`Failed to open data folder: ${description ?? 'unknown error'}`)
-  }
-}
 
 const App = () => {
   const initialConfig = use(initialConfigPromise)
@@ -94,15 +81,6 @@ const App = () => {
             >
               <TerminalIcon />
               {isLogsOpen ? 'Hide logs' : 'Logs'}
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="h-11 px-4"
-              onClick={showDataFolder}
-            >
-              <FolderOpenIcon />
-              Data folder
             </Button>
             <div className="ml-auto flex items-center gap-3">
               <Button

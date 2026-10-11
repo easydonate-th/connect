@@ -1,9 +1,11 @@
 import {
   DownloadIcon,
   ExternalLinkIcon,
+  FolderOpenIcon,
   RefreshCwIcon,
   SettingsIcon,
 } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
@@ -16,7 +18,18 @@ import {
 } from '~/components/ui/card'
 import { Spinner } from '~/components/ui/spinner'
 import { useAppUpdate } from '~/hooks/use-app-update'
-import { openExternal } from '~/libs/rpc'
+import { log } from '~/libs/logs'
+import { openDataFolder, openExternal } from '~/libs/rpc'
+
+const showDataFolder = async () => {
+  try {
+    await openDataFolder()
+  } catch (error) {
+    const description = error instanceof Error ? error.message : undefined
+    toast.error('Failed to open data folder', { description })
+    log.error(`Failed to open data folder: ${description ?? 'unknown error'}`)
+  }
+}
 
 const Settings = () => {
   const { version, update, isChecking, check } = useAppUpdate()
@@ -28,7 +41,7 @@ const Settings = () => {
           <SettingsIcon className="text-muted-foreground size-4" />
           Settings
         </CardTitle>
-        <CardDescription>App version and updates</CardDescription>
+        <CardDescription>App version, updates and data</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-sm">
@@ -40,13 +53,15 @@ const Settings = () => {
             <Badge variant="secondary">{update.latestVersion} available</Badge>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" onClick={showDataFolder}>
+            <FolderOpenIcon />
+            Data folder
+          </Button>
           <Button
             variant="outline"
             onClick={() =>
-              openExternal(
-                'https://github.com/easydonate-th/connect/releases/latest'
-              )
+              openExternal('https://github.com/easydonate-th/connect')
             }
           >
             <ExternalLinkIcon />
