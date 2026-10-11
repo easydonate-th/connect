@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 
 import Integrations from '~/components/Integrations'
 import LogsPanel from '~/components/LogsPanel'
+import Settings from '~/components/Settings'
 import { Button } from '~/components/ui/button'
 import { Spinner } from '~/components/ui/spinner'
 import WidgetConnection from '~/components/WidgetConnection'
@@ -137,6 +138,7 @@ const App = () => {
           canSendTest={socketUrl === null}
           onSendTest={handleSendTest}
         />
+        <Settings />
         <div className="flex items-center gap-3">
           <Button
             variant="outline"

@@ -16,6 +16,14 @@ export type VTSImageImport = {
   rejected: string[]
 }
 
+export type UpdateCheck = {
+  currentVersion: string
+  /** The desktop app version the latest GitHub release lists */
+  latestVersion: string
+  updateAvailable: boolean
+  releaseUrl: string
+}
+
 export type AppRPC = {
   bun: RPCSchema<{
     requests: {
@@ -34,6 +42,10 @@ export type AppRPC = {
       }
       openDataFolder: { params: undefined; response: string }
       importVTSImages: { params: undefined; response: VTSImageImport }
+      getAppVersion: { params: undefined; response: string }
+      checkForUpdate: { params: undefined; response: UpdateCheck }
+      /** Only opens pages of the app's GitHub repository */
+      openExternal: { params: string; response: string }
     }
     messages: {
       donation: Donation

@@ -3,7 +3,9 @@ import { BrowserView } from 'electrobun/main'
 import type { AppRPC } from '../shared/rpc'
 import { getConfig, saveConfig } from './config'
 import { openDataFolder } from './libs/data-folder'
+import { openExternal } from './libs/external'
 import { forwardDonation } from './libs/forward'
+import { checkForUpdate, getAppVersion } from './libs/update'
 import { getMIDIDevices } from './libs/vrc/midi/winmm'
 import { testVTSConnection } from './libs/vts/connection'
 import { importVTSImages, pruneVTSImages } from './libs/vts/images'
@@ -34,6 +36,9 @@ export const createAppRPC = () =>
         testVTSConnection: endpoint => testVTSConnection(endpoint),
         importVTSImages: () => importVTSImages(),
         openDataFolder: () => openDataFolder(),
+        getAppVersion: () => getAppVersion(),
+        checkForUpdate: () => checkForUpdate(),
+        openExternal: url => openExternal(url),
       },
       messages: {
         donation: donation => forwardDonation(donation, getConfig()),
