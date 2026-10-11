@@ -92,7 +92,7 @@ export type APIRequests = {
       /** Screen edges are at -1 and 1 */
       positionX: number
       positionY: number
-      /** 0 to 1; 0.32 is the size of an item loaded by hand */
+      /** 0 to 1. An item the user loads by hand has size 0.32. */
       size: number
       rotation: number
       /** Fade in/out seconds, 0 to 2 */
@@ -100,19 +100,19 @@ export type APIRequests = {
       unloadWhenPluginDisconnects: boolean
       /**
        * Base64 PNG/JPG/GIF, under 5 MB and 64-2048 px a side. Needs the
-       * `LoadCustomImagesAsItems` permission; `fileName` must then be 8-32
+       * `LoadCustomImagesAsItems` permission. `fileName` must then be 8-32
        * alphanumerics or hyphens ending in `.png`, `.jpg` or `.gif`.
        */
       customDataBase64?: string
       customDataAskUserFirst?: boolean
     }
     /**
-     * For custom data, `fileName` is a name VTube Studio made up, which loads
-     * the same image without data until VTube Studio restarts
+     * For custom data, `fileName` is a name VTube Studio makes up. Until VTube
+     * Studio restarts, loading that name without data loads the same image.
      */
     response: { instanceID: string; fileName: string }
   }
-  /** Should fade out over the `fadeTime` the item was loaded with */
+  /** Fades the items out over the `fadeTime` of their `ItemLoadRequest` */
   ItemUnloadRequest: {
     data: {
       unloadAllInScene: boolean
@@ -125,10 +125,10 @@ export type APIRequests = {
     }
   }
   /**
-   * Feeds tracking input parameters (`FaceAngleX` etc.). A parameter falls
-   * back to tracking unless it's sent again within a second. `add` adds to
-   * the tracked value, and several plugins can add to the same parameter;
-   * `set` overrides it and fails while another plugin sets it.
+   * Feeds tracking input parameters such as `FaceAngleX`. A parameter falls
+   * back to tracking unless the plugin sends it again within a second. `add`
+   * adds to the tracked value, and several plugins can add to the same
+   * parameter. `set` overrides it and fails while another plugin sets it.
    */
   InjectParameterDataRequest: {
     data: {
@@ -165,13 +165,13 @@ type Point = { x: number; y: number }
 
 /** The events this app subscribes to, keyed by name, with their `data` */
 export type APIEvents = {
-  /** Sent 15 times a second while a model is loaded */
+  /** VTube Studio sends it 15 times a second while a model is loaded */
   ModelOutlineEvent: {
     modelName: string
     modelID: string
     /**
-     * The model's rough outline, at least 3 points, in window coordinates;
-     * points outside the window go past -1 or 1
+     * The model's rough outline, at least 3 points, in window coordinates.
+     * Points outside the window go past -1 or 1.
      */
     convexHull: Point[]
     /** Average of the `convexHull` points */

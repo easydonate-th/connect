@@ -3,7 +3,7 @@ import { z } from 'zod'
 export const PORT_RANGE = { min: 1, max: 65_535, integer: true } as const
 export const MIDI_CHANNEL_RANGE = { min: 1, max: 16, integer: true } as const
 export const VTS_THROW_RANGES = {
-  /** Item size: 0 is smallest, 1 biggest, 0.32 the default */
+  /** 0 is the smallest item size and 1 the biggest. The default is 0.32. */
   size: { min: 0.05, max: 1, integer: false },
   /** Seconds from the screen edge to the model */
   flightTime: { min: 0.1, max: 2, integer: false },
@@ -34,7 +34,8 @@ type Range = { min: number; max: number; integer: boolean }
 
 export const VTS_IMAGES_DIR = 'vts-images'
 
-// `z.catch`, renamed so it doesn't read as a promise `.catch`
+// `z.catch`, renamed so the promise lint rules don't mistake it for a promise
+// `.catch`
 const { catch: withFallback } = z
 
 const withDefaults = <T extends z.ZodType>(schema: T) =>
@@ -89,7 +90,7 @@ const OSCConfigSchema = z.object({
 const MIDIConfigSchema = z.object({
   enabled: withFallback(z.boolean(), false),
   deviceName: withFallback(z.string().trim(), ''),
-  /** 1-16, as shown in most MIDI tools */
+  /** 1-16, the way most MIDI tools number channels */
   channel: withFallback(MIDIChannelSchema, 1),
 })
 
@@ -102,11 +103,11 @@ const VTSCustomImageSchema = z.object({
 })
 
 /**
- * Throws `count` items at a donation of at least `minAmount` THB, each picked
- * at random from the config's `items` and `customImages`, or with `custom`
- * from the rule's own `items` and `images`, at one of its `zones`. A donation
- * uses the rule with the highest `minAmount` it reaches, and throws nothing
- * below every rule.
+ * A donation of at least `minAmount` THB throws `count` items, each at one of
+ * the rule's `zones`. Each item comes at random from the config's `items` and
+ * `customImages`, or, with `custom`, from the rule's own `items` and `images`.
+ * A donation uses the rule with the highest `minAmount` it reaches, and a
+ * donation below every rule throws nothing.
  */
 const VTSThrowRuleSchema = z.object({
   /** Stable React key */
@@ -118,7 +119,7 @@ const VTSThrowRuleSchema = z.object({
   items: listOf(z.string()),
   /** Picks from the config's `customImages`, by `fileName` */
   images: listOf(z.string()),
-  /** Each item hits one of these at random; none falls back to all */
+  /** Each item hits one of these at random. An empty list means all zones. */
   zones: listOf(z.enum(VTS_HIT_ZONES)).transform(zones =>
     zones.length > 0
       ? VTS_HIT_ZONES.filter(zone => zones.includes(zone))
@@ -143,11 +144,12 @@ const VTSThrowConfigSchema = z
   })
   .transform(config => {
     const imageNames = new Set(config.customImages.map(image => image.fileName))
-    // There is always a rule; without any, it throws an item at every donation
+    // With no rules left, add the default one, which throws an item at every
+    // donation
     const rules =
       config.rules.length > 0 ? config.rules : [VTSThrowRuleSchema.parse({})]
 
-    // `sendDonationVTS` relies on rules being sorted by `minAmount`
+    // `sendDonationVTS` expects the rules sorted by `minAmount`
     return {
       ...config,
       rules: rules
@@ -161,8 +163,8 @@ const VTSThrowConfigSchema = z
   })
 
 /**
- * Heals a config from disk or RPC: an invalid field falls back to its default
- * without resetting the rest, and unknown fields are dropped.
+ * Heals a config from disk or RPC. An invalid field falls back to its default
+ * without resetting the rest, and the schema drops unknown fields.
  */
 export const ConfigSchema = withDefaults(
   z.object({
@@ -201,69 +203,96 @@ export const createVTSThrowRule = (rule: Partial<VTSThrowRule> = {}) =>
 export const getVTSImageUrl = ({ fileName }: VTSCustomImage) =>
   `appdata://${VTS_IMAGES_DIR}/${encodeURIComponent(fileName)}`
 
-export const isValidHost = (host: string) => HostSchema.safeParse(host).success
+/** A message for each invalid field, keyed by its path in the config form. */
+export type ConfigErrors = Record<string, string>
 
-export const isValidPort = (port: number) => PortSchema.safeParse(port).success
+const formatRange = ({ min, max }: Range) => `${min}-${max.toLocaleString()}`
 
-export const isValidMIDIChannel = (channel: number) =>
-  MIDIChannelSchema.safeParse(channel).success
+const fits = <T extends z.ZodType>(schema: T, value: z.input<T>) =>
+  schema.safeParse(value).success
 
-export const isValidVTSThrowValue = (key: VTSThrowRangeKey, value: number) =>
-  VTS_THROW_VALUE_SCHEMAS[key].safeParse(value).success
+/**
+ * Checks the config in the form. Where `ConfigSchema` heals a bad value, this
+ * reports it. It also runs the checks that span fields.
+ */
+export const validateConfig = ({ vrc, vts }: Config) => {
+  const errors: ConfigErrors = {}
+  const { osc, midi } = vrc
+  const vtsThrow = vts.throw
+  const portRange = `${PORT_RANGE.min}-${PORT_RANGE.max}`
+  const hasItems = vtsThrow.items.length + vtsThrow.customImages.length > 0
 
-export const isValidVTSRuleValue = (key: VTSRuleRangeKey, value: number) =>
-  VTS_RULE_VALUE_SCHEMAS[key].safeParse(value).success
+  // A field shows its first failed check
+  const check = (path: string, isValid: boolean, message: string) => {
+    if (!isValid) {
+      errors[path] ??= message
+    }
+  }
 
-export const isValidMIDIDevice = ({ enabled, deviceName }: MIDIConfig) =>
-  !enabled || deviceName.trim() !== ''
-
-export const isValidVTSItems = ({
-  enabled,
-  items,
-  customImages,
-}: VTSThrowConfig) => !enabled || items.length + customImages.length > 0
-
-export const isValidVTSRuleItems = (
-  { custom, items, images }: VTSThrowRule,
-  selectedItems: string[],
-  customImages: VTSCustomImage[]
-) =>
-  (custom
-    ? items.length + images.length
-    : selectedItems.length + customImages.length) > 0
-
-/** Two rules with one Min THB would leave the donation's rule ambiguous. */
-export const isDuplicateVTSRuleAmount = (
-  rule: VTSThrowRule,
-  rules: VTSThrowRule[]
-) =>
-  rules.some(
-    other => other.id !== rule.id && other.minAmount === rule.minAmount
+  check('vrc.osc.host', fits(HostSchema, osc.host), 'Enter a host.')
+  check('vrc.osc.port', fits(PortSchema, osc.port), portRange)
+  check(
+    'vrc.midi.deviceName',
+    !midi.enabled || midi.deviceName.trim() !== '',
+    'Select a device to send donations.'
+  )
+  check(
+    'vrc.midi.channel',
+    fits(MIDIChannelSchema, midi.channel),
+    formatRange(MIDI_CHANNEL_RANGE)
+  )
+  check('vts.throw.host', fits(HostSchema, vtsThrow.host), 'Enter a host.')
+  check('vts.throw.port', fits(PortSchema, vtsThrow.port), portRange)
+  check(
+    'vts.throw.items',
+    !vtsThrow.enabled || hasItems,
+    'Select or add at least one item.'
   )
 
-const isValidVTSRule = (rule: VTSThrowRule, rules: VTSThrowRule[]) =>
-  isValidVTSRuleValue('minAmount', rule.minAmount) &&
-  isValidVTSRuleValue('count', rule.count) &&
-  rule.zones.length > 0 &&
-  !isDuplicateVTSRuleAmount(rule, rules)
+  for (const key of VTS_THROW_RANGE_KEYS) {
+    check(
+      `vts.throw.${key}`,
+      fits(VTS_THROW_VALUE_SCHEMAS[key], vtsThrow[key]),
+      formatRange(VTS_THROW_RANGES[key])
+    )
+  }
 
-const isValidVTSRules = ({
-  enabled,
-  rules,
-  items,
-  customImages,
-}: VTSThrowConfig) =>
-  rules.every(rule => isValidVTSRule(rule, rules)) &&
-  (!enabled ||
-    rules.every(rule => isValidVTSRuleItems(rule, items, customImages)))
+  for (const [index, rule] of vtsThrow.rules.entries()) {
+    const path = `vts.throw.rules.${index}`
+    const pickedCount = rule.items.length + rule.images.length
 
-export const isValidConfig = ({ vrc, vts }: Config) =>
-  isValidHost(vrc.osc.host) &&
-  isValidPort(vrc.osc.port) &&
-  isValidMIDIDevice(vrc.midi) &&
-  isValidMIDIChannel(vrc.midi.channel) &&
-  isValidHost(vts.throw.host) &&
-  isValidPort(vts.throw.port) &&
-  isValidVTSItems(vts.throw) &&
-  isValidVTSRules(vts.throw) &&
-  VTS_THROW_RANGE_KEYS.every(key => isValidVTSThrowValue(key, vts.throw[key]))
+    check(
+      `${path}.minAmount`,
+      fits(VTS_RULE_VALUE_SCHEMAS.minAmount, rule.minAmount),
+      formatRange(VTS_RULE_RANGES.minAmount)
+    )
+    // With two rules at the same Min THB, it's unclear which one a donation
+    // uses
+    check(
+      `${path}.minAmount`,
+      vtsThrow.rules.every(
+        other => other.id === rule.id || other.minAmount !== rule.minAmount
+      ),
+      'Another rule has this Min THB.'
+    )
+    check(
+      `${path}.count`,
+      fits(VTS_RULE_VALUE_SCHEMAS.count, rule.count),
+      formatRange(VTS_RULE_RANGES.count)
+    )
+    check(
+      `${path}.items`,
+      !vtsThrow.enabled || (rule.custom ? pickedCount > 0 : hasItems),
+      rule.custom
+        ? 'Choose at least one custom item.'
+        : 'Select VTube Studio items or add your images above.'
+    )
+    check(
+      `${path}.zones`,
+      rule.zones.length > 0,
+      'Choose at least one hit zone.'
+    )
+  }
+
+  return errors
+}

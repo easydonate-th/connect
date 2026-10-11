@@ -1,5 +1,6 @@
 import { LinkIcon, PlugIcon, UnplugIcon } from 'lucide-react'
 import type { SubmitEvent } from 'react'
+import { useController, useFormContext } from 'react-hook-form'
 
 import ConnectionBadge from '~/components/ConnectionBadge'
 import TestDonationButton from '~/components/TestDonationButton'
@@ -22,7 +23,9 @@ import {
 import { Input } from '~/components/ui/input'
 import { Switch } from '~/components/ui/switch'
 import type { ConnectionStatus } from '~/hooks/use-widget-socket'
+import { getSocketUrl } from '~/libs/utils'
 
+import type { Config } from '../../shared/config'
 import type { Donation } from '../../shared/donation'
 
 const timeFormatter = new Intl.DateTimeFormat(undefined, {
@@ -48,42 +51,44 @@ const describeLastDonation = (donation: Donation | null) => {
 }
 
 type WidgetConnectionProps = {
-  widgetUrl: string
-  onWidgetUrlChange: (widgetUrl: string) => void
-  autoConnect: boolean
-  onAutoConnectChange: (autoConnect: boolean) => void
   status: ConnectionStatus
-  /** True when the current URL is the one the socket is using */
-  isActive: boolean
-  isUrlInvalid: boolean
+  /** The socket URL in use, `null` while disconnected */
+  socketUrl: string | null
+  /** The widget URL that last failed to connect */
+  invalidUrl: string | null
   lastDonation: Donation | null
-  onConnect: () => void
+  onConnect: (widgetUrl: string) => void
   onDisconnect: () => void
-  /** False while the socket is connected or connecting */
-  canSendTest: boolean
   onSendTest: () => void
 }
 
 const WidgetConnection = ({
-  widgetUrl,
-  onWidgetUrlChange,
-  autoConnect,
-  onAutoConnectChange,
   status,
-  isActive,
-  isUrlInvalid,
+  socketUrl,
+  invalidUrl,
   lastDonation,
   onConnect,
   onDisconnect,
-  canSendTest,
   onSendTest,
 }: WidgetConnectionProps) => {
+  const { control } = useFormContext<Config>()
+  const { field: widgetUrl } = useController({ control, name: 'widgetUrl' })
+  const { field: autoConnect } = useController({
+    control,
+    name: 'autoConnect',
+  })
+
+  // True when the socket is using the URL in the field
+  const isActive =
+    socketUrl !== null && socketUrl === getSocketUrl(widgetUrl.value)
+  const isUrlInvalid = invalidUrl === widgetUrl.value
+
   const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (isActive) {
       onDisconnect()
     } else {
-      onConnect()
+      onConnect(widgetUrl.value)
     }
   }
 
@@ -107,14 +112,13 @@ const WidgetConnection = ({
             <FieldLabel htmlFor="widget-url">Widget URL</FieldLabel>
             <div className="flex gap-2">
               <Input
+                {...widgetUrl}
                 id="widget-url"
                 type="url"
                 inputMode="url"
                 autoComplete="off"
                 spellCheck={false}
-                placeholder="https://widgets.easydonate.app?w=alert..."
-                value={widgetUrl}
-                onChange={event => onWidgetUrlChange(event.currentTarget.value)}
+                placeholder="https://widgets.easydonate.app?w=alert…"
                 aria-invalid={isUrlInvalid}
                 aria-describedby="widget-url-hint"
               />
@@ -143,8 +147,8 @@ const WidgetConnection = ({
           <Field orientation="horizontal" className="w-auto">
             <Switch
               id="auto-connect"
-              checked={autoConnect}
-              onCheckedChange={onAutoConnectChange}
+              checked={autoConnect.value}
+              onCheckedChange={isChecked => autoConnect.onChange(isChecked)}
             />
             <FieldContent>
               <FieldLabel htmlFor="auto-connect" className="cursor-pointer">
@@ -152,7 +156,10 @@ const WidgetConnection = ({
               </FieldLabel>
             </FieldContent>
           </Field>
-          <TestDonationButton canSend={canSendTest} onSend={onSendTest} />
+          <TestDonationButton
+            canSend={socketUrl === null}
+            onSend={onSendTest}
+          />
         </div>
       </CardContent>
     </Card>

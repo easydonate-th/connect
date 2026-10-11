@@ -37,10 +37,12 @@ const copyLogs = async (lines: LogLine[]) => {
 
 const LogsPanel = () => {
   const { events, rawFrames } = useLogs()
+
   const [showRaw, setShowRaw] = useState(false)
-  const lines = showRaw ? mergeLogLines(events, rawFrames) : events
   const panelRef = useRef<HTMLElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  const lines = showRaw ? mergeLogLines(events, rawFrames) : events
 
   useEffect(() => {
     panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })

@@ -33,8 +33,8 @@ const toStatus = (
 }
 
 /**
- * Keeps a connection to the EasyDonate widget socket open (reconnecting with
- * backoff) while `socketUrl` is set, and passes each donation on.
+ * Keeps a connection to the EasyDonate widget socket open while `socketUrl` is
+ * set, reconnecting with backoff, and passes each donation to `onDonation`.
  */
 export const useWidgetSocket = (
   socketUrl: string | null,
@@ -55,7 +55,8 @@ export const useWidgetSocket = (
         interval: 30_000,
         timeout: 60_000,
       },
-      // Messages are handled in `onMessage`; skip lastMessage re-renders
+      // `onMessage` handles every message, so skip the re-render that
+      // `lastMessage` would cause
       filter: () => false,
       onOpen: () => log.info('Connected to alert widget'),
       onClose: ({ code }: CloseEvent) =>

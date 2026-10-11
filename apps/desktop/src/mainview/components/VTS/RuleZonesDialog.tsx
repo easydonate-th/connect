@@ -1,5 +1,6 @@
 import { CheckIcon, FootprintsIcon, ShirtIcon, SmileIcon } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { useController, useFormContext, useWatch } from 'react-hook-form'
 
 import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
@@ -13,8 +14,8 @@ import {
   DialogTitle,
 } from '~/components/ui/dialog'
 
-import { VTS_HIT_ZONES } from '../../../shared/config'
-import type { VTSHitZone, VTSThrowRule } from '../../../shared/config'
+import { Config, VTS_HIT_ZONES } from '../../../shared/config'
+import type { VTSHitZone } from '../../../shared/config'
 
 const ZONE_OPTIONS: Record<
   VTSHitZone,
@@ -38,27 +39,36 @@ const ZONE_OPTIONS: Record<
 }
 
 type RuleZonesDialogProps = {
-  rule: VTSThrowRule
-  onChange: (patch: Partial<VTSThrowRule>) => void
+  index: number
   onClose: () => void
 }
 
-const RuleZonesDialog = ({ rule, onChange, onClose }: RuleZonesDialogProps) => {
+const RuleZonesDialog = ({ index, onClose }: RuleZonesDialogProps) => {
+  const { control } = useFormContext<Config>()
+  const { field: zones } = useController({
+    control,
+    name: `vts.throw.rules.${index}.zones`,
+  })
+  const minAmount = useWatch({
+    control,
+    name: `vts.throw.rules.${index}.minAmount`,
+  })
+
   // Keeps the zones in top-down order
   const toggleZone = (zone: VTSHitZone, isChecked: boolean) =>
-    onChange({
-      zones: VTS_HIT_ZONES.filter(other =>
-        other === zone ? isChecked : rule.zones.includes(other)
-      ),
-    })
+    zones.onChange(
+      VTS_HIT_ZONES.filter(other =>
+        other === zone ? isChecked : zones.value.includes(other)
+      )
+    )
 
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            Hit zones for {Number.isNaN(rule.minAmount) ? '?' : rule.minAmount}{' '}
-            THB
+            Hit zones for {Number.isNaN(minAmount) ? '?' : minAmount}
+            &nbsp;THB
           </DialogTitle>
           <DialogDescription>
             Each item of this rule hits one of these at random.
@@ -72,7 +82,7 @@ const RuleZonesDialog = ({ rule, onChange, onClose }: RuleZonesDialogProps) => {
               <li key={zone}>
                 <label className="hover:bg-muted has-data-checked:border-primary has-data-checked:bg-muted relative flex h-full cursor-pointer flex-col items-center gap-1.5 rounded-md border px-2 pt-6 pb-3 text-center transition-colors">
                   <Checkbox
-                    checked={rule.zones.includes(zone)}
+                    checked={zones.value.includes(zone)}
                     onCheckedChange={isChecked =>
                       toggleZone(zone, isChecked === true)
                     }
@@ -90,7 +100,7 @@ const RuleZonesDialog = ({ rule, onChange, onClose }: RuleZonesDialogProps) => {
         </ul>
         <DialogFooter className="items-center">
           <p className="text-muted-foreground mr-auto text-sm">
-            {rule.zones.length} selected
+            {zones.value.length} selected
           </p>
           <DialogClose asChild>
             <Button type="button">

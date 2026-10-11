@@ -12,7 +12,7 @@ export type VTSConnectionInfo = {
 
 export type VTSImageImport = {
   added: VTSCustomImage[]
-  /** Why each image VTube Studio couldn't use was left out */
+  /** Why the import skipped each image VTube Studio can't use */
   rejected: string[]
 }
 

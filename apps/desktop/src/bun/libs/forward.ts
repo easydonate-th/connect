@@ -32,7 +32,7 @@ export const forwardDonation = async (
 
   if (outputs.length === 0) {
     logger.warn(
-      `Donation ${donation.referenceNo} not forwarded: no output enabled in saved settings`
+      `Donation ${donation.referenceNo} not forwarded because no output is enabled in the saved settings`
     )
 
     return

@@ -1,5 +1,7 @@
 import { RadioTowerIcon } from 'lucide-react'
+import { useController, useFormContext } from 'react-hook-form'
 
+import NumberField from '~/components/NumberField'
 import OutputCard from '~/components/OutputCard'
 import {
   Field,
@@ -10,66 +12,48 @@ import {
 } from '~/components/ui/field'
 import { Input } from '~/components/ui/input'
 
-import { isValidPort, PORT_RANGE, OSCConfig } from '../../../shared/config'
+import { Config, PORT_RANGE } from '../../../shared/config'
 
-type OSCProps = {
-  value: OSCConfig
-  onChange: (patch: Partial<OSCConfig>) => void
-}
-
-const OSC = ({ value, onChange }: OSCProps) => {
-  const isHostInvalid = value.host.trim() === ''
-  const isPortInvalid = !isValidPort(value.port)
+const OSC = () => {
+  const { control } = useFormContext<Config>()
+  const {
+    field: host,
+    fieldState: { error: hostError },
+  } = useController({ control, name: 'vrc.osc.host' })
 
   return (
     <OutputCard
       id="osc"
+      name="vrc.osc.enabled"
       icon={RadioTowerIcon}
       title="OSC"
-      description="Send donations to VRChat's OSC input over UDP."
-      enabled={value.enabled}
-      onEnabledChange={enabled => onChange({ enabled })}
+      description="Send donations to VRChat’s OSC input over UDP."
     >
       <FieldGroup className="grid grid-cols-[1fr_8rem] gap-4">
-        <Field data-invalid={isHostInvalid}>
+        <Field data-invalid={hostError !== undefined}>
           <FieldLabel htmlFor="osc-host">Host</FieldLabel>
           <Input
+            {...host}
             id="osc-host"
             autoComplete="off"
             spellCheck={false}
             placeholder="127.0.0.1"
-            value={value.host}
-            onChange={event => onChange({ host: event.currentTarget.value })}
-            aria-invalid={isHostInvalid}
+            aria-invalid={hostError !== undefined}
           />
-          {isHostInvalid ? (
-            <FieldError>Host is required.</FieldError>
+          {hostError ? (
+            <FieldError>{hostError.message}</FieldError>
           ) : (
             <FieldDescription>
               VRChat runs on this machine by default.
             </FieldDescription>
           )}
         </Field>
-        <Field data-invalid={isPortInvalid}>
-          <FieldLabel htmlFor="osc-port">Port</FieldLabel>
-          <Input
-            id="osc-port"
-            type="number"
-            min={PORT_RANGE.min}
-            max={PORT_RANGE.max}
-            placeholder="9000"
-            value={Number.isNaN(value.port) ? '' : value.port}
-            onChange={event =>
-              onChange({ port: event.currentTarget.valueAsNumber })
-            }
-            aria-invalid={isPortInvalid}
-          />
-          {isPortInvalid && (
-            <FieldError>
-              {PORT_RANGE.min}-{PORT_RANGE.max}
-            </FieldError>
-          )}
-        </Field>
+        <NumberField
+          name="vrc.osc.port"
+          label="Port"
+          range={PORT_RANGE}
+          placeholder="9000"
+        />
       </FieldGroup>
     </OutputCard>
   )

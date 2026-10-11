@@ -16,11 +16,11 @@ const getMainViewUrl = async () => {
       const DEV_SERVER_URL = `http://localhost:5173`
 
       await fetch(DEV_SERVER_URL, { method: 'HEAD' })
-      console.log(`HMR enabled: Using Vite dev server at ${DEV_SERVER_URL}`)
+      console.log(`Using the Vite dev server at ${DEV_SERVER_URL} for HMR`)
       return DEV_SERVER_URL
     } catch {
       console.log(
-        "Vite dev server not running. Run 'bun run hmr' for HMR support."
+        "The Vite dev server is not running. Run 'bun run hmr' for HMR."
       )
     }
   }
@@ -65,7 +65,7 @@ const startApp = async () => {
 
   setLogSink(entry => mainWindow.webview.rpc?.send.log(entry))
 
-  console.log(`${mainWindow.title} app started!`)
+  console.log(`${mainWindow.title} started`)
 }
 
 if (acquireSingleInstance(`app.ezdn.connect-${channel}`)) {

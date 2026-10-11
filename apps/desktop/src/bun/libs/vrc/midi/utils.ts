@@ -3,16 +3,16 @@ import type { MIDIMessage } from './winmm'
 
 /**
  * Udon only receives Note On/Off and Control Change events, whose data bytes
- * are 7-bit, so the donation is sent as JSON one character per Control
- * Change on `channel` (Udon sees it as `channel - 1`):
+ * are 7-bit, so the donation goes out as JSON, one character per Control
+ * Change on `channel`. Udon sees that channel as `channel - 1`.
  *
- * - CC 20 (value 0): start of a message, the receiver clears its buffer
- * - CC 21 (value = character): one character of the JSON
- * - CC 22 (value = checksum): end of the message; the checksum is the sum of
- *   all character codes, keeping the low 7 bits
+ * - CC 20 with value 0 starts a message, and the receiver clears its buffer.
+ * - CC 21 carries one character of the JSON as its value.
+ * - CC 22 ends the message. Its value is a checksum, the sum of all character
+ *   codes kept to the low 7 bits.
  *
- * Non-ASCII characters are escaped as `\uXXXX` so every character fits in
- * 7 bits; `VRCJson` unescapes them on the Udon side.
+ * `encodeDonation` escapes non-ASCII characters as `\uXXXX` so every character
+ * fits in 7 bits, and `VRCJson` unescapes them on the Udon side.
  */
 const CC_START = 20
 const CC_DATA = 21
@@ -21,7 +21,7 @@ const CONTROL_CHANGE = 0xb0
 
 const escapeUnit = (unit: number) => `\\u${unit.toString(16).padStart(4, '0')}`
 
-/** JSON escape for one character, as a UTF-16 surrogate pair if needed. */
+/** Escapes one character for JSON, using a surrogate pair above U+FFFF. */
 const escapeChar = (char: string) => {
   const code = char.codePointAt(0) ?? 0
 

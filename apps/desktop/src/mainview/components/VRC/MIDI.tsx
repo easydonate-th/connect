@@ -1,6 +1,8 @@
 import { cn } from 'cn'
 import { PianoIcon, RefreshCwIcon } from 'lucide-react'
+import { useController, useFormContext } from 'react-hook-form'
 
+import NumberField from '~/components/NumberField'
 import OutputCard from '~/components/OutputCard'
 import { Button } from '~/components/ui/button'
 import {
@@ -10,7 +12,6 @@ import {
   FieldGroup,
   FieldLabel,
 } from '~/components/ui/field'
-import { Input } from '~/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -20,54 +21,48 @@ import {
 } from '~/components/ui/select'
 import { useMIDIDevices } from '~/hooks/use-midi-devices'
 
-import {
-  isValidMIDIChannel,
-  isValidMIDIDevice,
-  MIDI_CHANNEL_RANGE,
-  MIDIConfig,
-} from '../../../shared/config'
+import { Config, MIDI_CHANNEL_RANGE } from '../../../shared/config'
 
-type MIDIProps = {
-  value: MIDIConfig
-  onChange: (patch: Partial<MIDIConfig>) => void
-}
-
-const MIDI = ({ value, onChange }: MIDIProps) => {
+const MIDI = () => {
   const { devices, isScanning, scan } = useMIDIDevices()
-  const isChannelInvalid = !isValidMIDIChannel(value.channel)
-  const isDeviceFound = devices.includes(value.deviceName)
+
+  const { control } = useFormContext<Config>()
+  const {
+    field: deviceName,
+    fieldState: { error: deviceError },
+  } = useController({ control, name: 'vrc.midi.deviceName' })
+
+  const isDeviceFound = devices.includes(deviceName.value)
   const isDeviceMissing =
-    value.deviceName !== '' && !isDeviceFound && !isScanning
-  const isDeviceUnset = !isValidMIDIDevice(value)
+    deviceName.value !== '' && !isDeviceFound && !isScanning
   // Keep a saved device in the list while its port is missing. Radix Select
-  // rejects empty item values, so unnamed ports are left out.
+  // rejects empty item values, so the list leaves out unnamed ports.
   const options = (
-    value.deviceName === '' || isDeviceFound
+    deviceName.value === '' || isDeviceFound
       ? devices
-      : [value.deviceName, ...devices]
+      : [deviceName.value, ...devices]
   ).filter(name => name !== '')
 
   return (
     <OutputCard
       id="midi"
+      name="vrc.midi.enabled"
       icon={PianoIcon}
       title="MIDI"
       description="Send donations to VRChat through a MIDI device."
-      enabled={value.enabled}
-      onEnabledChange={enabled => onChange({ enabled })}
     >
       <FieldGroup className="grid grid-cols-[1fr_8rem] gap-4">
-        <Field data-invalid={isDeviceMissing || isDeviceUnset}>
+        <Field data-invalid={isDeviceMissing || deviceError !== undefined}>
           <FieldLabel htmlFor="midi-device">Device</FieldLabel>
           <div className="flex gap-2">
             <Select
-              value={value.deviceName}
-              onValueChange={deviceName => onChange({ deviceName })}
+              value={deviceName.value}
+              onValueChange={name => deviceName.onChange(name)}
             >
               <SelectTrigger
                 id="midi-device"
                 className="min-w-0 flex-1"
-                aria-invalid={isDeviceMissing || isDeviceUnset}
+                aria-invalid={isDeviceMissing || deviceError !== undefined}
               >
                 <SelectValue
                   placeholder={
@@ -98,34 +93,20 @@ const MIDI = ({ value, onChange }: MIDIProps) => {
           </div>
           {isDeviceMissing ? (
             <FieldError>Device not found. Is loopMIDI running?</FieldError>
-          ) : isDeviceUnset ? (
-            <FieldError>Select a device to send donations.</FieldError>
+          ) : deviceError ? (
+            <FieldError>{deviceError.message}</FieldError>
           ) : (
             <FieldDescription>
               loopMIDI port that VRChat reads from.
             </FieldDescription>
           )}
         </Field>
-        <Field data-invalid={isChannelInvalid}>
-          <FieldLabel htmlFor="midi-channel">Channel</FieldLabel>
-          <Input
-            id="midi-channel"
-            type="number"
-            min={MIDI_CHANNEL_RANGE.min}
-            max={MIDI_CHANNEL_RANGE.max}
-            placeholder="1"
-            value={Number.isNaN(value.channel) ? '' : value.channel}
-            onChange={event =>
-              onChange({ channel: event.currentTarget.valueAsNumber })
-            }
-            aria-invalid={isChannelInvalid}
-          />
-          {isChannelInvalid && (
-            <FieldError>
-              {MIDI_CHANNEL_RANGE.min}-{MIDI_CHANNEL_RANGE.max}
-            </FieldError>
-          )}
-        </Field>
+        <NumberField
+          name="vrc.midi.channel"
+          label="Channel"
+          range={MIDI_CHANNEL_RANGE}
+          placeholder="1"
+        />
       </FieldGroup>
     </OutputCard>
   )

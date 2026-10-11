@@ -11,7 +11,10 @@ import { readToken, writeToken } from './token'
 
 type Endpoint = Pick<VTSThrowConfig, 'host' | 'port'>
 
-/** `pluginName` and `pluginDeveloper` must match between token and auth. */
+/**
+ * `pluginName` and `pluginDeveloper` must be the same in the token request and
+ * the authentication request.
+ */
 const PLUGIN: PluginInfo = {
   pluginName: 'EasyDonate Connect',
   pluginDeveloper: 'EasyDonate',
@@ -19,8 +22,8 @@ const PLUGIN: PluginInfo = {
 
 const CONNECT_TIMEOUT = 5000
 const REQUEST_TIMEOUT = 10_000
-// Token and permission requests that show a popup only answer once the user
-// clicks Allow or Deny in VTube Studio
+// VTube Studio answers a token or permission request that shows a popup only
+// after the user clicks Allow or Deny
 const APPROVAL_TIMEOUT = 120_000
 
 export class VTSError extends Error {
@@ -39,7 +42,7 @@ export type VTSSession = {
     data: APIRequests[K]['data'],
     timeout?: number
   ) => Promise<APIRequests[K]['response']>
-  /** Resolves with the next `eventName` event; subscribe to it separately. */
+  /** Resolves with the next `eventName` event. Subscribe to it separately. */
   waitForEvent: <K extends keyof APIEvents>(
     eventName: K,
     timeout: number
@@ -61,7 +64,7 @@ const openSocket = async ({ host, port }: Endpoint) => {
   const fail = () =>
     reject(
       new Error(
-        `Cannot connect to VTube Studio at ${host}:${port}. Is "Allow Plugin API access" on and the port right?`
+        `Cannot connect to VTube Studio at ${host}:${port}. Turn on “Allow Plugin API access” in VTube Studio and check the port.`
       )
     )
 
@@ -99,7 +102,7 @@ const createSession = (socket: WebSocket): VTSSession => {
       }
     }
 
-    // Messages without a pending request (e.g. events) are ignored
+    // Skips messages without a pending request, such as events
     const { requestID } = message
     const entry = requestID ? pending.get(requestID) : undefined
     if (!requestID || !entry) {
@@ -196,8 +199,8 @@ const authenticateWith = async (session: VTSSession, token: string) => {
   return authenticated
 }
 
-// VTube Studio shows one approval popup at a time, so sessions that need a
-// token while one is being requested wait for that request
+// VTube Studio shows one approval popup at a time, so a session that needs a
+// token while another session asks for one waits for that request
 let tokenRequest: Promise<string> | undefined
 
 const fetchToken = async (session: VTSSession) => {
@@ -253,7 +256,8 @@ const fetchCustomImagePermission = async (session: VTSSession) => {
   }
 }
 
-// VTube Studio answers at once when allowed before, and with a popup otherwise
+// VTube Studio answers at once if the user allowed custom images before, and
+// shows a popup otherwise
 export const allowCustomImages = (session: VTSSession) => {
   permissionRequest ??= fetchCustomImagePermission(session)
 

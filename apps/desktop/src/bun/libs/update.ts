@@ -6,8 +6,6 @@ import { logger } from '../logger'
 
 const LATEST_RELEASE_URL = `https://api.github.com/repos/${REPOSITORY}/releases/latest`
 
-// Release tags are dates, so the version comes from the notes release.yml
-// writes
 const DESKTOP_VERSION_PATTERN =
   /EasyDonate Connect \(desktop app\): (?<version>\S+)/u
 
@@ -15,11 +13,9 @@ type Release = { html_url: string; body: string | null }
 
 export const getAppVersion = () => Updater.localInfo.version()
 
-/** Compares this build with the latest GitHub release, prereleases excluded. */
 export const checkForUpdate = async (): Promise<UpdateCheck> => {
   const response = await fetch(LATEST_RELEASE_URL, {
     headers: { Accept: 'application/vnd.github+json' },
-    // Fails before the webview's request limit, with a clearer message
     signal: AbortSignal.timeout(8000),
   })
 

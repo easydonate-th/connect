@@ -70,7 +70,7 @@ const aimAt = (zone: VTSHitZone, { model, bounds }: Target) => {
 
   return {
     x: model.positionX + randomBetween(-0.15, 0.15),
-    // Without an outline every zone aims at the model's center
+    // Without an outline, every zone aims at the model's center
     y: bounds
       ? bounds.top - (bounds.top - bounds.bottom) * randomBetween(from, to)
       : model.positionY + randomBetween(-0.15, 0.15),
@@ -127,7 +127,8 @@ const loadImage = async (
 ) => {
   const key = `${host}:${port}/${image.fileName}`
   const cached = loadedImageNames.get(key)
-  // A failed upload by another throw falls through to uploading here
+  // When another throw's upload failed, `cachedName` is `null`, so this throw
+  // uploads the image again
   const cachedName = cached && (await cached)
 
   if (cached && cachedName) {
@@ -158,8 +159,8 @@ const loadImage = async (
     }
   })()
 
-  // Set before the upload finishes, so throws of the same image wait for it
-  // instead of sending the data again
+  // Stores the name before the upload finishes, so other throws of the same
+  // image wait for it instead of sending the data again
   loadedImageNames.set(key, name)
 
   try {
@@ -254,7 +255,9 @@ const throwItem = async (
     rotation: -side * spin,
   })
   await sleep(flightTime)
-  // Hits further from the head knock it less
+  // Dividing by the flight distance leaves a unit direction, so the hit's
+  // strength is the zone's force, which is lower for zones farther from the
+  // head
   const force =
     ZONES[zone].force / Math.hypot(target.x - start.x, target.y - start.y)
   reaction.hit((target.x - start.x) * force, (target.y - start.y) * force)
@@ -279,7 +282,7 @@ const throwItem = async (
 }
 
 /**
- * Items are loaded with `unloadWhenPluginDisconnects`, so closing the session
+ * Loads items with `unloadWhenPluginDisconnects`, so closing the session
  * removes them even when a step fails midway.
  */
 export const sendDonationVTS = async (

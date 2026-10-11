@@ -128,9 +128,9 @@ const importImage = async (sourcePath: string): Promise<VTSCustomImage> => {
 
 export const importVTSImages = async (): Promise<VTSImageImport> => {
   const paths = await Utils.openFileDialog({
-    // No filter: on Windows, Electrobun makes one filter per extension and
-    // shows only the first, hiding JPGs and GIFs. `importImage` rejects
-    // anything unusable instead.
+    // No filter, because on Windows, Electrobun makes one filter per extension
+    // and shows only the first, which hides JPGs and GIFs. `importImage`
+    // rejects unusable files instead.
     allowedFileTypes: '*',
     canChooseFiles: true,
     canChooseDirectory: false,
@@ -169,7 +169,7 @@ export const pruneVTSImages = async (keep: VTSCustomImage[]) => {
   try {
     fileNames = await fs.readdir(imagesDir)
   } catch {
-    // No image was ever imported
+    // The folder doesn't exist until the user imports an image
     return
   }
 

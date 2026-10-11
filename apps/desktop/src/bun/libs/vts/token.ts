@@ -5,9 +5,10 @@ import path from 'node:path'
 import { logger } from '../../logger'
 
 /**
- * The plugin token VTube Studio hands out once the user allows the plugin.
- * Kept out of `config.json`: the webview saves its whole draft there, which
- * would overwrite a token obtained after the draft was loaded.
+ * The file that holds the plugin token VTube Studio gives out once the user
+ * allows the plugin. The token stays out of `config.json` because the webview
+ * saves its whole draft there, which would overwrite a token that arrived
+ * after the webview loaded the draft.
  */
 const TOKEN_FILE_NAME = 'vts-token.json'
 

@@ -26,7 +26,9 @@ const MAX_STEP = 0.05
 const FREQUENCY = 2 * Math.PI * 1.6
 /** Below 1, so the head overshoots and wobbles back a few times */
 const DAMPING_RATIO = 0.3
-/** Velocity one hit gives at strength 1; peaks near 0.6 displacement */
+/**
+ * Velocity one hit gives at strength 1. The displacement then peaks near 0.6.
+ */
 const IMPULSE = 6
 const MAX_DISPLACEMENT = 1.5
 const REST_POSITION = 0.002
@@ -53,9 +55,9 @@ const isAtRest = (spring: Spring) =>
 
 /**
  * Knocks the model's head away from each item that hits it, on a damped
- * spring, by adding to its tracking inputs in `add` mode, so face tracking
- * keeps working and overlapping donations add up instead of failing.
- * `strength` 0 turns it off.
+ * spring. It adds to the tracking inputs in `add` mode, so face tracking keeps
+ * working and overlapping donations add up instead of failing. `strength` 0
+ * turns it off.
  */
 export const createHitReaction = (session: VTSSession, strength: number) => {
   const springs: Record<Axis, Spring> = {
@@ -90,7 +92,8 @@ export const createHitReaction = (session: VTSSession, strength: number) => {
       stepSpring(springs.x, seconds)
       stepSpring(springs.y, seconds)
 
-      // An added value lingers for a second unless it's sent again
+      // VTube Studio keeps an added value for a second after the last send,
+      // so a final 0 clears it at once
       if (isSettled()) {
         await inject(true)
       }
@@ -109,7 +112,7 @@ export const createHitReaction = (session: VTSSession, strength: number) => {
         )
       } finally {
         loop = undefined
-        // A hit landed while the last frame was on its way
+        // A hit landed between the last settled check and `loop = undefined`
         if (!hasFailed && !isSettled()) {
           start()
         }
@@ -133,7 +136,8 @@ export const createHitReaction = (session: VTSSession, strength: number) => {
     },
     /** Resolves once the head is back at rest. */
     settled: async () => {
-      // A restart replaces `loop` before the one it ends resolves
+      // A restart sets a new `loop` before the previous one resolves, so wait
+      // until no loop is left
       for (let current = loop; current; current = loop) {
         await current
       }

@@ -13,12 +13,6 @@ const ICON_BIG = 1
 
 const toWideString = (text: string) => Buffer.from(`${text}\0`, 'utf16le')
 
-/**
- * Sets the window's title bar and taskbar icon to `Resources/app.ico`, which
- * Hutch copies from `build.win.icon`. Hutch embeds that icon in the exes, but
- * Electrobun registers its window class without one and never sends
- * `WM_SETICON`, so the window shows the default icon. Windows only.
- */
 export const setWindowIcon = (window: BrowserWindow) => {
   if (process.platform !== 'win32') {
     return
@@ -46,14 +40,17 @@ export const setWindowIcon = (window: BrowserWindow) => {
 
   const hwnd = window.ptr
   if (!hwnd || !user32.IsWindow(hwnd)) {
-    logger.warn('Failed to set window icon: no window handle')
+    logger.warn(
+      'Failed to set the window icon because the window has no handle'
+    )
     return
   }
 
   const iconPath = ptr(
     toWideString(path.join(PATHS.RESOURCES_FOLDER, 'app.ico'))
   )
-  // SM_CXICON/SM_CYICON (11/12) and SM_CXSMICON/SM_CYSMICON (49/50)
+  // The GetSystemMetrics indexes are SM_CXICON 11, SM_CYICON 12, SM_CXSMICON 49
+  // and SM_CYSMICON 50
   const sizes = [
     [ICON_BIG, 11, 12],
     [ICON_SMALL, 49, 50],

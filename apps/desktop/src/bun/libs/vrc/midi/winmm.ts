@@ -1,9 +1,9 @@
 import { dlopen, FFIType, ptr } from 'bun:ffi'
 
 /**
- * MIDI output through the Windows multimedia API (winmm.dll), loaded with
- * `bun:ffi` so no native addon is needed. WinMM cannot create ports, so the
- * user provides one with a virtual MIDI driver such as loopMIDI.
+ * Sends MIDI through the Windows multimedia API in winmm.dll, which `bun:ffi`
+ * loads, so the app needs no native addon. WinMM cannot create ports, so the
+ * user creates one with a virtual MIDI driver such as loopMIDI.
  */
 
 /** A 3-byte channel message: status, data1, data2. */
@@ -30,7 +30,7 @@ const loadWinMM = () =>
     midiOutClose: { args: [FFIType.u64], returns: FFIType.u32 },
   }).symbols
 
-// Loaded on first use; winmm.dll only exists on Windows
+// getWinMM loads winmm.dll on first use, since the DLL only exists on Windows
 let winmm: ReturnType<typeof loadWinMM> | undefined
 const getWinMM = () => (winmm ??= loadWinMM())
 
@@ -41,7 +41,7 @@ const check = (result: number, action: string) => {
   }
 }
 
-/** Names of the MIDI output ports, indexed by WinMM device ID. */
+/** Returns the MIDI output port names, indexed by WinMM device ID. */
 export const getMIDIDevices = () => {
   if (process.platform !== 'win32') {
     return []

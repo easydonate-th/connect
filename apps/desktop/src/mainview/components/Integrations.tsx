@@ -14,13 +14,6 @@ import MIDI from '~/components/VRC/MIDI'
 import OSC from '~/components/VRC/OSC'
 import Throw from '~/components/VTS/Throw'
 
-import type {
-  Config,
-  MIDIConfig,
-  OSCConfig,
-  VTSThrowConfig,
-} from '../../shared/config'
-
 type CategoryLabelProps = {
   icon: LucideIcon
   name: string
@@ -36,24 +29,11 @@ const CategoryLabel = ({ icon: Icon, name, children }: CategoryLabelProps) => (
 )
 
 type IntegrationsProps = {
-  vrc: Config['vrc']
-  onOSCChange: (patch: Partial<OSCConfig>) => void
-  onMIDIChange: (patch: Partial<MIDIConfig>) => void
-  vts: Config['vts']
-  onVTSThrowChange: (patch: Partial<VTSThrowConfig>) => void
   canSendTest: boolean
   onSendTest: () => void
 }
 
-const Integrations = ({
-  vrc,
-  onOSCChange,
-  onMIDIChange,
-  vts,
-  onVTSThrowChange,
-  canSendTest,
-  onSendTest,
-}: IntegrationsProps) => (
+const Integrations = ({ canSendTest, onSendTest }: IntegrationsProps) => (
   <Card className="gap-0 py-0">
     <CardHeader className="border-b py-4">
       <CardTitle>Integrations</CardTitle>
@@ -64,8 +44,8 @@ const Integrations = ({
           <CategoryLabel icon={Gamepad2Icon} name="VRChat" />
         </AccordionTrigger>
         <AccordionContent className="flex h-auto flex-col gap-4 px-4 pt-px pb-4">
-          <OSC value={vrc.osc} onChange={onOSCChange} />
-          <MIDI value={vrc.midi} onChange={onMIDIChange} />
+          <OSC />
+          <MIDI />
         </AccordionContent>
       </AccordionItem>
       <AccordionItem value="vtube-studio">
@@ -73,12 +53,7 @@ const Integrations = ({
           <CategoryLabel icon={VideoIcon} name="VTube Studio" />
         </AccordionTrigger>
         <AccordionContent className="flex h-auto flex-col gap-4 px-4 pt-px pb-4">
-          <Throw
-            value={vts.throw}
-            onChange={onVTSThrowChange}
-            canSendTest={canSendTest}
-            onSendTest={onSendTest}
-          />
+          <Throw canSendTest={canSendTest} onSendTest={onSendTest} />
         </AccordionContent>
       </AccordionItem>
       <AccordionItem value="warudo" disabled>

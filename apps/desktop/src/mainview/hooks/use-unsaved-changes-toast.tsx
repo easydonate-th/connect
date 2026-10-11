@@ -14,7 +14,7 @@ type UnsavedChangesToastOptions = {
   onSave: () => void
 }
 
-/** Lets unsaved changes be saved without scrolling to the Save button. */
+/** Lets the user save changes without scrolling to the Save button. */
 export const useUnsavedChangesToast = ({
   isDirty,
   isValid,

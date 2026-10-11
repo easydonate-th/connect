@@ -7,9 +7,9 @@ const STATUS_STYLES: Record<
   { label: string; dot: string; pulse: boolean }
 > = {
   idle: { label: 'Not connected', dot: 'bg-muted-foreground', pulse: false },
-  connecting: { label: 'Connecting', dot: 'bg-amber-500', pulse: true },
+  connecting: { label: 'Connecting…', dot: 'bg-amber-500', pulse: true },
   connected: { label: 'Connected', dot: 'bg-emerald-500', pulse: false },
-  reconnecting: { label: 'Reconnecting', dot: 'bg-red-500', pulse: true },
+  reconnecting: { label: 'Reconnecting…', dot: 'bg-red-500', pulse: true },
 }
 
 type ConnectionBadgeProps = {

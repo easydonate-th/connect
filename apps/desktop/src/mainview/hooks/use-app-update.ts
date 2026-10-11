@@ -20,7 +20,7 @@ const runCheck = async () => {
         },
       })
     } else {
-      toast.success("You're up to date", {
+      toast.success('You’re up to date', {
         description: `Version ${update.currentVersion} is the latest.`,
       })
     }

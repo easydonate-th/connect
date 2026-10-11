@@ -8,14 +8,16 @@ export type ModelBounds = { top: number; bottom: number }
 const OUTLINE_TIMEOUT = 1000
 
 /**
- * Reads one frame of the model's outline, or `null` when VTube Studio doesn't
- * send one (versions before the event) or the model is out of view.
+ * Reads the model's bounds from one outline frame. Returns `null` when VTube
+ * Studio sends no frame (versions before the event) or the model is out of
+ * view.
  */
 export const getModelBounds = async (
   session: VTSSession
 ): Promise<ModelBounds | null> => {
   try {
-    // Waits before subscribing, since the first frame can beat the response
+    // Waits before subscribing, since the first frame can arrive before the
+    // subscription response
     const [{ convexHull }] = await Promise.all([
       session.waitForEvent('ModelOutlineEvent', OUTLINE_TIMEOUT),
       session.request('EventSubscriptionRequest', {
@@ -25,7 +27,7 @@ export const getModelBounds = async (
       }),
     ])
     const ys = convexHull.map(point => point.y)
-    // Only the part on screen can be hit
+    // Items can only hit the part on screen
     const top = Math.min(Math.max(...ys), 1)
     const bottom = Math.max(Math.min(...ys), -1)
 

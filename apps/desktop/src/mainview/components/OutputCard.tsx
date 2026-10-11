@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { useController, useFormContext } from 'react-hook-form'
 
 import {
   Card,
@@ -11,25 +12,29 @@ import {
 } from '~/components/ui/card'
 import { Switch } from '~/components/ui/switch'
 
+import type { Config } from '../../shared/config'
+
 type OutputCardProps = {
   id: string
+  /** The output's `enabled` field, which the card's switch toggles */
+  name: 'vrc.osc.enabled' | 'vrc.midi.enabled' | 'vts.throw.enabled'
   icon: LucideIcon
   title: string
   description: string
-  enabled: boolean
-  onEnabledChange: (enabled: boolean) => void
   children: ReactNode
 }
 
 const OutputCard = ({
   id,
+  name,
   icon: Icon,
   title,
   description,
-  enabled,
-  onEnabledChange,
   children,
 }: OutputCardProps) => {
+  const { control } = useFormContext<Config>()
+  const { field: enabled } = useController({ control, name })
+
   const titleId = `${id}-title`
 
   return (
@@ -42,15 +47,15 @@ const OutputCard = ({
         <CardDescription>{description}</CardDescription>
         <CardAction>
           <Switch
-            checked={enabled}
-            onCheckedChange={onEnabledChange}
+            checked={enabled.value}
+            onCheckedChange={isChecked => enabled.onChange(isChecked)}
             aria-labelledby={titleId}
           />
         </CardAction>
       </CardHeader>
       <CardContent>
         <fieldset
-          disabled={!enabled}
+          disabled={!enabled.value}
           aria-labelledby={titleId}
           className="transition-opacity disabled:opacity-60"
         >

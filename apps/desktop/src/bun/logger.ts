@@ -4,7 +4,6 @@ type LogSink = (entry: LogEntry) => void
 
 let sink: LogSink | undefined
 
-/** Sets where log entries go besides the console (the webview Logs panel). */
 export const setLogSink = (next: LogSink) => {
   sink = next
 }
@@ -21,7 +20,7 @@ const write = (level: LogLevel, message: string) => {
   try {
     sink?.(entry)
   } catch {
-    // The webview may not be connected yet; the console still has the entry
+    //
   }
 }
 
