@@ -12,12 +12,12 @@
 1. Install the [latest release](https://github.com/easydonate-th/connect/releases) of the desktop app
 2. Enable the Plugin API in VTube Studio
 
-![Step2](image.png)
+<img src="image.png" alt="Plugin API setting in VTube Studio" width="360" />
 
 3. Open the desktop app, Go to **Integrations > VTube Studio** and click **Connect** test connection. The VTube Studio will pop up a prompt to allow the plugin. Click **Allow**
 
-![Step3-1](image-1.png)
+<img src="image-1.png" alt="VTube Studio connection settings in the desktop app" width="560" />
 
-![Step3-2](image-2.png)
+<img src="image-2.png" alt="VTube Studio plugin permission prompt" width="440" />
 
 4. Choose or upload image and test it with, **Send Test Donation**

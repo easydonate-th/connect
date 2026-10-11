@@ -29,7 +29,7 @@ World Instance
 2. Install the [latest release](https://github.com/easydonate-th/connect/releases) of the desktop app
 3. Add port on the loopMIDI application
 
-![loopMIDI Port](image.png)
+<img src="image.png" alt="Adding a port in loopMIDI" width="360" />
 
 4. Open https://easydonate-th.github.io/connect/ and click **Add to VCC**. Or, in VCC or ALCOM, go to **Settings > Packages > Add Repository** and add `https://easydonate-th.github.io/connect/index.json`
 5. Open your world project with **Manage Project** and add **EasyDonateSDK**.
@@ -40,7 +40,7 @@ World Instance
 
 1. Get the **Alert Widget URL** from the [dashboard](https://easydonate.app/dashboard) and paste it into **Alert Widget URL** in the desktop app
 
-![alt text](image-1.png)
+<img src="image-1.png" alt="Alert Widget URL field in the desktop app" width="560" />
 
 2. Click **Connect**. The app will show **Connected** when the connection is successful, else it will show an error message
 
@@ -51,7 +51,7 @@ World Instance
 3. Pick your loopMIDI port in **Device**. If you created the port after opening the app, click the refresh button to scan again.
 4. Set **Channel** (1-16). The world's Donate Manager must use the same channel.
 
-![alt text](image-2.png)
+<img src="image-2.png" alt="MIDI output settings in the desktop app" width="560" />
 
 5. Click **Save**. Donations go only to the outputs turned on in the saved settings.
 6. Launch VRChat with `--midi=<loopMIDI port name>`, for example `--midi=EasyDonate` in Steam's launch options.
@@ -61,17 +61,17 @@ World Instance
 
 1. On the top navigation, choose VRChat SDK > Utilities > Midi and set your midi device that matches the desktop app
 
-![alt text](image-4.png)
+<img src="image-4.png" alt="VRChat SDK Utilities Midi menu" width="400" />
 
-![alt text](image-5.png)
+<img src="image-5.png" alt="Choosing the MIDI device in Unity" width="260" />
 
 2. Choose **GameObject > EasyDonate > Donate Manager**
 
-![alt text](image-6.png)
+<img src="image-6.png" alt="GameObject > EasyDonate > Donate Manager menu" width="360" />
 
 3. On `DonateManager`, set **Midi Channel** to the channel used in the desktop app, and add the allowed VRChat username to **Allowed Usernames**.
 
-![alt text](image-7.png)
+<img src="image-7.png" alt="Donate Manager inspector" width="440" />
 
 4. Add **Donate Trigger** components to other objects for the effects you want. Each trigger has a **Min Amount** and **Max Amount** in THB, and can turn on objects, set an Animator trigger, play a sound or send a custom event to an UdonBehaviour. Keep triggers off `DonateManager` itself.
 
@@ -79,7 +79,7 @@ World Instance
 
 Example prefabs come with the SDK, in the `Examples` folder under **Packages > EasyDonateSDK** in the Project window.
 
-![alt text](image-8.png)
+<img src="image-8.png" alt="SDK example prefabs in the Project window" width="480" />
 
 ### Test
 
