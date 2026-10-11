@@ -20,6 +20,10 @@ export const VTS_RULE_RANGES = {
   count: { min: 1, max: 20, integer: true },
 } as const
 
+/** Parts of the model an item can hit, from the top down */
+export const VTS_HIT_ZONES = ['head', 'body', 'feet'] as const
+
+export type VTSHitZone = (typeof VTS_HIT_ZONES)[number]
 export type VTSThrowRangeKey = keyof typeof VTS_THROW_RANGES
 export type VTSRuleRangeKey = keyof typeof VTS_RULE_RANGES
 
@@ -100,8 +104,9 @@ const VTSCustomImageSchema = z.object({
 /**
  * Throws `count` items at a donation of at least `minAmount` THB, each picked
  * at random from the config's `items` and `customImages`, or with `custom`
- * from the rule's own `items` and `images`. A donation uses the rule with the highest
- * `minAmount` it reaches, and throws nothing below every rule.
+ * from the rule's own `items` and `images`, at one of its `zones`. A donation
+ * uses the rule with the highest `minAmount` it reaches, and throws nothing
+ * below every rule.
  */
 const VTSThrowRuleSchema = z.object({
   /** Stable React key */
@@ -113,6 +118,12 @@ const VTSThrowRuleSchema = z.object({
   items: listOf(z.string()),
   /** Picks from the config's `customImages`, by `fileName` */
   images: listOf(z.string()),
+  /** Each item hits one of these at random; none falls back to all */
+  zones: listOf(z.enum(VTS_HIT_ZONES)).transform(zones =>
+    zones.length > 0
+      ? VTS_HIT_ZONES.filter(zone => zones.includes(zone))
+      : [...VTS_HIT_ZONES]
+  ),
 })
 
 const VTSThrowConfigSchema = z
@@ -233,6 +244,7 @@ export const isDuplicateVTSRuleAmount = (
 const isValidVTSRule = (rule: VTSThrowRule, rules: VTSThrowRule[]) =>
   isValidVTSRuleValue('minAmount', rule.minAmount) &&
   isValidVTSRuleValue('count', rule.count) &&
+  rule.zones.length > 0 &&
   !isDuplicateVTSRuleAmount(rule, rules)
 
 const isValidVTSRules = ({

@@ -149,6 +149,35 @@ export type APIRequests = {
       }[]
     }
   }
+  /** Events then arrive as messages with the event name as `messageType` */
+  EventSubscriptionRequest: {
+    data: {
+      eventName: keyof APIEvents
+      subscribe: boolean
+      /** `draw` shows the outline in VTube Studio, for debugging */
+      config?: { draw: boolean }
+    }
+    response: { subscribedEventCount: number; subscribedEvents: string[] }
+  }
+}
+
+type Point = { x: number; y: number }
+
+/** The events this app subscribes to, keyed by name, with their `data` */
+export type APIEvents = {
+  /** Sent 15 times a second while a model is loaded */
+  ModelOutlineEvent: {
+    modelName: string
+    modelID: string
+    /**
+     * The model's rough outline, at least 3 points, in window coordinates;
+     * points outside the window go past -1 or 1
+     */
+    convexHull: Point[]
+    /** Average of the `convexHull` points */
+    convexHullCenter: Point
+    windowSize: Point
+  }
 }
 
 export type APIErrorData = { errorID: number; message: string }

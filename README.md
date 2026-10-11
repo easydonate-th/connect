@@ -6,9 +6,9 @@ Connects to your [EasyDonate](https://easydonate.app) alert widget and forwards 
 
 ### [VRChat](docs/VRChat/README.md)
 
-### [Warudo](docs/Warudo/README.md) (work in progress)
+### [VTube Studio](docs/VTube%20Studio/README.md)
 
-### [VTube Studio](docs/VTube%20Studio/README.md) (work in progress)
+### [Warudo](docs/Warudo/README.md) (work in progress)
 
 ## Project outline
 

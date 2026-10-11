@@ -1,4 +1,4 @@
-import { ImagesIcon, PlusIcon, Trash2Icon } from 'lucide-react'
+import { CrosshairIcon, ImagesIcon, PlusIcon, Trash2Icon } from 'lucide-react'
 import { useState } from 'react'
 
 import TestDonationButton from '~/components/TestDonationButton'
@@ -19,12 +19,14 @@ import {
 } from '~/components/ui/tooltip'
 import { AlignedField, RangeField } from '~/components/VTS/fields'
 import RuleItemsDialog from '~/components/VTS/RuleItemsDialog'
+import RuleZonesDialog from '~/components/VTS/RuleZonesDialog'
 
 import {
   createVTSThrowRule,
   isDuplicateVTSRuleAmount,
   isValidVTSRuleItems,
   isValidVTSRuleValue,
+  VTS_HIT_ZONES,
   VTS_RULE_RANGES,
   VTSCustomImage,
   VTSThrowRule,
@@ -32,6 +34,15 @@ import {
 
 // Puts a new rule above the highest one, so its Min THB isn't a duplicate
 const NEW_RULE_STEP = 100
+
+const formatZones = (zones: VTSThrowRule['zones']) =>
+  zones.length === VTS_HIT_ZONES.length
+    ? 'All'
+    : zones.length === 0
+      ? 'None'
+      : zones.map(zone => zone[0].toUpperCase() + zone.slice(1)).join(', ')
+
+type OpenDialog = { ruleId: string; kind: 'items' | 'zones' }
 
 type ThrowRulesProps = {
   /** Throwing is on, so every rule needs something to throw */
@@ -53,8 +64,8 @@ const ThrowRules = ({
   canSendTest,
   onSendTest,
 }: ThrowRulesProps) => {
-  const [dialogRuleId, setDialogRuleId] = useState<string | null>(null)
-  const dialogRule = rules.find(rule => rule.id === dialogRuleId)
+  const [dialog, setDialog] = useState<OpenDialog | null>(null)
+  const dialogRule = rules.find(rule => rule.id === dialog?.ruleId)
   const canRemove = rules.length > 1
 
   const updateRule = (id: string, patch: Partial<VTSThrowRule>) =>
@@ -76,7 +87,7 @@ const ThrowRules = ({
     updateRule(rule.id, { custom })
 
     if (custom && rule.items.length + rule.images.length === 0) {
-      setDialogRuleId(rule.id)
+      setDialog({ ruleId: rule.id, kind: 'items' })
     }
   }
 
@@ -100,15 +111,17 @@ const ThrowRules = ({
         {rules.map(rule => {
           const customId = `vts-rule-${rule.id}-custom`
           const pickedCount = rule.items.length + rule.images.length
+          const zonesId = `vts-rule-${rule.id}-zones`
           const isItemsUnset =
             enabled && !isValidVTSRuleItems(rule, selectedItems, customImages)
+          const isZonesUnset = rule.zones.length === 0
 
           return (
             <li
               key={rule.id}
               className="flex flex-col gap-2 rounded-md border p-3"
             >
-              <div className="grid grid-cols-[1fr_1fr_auto_auto] gap-4">
+              <div className="grid grid-cols-[1fr_1fr_auto_auto_auto] gap-4">
                 <RangeField
                   id={`vts-rule-${rule.id}-minAmount`}
                   label="Min THB"
@@ -154,7 +167,9 @@ const ThrowRules = ({
                       variant="outline"
                       size="sm"
                       disabled={!rule.custom}
-                      onClick={() => setDialogRuleId(rule.id)}
+                      onClick={() =>
+                        setDialog({ ruleId: rule.id, kind: 'items' })
+                      }
                       aria-label={`Choose custom items, ${pickedCount} picked`}
                     >
                       <ImagesIcon />
@@ -163,6 +178,24 @@ const ThrowRules = ({
                     </Button>
                   </div>
                 </AlignedField>
+                <Field data-invalid={isZonesUnset}>
+                  <FieldLabel htmlFor={zonesId}>Hit zone</FieldLabel>
+                  <div className="flex h-8 items-center">
+                    <Button
+                      id={zonesId}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setDialog({ ruleId: rule.id, kind: 'zones' })
+                      }
+                      aria-invalid={isZonesUnset}
+                    >
+                      <CrosshairIcon />
+                      {formatZones(rule.zones)}
+                    </Button>
+                  </div>
+                </Field>
                 <AlignedField>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -200,6 +233,9 @@ const ThrowRules = ({
                     : 'Select VTube Studio items or add your images above.'}
                 </FieldError>
               )}
+              {isZonesUnset && (
+                <FieldError>Choose at least one hit zone.</FieldError>
+              )}
             </li>
           )
         })}
@@ -207,17 +243,25 @@ const ThrowRules = ({
       <FieldDescription>
         A donation uses the rule with the highest Min THB it reaches, and throws
         nothing below every rule. Each item is picked at random from both tabs,
-        or with Custom image, from the items you choose.
+        or with Custom image, from the items you choose, and hits one of the
+        rule’s hit zones at random.
       </FieldDescription>
-      {dialogRule && (
-        <RuleItemsDialog
-          rule={dialogRule}
-          selectedItems={selectedItems}
-          customImages={customImages}
-          onChange={patch => updateRule(dialogRule.id, patch)}
-          onClose={() => setDialogRuleId(null)}
-        />
-      )}
+      {dialogRule &&
+        (dialog?.kind === 'zones' ? (
+          <RuleZonesDialog
+            rule={dialogRule}
+            onChange={patch => updateRule(dialogRule.id, patch)}
+            onClose={() => setDialog(null)}
+          />
+        ) : (
+          <RuleItemsDialog
+            rule={dialogRule}
+            selectedItems={selectedItems}
+            customImages={customImages}
+            onChange={patch => updateRule(dialogRule.id, patch)}
+            onClose={() => setDialog(null)}
+          />
+        ))}
     </Field>
   )
 }

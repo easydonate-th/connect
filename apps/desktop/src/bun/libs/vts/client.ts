@@ -1,6 +1,12 @@
 import type { VTSThrowConfig } from '../../../shared/config'
 import { logger } from '../../logger'
-import type { APIErrorData, APIMessage, APIRequests, PluginInfo } from './api'
+import type {
+  APIErrorData,
+  APIEvents,
+  APIMessage,
+  APIRequests,
+  PluginInfo,
+} from './api'
 import { readToken, writeToken } from './token'
 
 type Endpoint = Pick<VTSThrowConfig, 'host' | 'port'>
@@ -33,6 +39,11 @@ export type VTSSession = {
     data: APIRequests[K]['data'],
     timeout?: number
   ) => Promise<APIRequests[K]['response']>
+  /** Resolves with the next `eventName` event; subscribe to it separately. */
+  waitForEvent: <K extends keyof APIEvents>(
+    eventName: K,
+    timeout: number
+  ) => Promise<APIEvents[K]>
   close: () => void
 }
 
@@ -41,6 +52,8 @@ type PendingRequest = {
   reject: (error: Error) => void
   timer: ReturnType<typeof setTimeout>
 }
+
+type EventWaiter = PendingRequest & { eventName: string }
 
 const openSocket = async ({ host, port }: Endpoint) => {
   const socket = new WebSocket(`ws://${host}:${port}`)
@@ -68,6 +81,7 @@ const openSocket = async ({ host, port }: Endpoint) => {
 
 const createSession = (socket: WebSocket): VTSSession => {
   const pending = new Map<string, PendingRequest>()
+  const eventWaiters = new Set<EventWaiter>()
 
   socket.addEventListener('message', event => {
     let message: APIMessage
@@ -75,6 +89,14 @@ const createSession = (socket: WebSocket): VTSSession => {
       message = JSON.parse(String(event.data))
     } catch {
       return
+    }
+
+    for (const waiter of eventWaiters) {
+      if (waiter.eventName === message.messageType) {
+        eventWaiters.delete(waiter)
+        clearTimeout(waiter.timer)
+        waiter.resolve(message)
+      }
     }
 
     // Messages without a pending request (e.g. events) are ignored
@@ -101,6 +123,11 @@ const createSession = (socket: WebSocket): VTSSession => {
       entry.reject(new Error('Connection to VTube Studio closed'))
     }
     pending.clear()
+    for (const waiter of eventWaiters) {
+      clearTimeout(waiter.timer)
+      waiter.reject(new Error('Connection to VTube Studio closed'))
+    }
+    eventWaiters.clear()
   })
 
   const request: VTSSession['request'] = async (
@@ -135,7 +162,29 @@ const createSession = (socket: WebSocket): VTSSession => {
     return response.data as APIRequests[typeof messageType]['response']
   }
 
-  return { request, close: () => socket.close() }
+  const waitForEvent: VTSSession['waitForEvent'] = async (
+    eventName,
+    timeout
+  ) => {
+    const { promise, resolve, reject } = Promise.withResolvers<APIMessage>()
+    const waiter: EventWaiter = {
+      eventName,
+      resolve,
+      reject,
+      timer: setTimeout(() => {
+        eventWaiters.delete(waiter)
+        reject(new Error(`No ${eventName} from VTube Studio`))
+      }, timeout),
+    }
+
+    eventWaiters.add(waiter)
+
+    const message = await promise
+    // SAFETY: VTube Studio sends `eventName` with its documented data
+    return message.data as APIEvents[typeof eventName]
+  }
+
+  return { request, waitForEvent, close: () => socket.close() }
 }
 
 const authenticateWith = async (session: VTSSession, token: string) => {

@@ -1,5 +1,6 @@
 import type {
   VTSCustomImage,
+  VTSHitZone,
   VTSThrowConfig,
   VTSThrowRule,
 } from '../../../shared/config'
@@ -9,6 +10,8 @@ import type { APIRequests, FadeMode } from './api'
 import { allowCustomImages, VTSError, withVTSSession } from './client'
 import type { VTSSession } from './client'
 import { readVTSImage } from './images'
+import { getModelBounds } from './outline'
+import type { ModelBounds } from './outline'
 import { createHitReaction } from './reaction'
 import type { HitReaction } from './reaction'
 
@@ -28,6 +31,8 @@ type Move = {
 
 type ModelPosition = { positionX: number; positionY: number }
 
+type Target = { model: ModelPosition; bounds: ModelBounds | null }
+
 /** Screen edges are at -1 and 1, so the item starts just out of view. */
 const START_X = 1.4
 /** Below the bottom edge, where the item drops out after the hit. */
@@ -39,14 +44,38 @@ const STAGGER = 0.15
 /** `ItemMoveRequest` leaves fields at this value or lower unchanged. */
 const UNCHANGED = -1000
 const ITEM_FILE_NAME_NOT_FOUND = 751
+/**
+ * Where items aimed at each zone land, as fractions of the model's visible
+ * height from its top, and how hard a hit there knocks the head.
+ */
+const ZONES: Record<VTSHitZone, { from: number; to: number; force: number }> = {
+  head: { from: 0.05, to: 0.2, force: 1 },
+  body: { from: 0.25, to: 0.6, force: 0.6 },
+  feet: { from: 0.85, to: 0.97, force: 0.3 },
+}
 
 const randomBetween = (min: number, max: number) =>
   min + Math.random() * (max - min)
 
 const sleep = (seconds: number) => Bun.sleep(seconds * 1000)
 
+const pickRandom = <T>(values: readonly T[]) =>
+  values[Math.floor(Math.random() * values.length)]
+
 const getChoiceName = (choice: Choice) =>
   choice.kind === 'item' ? choice.fileName : choice.image.name
+
+const aimAt = (zone: VTSHitZone, { model, bounds }: Target) => {
+  const { from, to } = ZONES[zone]
+
+  return {
+    x: model.positionX + randomBetween(-0.15, 0.15),
+    // Without an outline every zone aims at the model's center
+    y: bounds
+      ? bounds.top - (bounds.top - bounds.bottom) * randomBetween(from, to)
+      : model.positionY + randomBetween(-0.15, 0.15),
+  }
+}
 
 // Without `custom`, a rule picks from both tabs: every selected VTube Studio
 // item and every imported image
@@ -64,10 +93,7 @@ const pickChoices = (rule: VTSThrowRule, config: VTSThrowConfig) => {
     throw new Error(`No item selected in the ${rule.minAmount} THB rule`)
   }
 
-  return Array.from(
-    { length: rule.count },
-    () => choices[Math.floor(Math.random() * choices.length)]
-  )
+  return Array.from({ length: rule.count }, () => pickRandom(choices))
 }
 
 // The names VTube Studio gave the custom images it loaded, by endpoint and
@@ -190,23 +216,21 @@ const moveItem = async (
 }
 
 /**
- * Flies one item in from a random side, knocks the model's head away from it,
- * bounces it off and drops it.
+ * Flies one item in from a random side at `zone`, knocks the model's head away
+ * from it, bounces it off and drops it.
  */
 const throwItem = async (
   session: VTSSession,
   config: VTSThrowConfig,
   choice: Choice,
-  model: ModelPosition,
+  zone: VTSHitZone,
+  aim: Target,
   reaction: HitReaction
 ) => {
   const { size, flightTime, spin, fadeTime } = config
   // -1 throws from the left edge, 1 from the right
   const side = Math.random() < 0.5 ? -1 : 1
-  const target = {
-    x: model.positionX + randomBetween(-0.15, 0.15),
-    y: model.positionY + randomBetween(-0.15, 0.15),
-  }
+  const target = aimAt(zone, aim)
 
   const start = {
     x: side * START_X,
@@ -230,8 +254,10 @@ const throwItem = async (
     rotation: -side * spin,
   })
   await sleep(flightTime)
-  const distance = Math.hypot(target.x - start.x, target.y - start.y)
-  reaction.hit((target.x - start.x) / distance, (target.y - start.y) / distance)
+  // Hits further from the head knock it less
+  const force =
+    ZONES[zone].force / Math.hypot(target.x - start.x, target.y - start.y)
+  reaction.hit((target.x - start.x) * force, (target.y - start.y) * force)
 
   // Unloading starts the fade-out, so the item fades while it drops
   await Promise.all([
@@ -286,11 +312,30 @@ export const sendDonationVTS = async (
       await allowCustomImages(session)
     }
 
+    const aim = {
+      model: model.modelPosition,
+      bounds: await getModelBounds(session),
+    }
+
+    if (aim.bounds) {
+      const { top, bottom } = aim.bounds
+      logger.info(
+        `[VTS] Model spans y ${bottom.toFixed(2)} to ${top.toFixed(2)}, positioned at y ${aim.model.positionY.toFixed(2)}`
+      )
+    }
+
     const reaction = createHitReaction(session, config.hitForce)
     const results = await Promise.allSettled(
       choices.map(async (choice, index) => {
         await sleep(index * STAGGER)
-        await throwItem(session, config, choice, model.modelPosition, reaction)
+        await throwItem(
+          session,
+          config,
+          choice,
+          pickRandom(rule.zones),
+          aim,
+          reaction
+        )
       })
     )
     // Closing the session would cut the head's swing short
