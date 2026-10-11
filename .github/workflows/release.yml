@@ -13,6 +13,8 @@ concurrency:
 env:
   projectPath: apps/unity
   packageName: app.easydonate.sdk
+  listingPath: apps/unity/vpm
+  pathToCi: ci
 
 jobs:
   prepare:
@@ -141,7 +143,7 @@ jobs:
           path: out
           merge-multiple: true
 
-      # Build VPM Listing adds every release zip that has a package.json at its
+      # The listing job adds every release zip that has a package.json at its
       # root, so an SDK version already released once would be listed twice
       - name: Skip released SDK zip
         run: |
@@ -177,3 +179,60 @@ jobs:
             --title "$tag" \
             --notes-file notes.md \
             "${prerelease[@]}"
+
+  # Lists the SDK versions in the release zips, so it runs once the release
+  # exists
+  listing:
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Checkout package-list-action
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: vrchat-community/package-list-action
+          ref: cb31c3b5d17d1070d7741c61de2ca1b219224039 # main, 2025-01-21
+          path: ${{ env.pathToCi }}
+          clean: false
+
+      # package-list-action targets net6.0 and net8.0 only
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6.0.0
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore cache
+        uses: actions/cache@v6.1.0
+        with:
+          path: |
+            ${{ env.pathToCi }}/.nuke/temp
+            ~/.nuget/packages
+          key: ${{ runner.os }}-${{ hashFiles('ci/**/global.json', 'ci/**/*.csproj') }}
+
+      # Renders index.html and app.js in place, next to the new index.json
+      - name: Build listing
+        run: |
+          "$pathToCi/build.cmd" BuildRepoListing             --root "$pathToCi"             --package-listing-source-folder "$GITHUB_WORKSPACE/$listingPath"             --list-publish-directory "$GITHUB_WORKSPACE/$listingPath/Website"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v6.0.0
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5.0.0
+        with:
+          path: ${{ env.listingPath }}/Website
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5.0.1
