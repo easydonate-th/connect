@@ -21,8 +21,13 @@ jobs:
       tag: ${{ steps.version.outputs.tag }}
       appVersion: ${{ steps.version.outputs.appVersion }}
       sdkVersion: ${{ steps.version.outputs.sdkVersion }}
+      sdkChanged: ${{ steps.changes.outputs.sdk }}
+      listingChanged: ${{ steps.changes.outputs.listing }}
     steps:
       - uses: actions/checkout@v7.0.1
+        with:
+          # The change check diffs against the last release's tag
+          fetch-depth: 0
       - uses: oven-sh/setup-bun@v2.2.0
         with:
           bun-version-file: package.json
@@ -43,8 +48,34 @@ jobs:
             echo "sdkVersion=$sdkVersion"
           } >> "$GITHUB_OUTPUT"
 
+      - name: Check changes
+        id: changes
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          lastTag=$(gh release list --exclude-drafts --limit 1 --json tagName --jq '.[0].tagName')
+          changed() {
+            [[ -z $lastTag ]] || ! git diff --quiet "$lastTag" HEAD -- "$1"
+          }
+          sdk=true
+          if ! changed "$projectPath/Packages/$packageName"; then
+            sdk=false
+            echo "::notice::The SDK did not change since $lastTag, so it is not built."
+          fi
+          listing=true
+          if [[ $sdk == false ]] && ! changed "$listingPath"; then
+            listing=false
+            echo "::notice::The SDK and $listingPath did not change since $lastTag, so the listing is not deployed."
+          fi
+          {
+            echo "sdk=$sdk"
+            echo "listing=$listing"
+          } >> "$GITHUB_OUTPUT"
+
   sdk:
     needs: prepare
+    if: needs.prepare.outputs.sdkChanged == 'true'
     runs-on: ubuntu-latest
     env:
       version: ${{ needs.prepare.outputs.sdkVersion }}
@@ -132,6 +163,8 @@ jobs:
 
   release:
     needs: [prepare, sdk, desktop]
+    # Runs when the sdk job is skipped too
+    if: ${{ !cancelled() && !failure() }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -141,6 +174,7 @@ jobs:
       tag: ${{ needs.prepare.outputs.tag }}
       appVersion: ${{ needs.prepare.outputs.appVersion }}
       sdkVersion: ${{ needs.prepare.outputs.sdkVersion }}
+      sdkBuilt: ${{ needs.sdk.result == 'success' }}
     steps:
       - name: Download release files
         uses: actions/download-artifact@v8.0.2
@@ -149,6 +183,7 @@ jobs:
           merge-multiple: true
 
       - name: Skip released SDK zip
+        if: env.sdkBuilt == 'true'
         run: |
           zipFile="$packageName-$sdkVersion.zip"
           assets=$(gh api "repos/$GH_REPO/releases" --paginate --jq '.[].assets[].name')
@@ -172,11 +207,15 @@ jobs:
           - Linux (x64): download linux-x64-EasyDonateConnect-Setup.tar.gz, extract it and run installer
 
           MIDI works on Windows only
+          EOF
+          if [[ $sdkBuilt == true ]]; then
+            cat >> notes.md <<EOF
 
           ## SDK
 
           Install with VCC: add https://easydonate-th.github.io/connect/index.json to your repositories, or import $packageName-$sdkVersion.unitypackage. Both include the example prefabs in the package's Examples folder
           EOF
+          fi
           prerelease=()
           if [[ $appVersion == *-* || $sdkVersion == *-* ]]; then
             prerelease=(--prerelease)
@@ -188,9 +227,10 @@ jobs:
             "${prerelease[@]}"
 
   # Lists the SDK versions in the release zips, so it runs once the release
-  # exists
+  # exists, and only when the SDK or the listing source changed
   listing:
-    needs: release
+    needs: [prepare, release]
+    if: ${{ !cancelled() && needs.release.result == 'success' && needs.prepare.outputs.listingChanged == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
