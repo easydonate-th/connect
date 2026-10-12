@@ -40,8 +40,6 @@ The desktop app, built with [Electrobun](https://electrobun.dev) (a Bun main pro
 
 ## Development
 
-Requires [Bun](https://bun.sh) 1.4.3. The desktop app runs on Windows (x64), macOS (Apple silicon) and Linux (x64). Electrobun builds only for the platform it runs on, so the release workflow builds each platform on its own runner. The MIDI output works on Windows only. On macOS and Linux, the app shows it as "Platform not supported".
-
 ```sh
 bun install
 
