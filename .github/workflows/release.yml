@@ -8,12 +8,6 @@ permissions:
 concurrency:
   group: release
 
-env:
-  projectPath: apps/unity
-  packageName: app.easydonate.sdk
-  listingPath: apps/unity/vpm
-  pathToCi: ci
-
 jobs:
   prepare:
     runs-on: ubuntu-latest
@@ -31,7 +25,7 @@ jobs:
         id: version
         run: |
           appVersion=$(cd apps/desktop && bun -e "const { default: config } = await import('./electrobun.config.ts'); console.log(config.app.version)")
-          sdkVersion=$(jq -r .version "$projectPath/Packages/$packageName/package.json")
+          sdkVersion=$(jq -r .version apps/unity/Packages/app.easydonate.sdk/package.json)
           date=$(TZ=Asia/Bangkok date +%d%m%Y)
           last=$(git ls-remote --tags --refs origin "refs/tags/Release-$date*" \
             | sed -nE "s|.*refs/tags/Release-$date(-([0-9]+))?$|\2|p" \
@@ -57,22 +51,22 @@ jobs:
         run: |
           mkdir out
           {
-            echo "zipFile=$packageName-$version.zip"
-            echo "unityPackage=$packageName-$version.unitypackage"
+            echo "zipFile=app.easydonate.sdk-$version.zip"
+            echo "unityPackage=app.easydonate.sdk-$version.unitypackage"
           } >> "$GITHUB_ENV"
 
       - name: Create package zip
-        working-directory: ${{ env.projectPath }}/Packages/${{ env.packageName }}
+        working-directory: apps/unity/Packages/app.easydonate.sdk
         run: zip -r "$GITHUB_WORKSPACE/out/$zipFile" .
 
       - name: List package meta files
-        working-directory: ${{ env.projectPath }}
-        run: find "Packages/$packageName" -name '*.meta' > metaList
+        working-directory: apps/unity
+        run: find Packages/app.easydonate.sdk -name '*.meta' > metaList
 
       - name: Create UnityPackage
         uses: pCYSl5EDgo/create-unitypackage@v1.2.3
         with:
-          working-folder: ${{ env.projectPath }}
+          working-folder: apps/unity
           package-path: ../../out/${{ env.unityPackage }}
           include-files: metaList
 
@@ -155,7 +149,7 @@ jobs:
 
       - name: Skip released SDK zip
         run: |
-          zipFile="$packageName-$sdkVersion.zip"
+          zipFile="app.easydonate.sdk-$sdkVersion.zip"
           assets=$(gh api "repos/$GH_REPO/releases" --paginate --jq '.[].assets[].name')
           if grep -qxF "$zipFile" <<< "$assets"; then
             echo "::notice::SDK $sdkVersion is already released, so $zipFile is not attached again."
@@ -173,13 +167,13 @@ jobs:
 
           ## Desktop app
 
-          - Windows: download [here]($downloadUrl/win-x64-EasyDonateConnect-Setup.zip), extract it and run EasyDonate Connect-Setup.exe
-          - macOS (Apple silicon): download [here]($downloadUrl/macos-arm64-EasyDonateConnect.dmg), open it and drag EasyDonate Connect to Applications
-          - Linux (x64): download [here]($downloadUrl/linux-x64-EasyDonateConnect-Setup.tar.gz), extract it and run installer
+          - Windows: download [here]($downloadUrl/win-x64-EasyDonateConnect-Setup.zip)
+          - macOS (Apple silicon): download [here]($downloadUrl/macos-arm64-EasyDonateConnect.dmg)
+          - Linux (x64): download [here]($downloadUrl/linux-x64-EasyDonateConnect-Setup.tar.gz)
 
           ## SDK
 
-          Install with VCC: add https://easydonate-th.github.io/connect/index.json to your repositories, or import $packageName-$sdkVersion.unitypackage. Both include the example prefabs in the package's Examples folder
+          Install with VCC: add https://easydonate-th.github.io/connect/index.json to your repositories, or import app.easydonate.sdk-$sdkVersion.unitypackage
           EOF
           prerelease=()
           if [[ $appVersion == *-* || $sdkVersion == *-* ]]; then
@@ -209,7 +203,7 @@ jobs:
         with:
           repository: vrchat-community/package-list-action
           ref: cb31c3b5d17d1070d7741c61de2ca1b219224039
-          path: ${{ env.pathToCi }}
+          path: ci
           clean: false
       - uses: actions/setup-dotnet@v6.0.0
         with:
@@ -217,13 +211,16 @@ jobs:
       - uses: actions/cache@v6.1.0
         with:
           path: |
-            ${{ env.pathToCi }}/.nuke/temp
+            ci/.nuke/temp
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('ci/**/global.json', 'ci/**/*.csproj') }}
 
       - name: Build listing
         run: |
-          "$pathToCi/build.cmd" BuildRepoListing             --root "$pathToCi"             --package-listing-source-folder "$GITHUB_WORKSPACE/$listingPath"             --list-publish-directory "$GITHUB_WORKSPACE/$listingPath/Website"
+          ci/build.cmd BuildRepoListing \
+            --root ci \
+            --package-listing-source-folder "$GITHUB_WORKSPACE/apps/unity/vpm" \
+            --list-publish-directory "$GITHUB_WORKSPACE/apps/unity/vpm/Website"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -233,7 +230,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5.0.0
         with:
-          path: ${{ env.listingPath }}/Website
+          path: apps/unity/vpm/Website
 
       - name: Deploy to GitHub Pages
         id: deployment
