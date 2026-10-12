@@ -24,8 +24,8 @@ export default {
       icons: 'icons/icon.iconset',
       codesign: !!process.env.ELECTROBUN_DEVELOPER_ID,
     },
-    linux: { bundleCEF: false, icon: 'icons/icon.iconset/icon_512x512.png' },
-    win: { bundleCEF: false, icon: 'icons/icon.iconset/icon_512x512.png' },
+    linux: { bundleCEF: false, icon: 'icons/icon.iconset/icon_256x256.png' },
+    win: { bundleCEF: false, icon: 'icons/icon.iconset/icon_256x256.png' },
   },
   release: {
     baseUrl:
