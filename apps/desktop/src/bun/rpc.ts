@@ -1,10 +1,9 @@
-import { BrowserView } from 'electrobun/main'
+import { BrowserView, Utils } from 'electrobun/main'
+import fs from 'node:fs'
 
 import { ConfigSchema } from '../shared/config'
 import type { AppRPC } from '../shared/rpc'
 import { getConfig, saveConfig } from './config'
-import { openDataFolder } from './libs/data-folder'
-import { openExternal } from './libs/external'
 import { forwardDonation } from './libs/forward'
 import { checkForUpdate, getAppVersion } from './libs/update'
 import { getMIDIDevices } from './libs/vrc/midi/winmm'
@@ -36,16 +35,29 @@ export const createAppRPC = () =>
         getVTSItems: endpoint => getVTSItems(endpoint),
         testVTSConnection: endpoint => testVTSConnection(endpoint),
         importVTSImages: () => importVTSImages(),
-        openDataFolder: () => openDataFolder(),
+        openDataFolder: () => {
+          const folder = Utils.paths.userData
+          fs.mkdirSync(folder, { recursive: true })
+
+          if (!Utils.openPath(folder)) {
+            throw new Error(`Could not open ${folder}`)
+          }
+
+          return folder
+        },
         getAppVersion: () => getAppVersion(),
         getPlatform: () => process.platform,
         checkForUpdate: () => checkForUpdate(),
-        openExternal: url => openExternal(url),
+        openExternal: url => {
+          if (!Utils.openExternal(url)) {
+            throw new Error(`Could not open ${url}`)
+          }
+
+          return url
+        },
       },
       messages: {
         donation: donation => forwardDonation(donation, getConfig()),
-        // Heals the draft's invalid fields and sorts its throw rules, which
-        // `sendDonationVTS` expects
         testDonation: ({ donation, config }) =>
           forwardDonation(donation, ConfigSchema.parse(config)),
       },
