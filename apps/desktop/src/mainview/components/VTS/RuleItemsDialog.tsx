@@ -54,10 +54,11 @@ const PickerSection = ({
 
 type RuleItemsDialogProps = {
   index: number
+  open: boolean
   onClose: () => void
 }
 
-const RuleItemsDialog = ({ index, onClose }: RuleItemsDialogProps) => {
+const RuleItemsDialog = ({ index, open, onClose }: RuleItemsDialogProps) => {
   const { control } = useFormContext<Config>()
   const { field: items } = useController({
     control,
@@ -77,7 +78,7 @@ const RuleItemsDialog = ({ index, onClose }: RuleItemsDialogProps) => {
   })
 
   return (
-    <Dialog open onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>

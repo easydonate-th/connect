@@ -72,6 +72,25 @@ const ThrowRule = ({
   const pickedCount = items.length + images.length
   const itemsError = errors.vts?.throw?.rules?.[index]?.items
   const zonesError = errors.vts?.throw?.rules?.[index]?.zones
+  const zoneOffsetErrors = errors.vts?.throw?.rules?.[index]?.zoneOffsets
+  const zoneWidthErrors = errors.vts?.throw?.rules?.[index]?.zoneWidths
+  const zoneDirectionErrors = errors.vts?.throw?.rules?.[index]?.zoneDirections
+  // The dialog shows these by each field, but once it closes only the row
+  // can tell why Save is off
+  const zoneOffsetError = VTS_HIT_ZONES.map(
+    zone => zoneOffsetErrors?.[zone]
+  ).find(error => error !== undefined)
+  const zoneWidthError = VTS_HIT_ZONES.map(
+    zone => zoneWidthErrors?.[zone]
+  ).find(error => error !== undefined)
+  const zoneDirectionError = VTS_HIT_ZONES.map(
+    zone => zoneDirectionErrors?.[zone]
+  ).find(error => error !== undefined)
+  const isZonesInvalid =
+    zonesError !== undefined ||
+    zoneDirectionError !== undefined ||
+    zoneOffsetError !== undefined ||
+    zoneWidthError !== undefined
 
   const handleCustomChange = (isChecked: boolean) => {
     custom.onChange(isChecked)
@@ -122,7 +141,7 @@ const ThrowRule = ({
             </Button>
           </div>
         </AlignedField>
-        <Field data-invalid={zonesError !== undefined}>
+        <Field data-invalid={isZonesInvalid}>
           <FieldLabel htmlFor={zonesId}>Hit zone</FieldLabel>
           <div className="flex h-8 items-center">
             <Button
@@ -131,7 +150,7 @@ const ThrowRule = ({
               variant="outline"
               size="sm"
               onClick={() => onOpenDialog('zones')}
-              aria-invalid={zonesError !== undefined}
+              aria-invalid={isZonesInvalid}
             >
               <CrosshairIcon />
               {formatZones(zones)}
@@ -163,7 +182,15 @@ const ThrowRule = ({
         </AlignedField>
       </div>
       <FieldError>{itemsError?.message}</FieldError>
-      <FieldError>{zonesError?.message}</FieldError>
+      <FieldError>
+        {zonesError?.message ??
+          (zoneDirectionError &&
+            'Choose at least one side for each hit zone.') ??
+          (zoneOffsetError &&
+            `Hit zone offsets must be ${zoneOffsetError.message} px.`) ??
+          (zoneWidthError &&
+            `Hit zone widths must be ${zoneWidthError.message} px.`)}
+      </FieldError>
     </li>
   )
 }

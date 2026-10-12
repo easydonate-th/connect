@@ -19,7 +19,7 @@ import {
 // Puts a new rule above the highest one, so its Min THB isn't a duplicate
 const NEW_RULE_STEP = 100
 
-type OpenDialog = { index: number; kind: RuleDialogKind }
+type RuleDialog = { index: number; kind: RuleDialogKind }
 
 type ThrowRulesProps = {
   canSendTest: boolean
@@ -27,7 +27,9 @@ type ThrowRulesProps = {
 }
 
 const ThrowRules = ({ canSendTest, onSendTest }: ThrowRulesProps) => {
-  const [dialog, setDialog] = useState<OpenDialog | null>(null)
+  // The last dialog opened stays mounted after it closes, so it can animate out
+  const [dialog, setDialog] = useState<RuleDialog | null>(null)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   const { control, getValues } = useFormContext<Config>()
   const { fields, append, remove } = useFieldArray({
@@ -51,7 +53,14 @@ const ThrowRules = ({ canSendTest, onSendTest }: ThrowRulesProps) => {
     append(createVTSThrowRule({ minAmount }), { shouldFocus: false })
   }
 
-  const closeDialog = () => setDialog(null)
+  const openDialog = (index: number, kind: RuleDialogKind) => {
+    setDialog({ index, kind })
+    setIsDialogOpen(true)
+  }
+  const closeDialog = () => setIsDialogOpen(false)
+
+  // A closed dialog's rule may have been removed since
+  const isDialogMounted = dialog !== null && dialog.index < fields.length
 
   return (
     <Field>
@@ -76,15 +85,25 @@ const ThrowRules = ({ canSendTest, onSendTest }: ThrowRulesProps) => {
             index={index}
             canRemove={canRemove}
             onRemove={() => remove(index)}
-            onOpenDialog={kind => setDialog({ index, kind })}
+            onOpenDialog={kind => openDialog(index, kind)}
           />
         ))}
       </ul>
-      {dialog?.kind === 'items' && (
-        <RuleItemsDialog index={dialog.index} onClose={closeDialog} />
+      {isDialogMounted && dialog.kind === 'items' && (
+        <RuleItemsDialog
+          index={dialog.index}
+          open={isDialogOpen}
+          onClose={closeDialog}
+        />
       )}
-      {dialog?.kind === 'zones' && (
-        <RuleZonesDialog index={dialog.index} onClose={closeDialog} />
+      {isDialogMounted && dialog.kind === 'zones' && (
+        <RuleZonesDialog
+          index={dialog.index}
+          open={isDialogOpen}
+          canSendTest={canSendTest}
+          onSendTest={onSendTest}
+          onClose={closeDialog}
+        />
       )}
     </Field>
   )

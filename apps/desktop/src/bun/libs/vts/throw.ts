@@ -1,6 +1,7 @@
 import type {
   VTSCustomImage,
   VTSHitZone,
+  VTSThrowDirection,
   VTSThrowConfig,
   VTSThrowRule,
 } from '../../../shared/config'
@@ -44,6 +45,8 @@ const STAGGER = 0.15
 /** `ItemMoveRequest` leaves fields at this value or lower unchanged. */
 const UNCHANGED = -1000
 const ITEM_FILE_NAME_NOT_FOUND = 751
+/** -1 throws from the left edge, 1 from the right */
+const SIDES: Record<VTSThrowDirection, number> = { left: -1, right: 1 }
 /**
  * Where items aimed at each zone land, as fractions of the model's visible
  * height from its top, and how hard a hit there knocks the head.
@@ -65,14 +68,23 @@ const pickRandom = <T>(values: readonly T[]) =>
 const getChoiceName = (choice: Choice) =>
   choice.kind === 'item' ? choice.fileName : choice.image.name
 
-const aimAt = (zone: VTSHitZone, { model, bounds }: Target) => {
+const aimAt = (
+  zone: VTSHitZone,
+  rule: VTSThrowRule,
+  { model, bounds }: Target
+) => {
   const { from, to } = ZONES[zone]
+  // Without an outline, every zone aims at the model's center, and there is
+  // no window size to turn the zone's width and offset into item units with
+  const halfWidth = bounds ? rule.zoneWidths[zone] / bounds.windowWidth : 0.15
 
   return {
-    x: model.positionX + randomBetween(-0.15, 0.15),
-    // Without an outline, every zone aims at the model's center
+    x: model.positionX + randomBetween(-halfWidth, halfWidth),
     y: bounds
-      ? bounds.top - (bounds.top - bounds.bottom) * randomBetween(from, to)
+      ? bounds.top -
+        (bounds.top - bounds.bottom) * randomBetween(from, to) -
+        // Pixels count down the screen, but item y counts up
+        (rule.zoneOffsets[zone] * 2) / bounds.windowHeight
       : model.positionY + randomBetween(-0.15, 0.15),
   }
 }
@@ -217,21 +229,21 @@ const moveItem = async (
 }
 
 /**
- * Flies one item in from a random side at `zone`, knocks the model's head away
- * from it, bounces it off and drops it.
+ * Flies one item at one of the rule's zones, from the side that zone allows,
+ * knocks the model's head away from it, bounces it off and drops it.
  */
 const throwItem = async (
   session: VTSSession,
   config: VTSThrowConfig,
   choice: Choice,
-  zone: VTSHitZone,
+  rule: VTSThrowRule,
   aim: Target,
   reaction: HitReaction
 ) => {
   const { size, flightTime, spin, fadeTime } = config
-  // -1 throws from the left edge, 1 from the right
-  const side = Math.random() < 0.5 ? -1 : 1
-  const target = aimAt(zone, aim)
+  const zone = pickRandom(rule.zones)
+  const side = SIDES[pickRandom(rule.zoneDirections[zone])]
+  const target = aimAt(zone, rule, aim)
 
   const start = {
     x: side * START_X,
@@ -331,14 +343,7 @@ export const sendDonationVTS = async (
     const results = await Promise.allSettled(
       choices.map(async (choice, index) => {
         await sleep(index * STAGGER)
-        await throwItem(
-          session,
-          config,
-          choice,
-          pickRandom(rule.zones),
-          aim,
-          reaction
-        )
+        await throwItem(session, config, choice, rule, aim, reaction)
       })
     )
     // Closing the session would cut the head's swing short

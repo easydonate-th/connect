@@ -13,6 +13,7 @@ type NumberFieldProps = {
   range: { min: number; max: number }
   step?: number
   placeholder?: string
+  disabled?: boolean
 }
 
 /** A number input whose empty value is `NaN`, which fails validation. */
@@ -22,6 +23,7 @@ const NumberField = ({
   range: { min, max },
   step,
   placeholder,
+  disabled,
 }: NumberFieldProps) => {
   const id = useId()
 
@@ -32,7 +34,7 @@ const NumberField = ({
   } = useController({ control, name })
 
   return (
-    <Field data-invalid={error !== undefined}>
+    <Field data-invalid={error !== undefined} data-disabled={disabled}>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
       <Input
         {...field}
@@ -45,6 +47,9 @@ const NumberField = ({
         placeholder={placeholder}
         value={Number.isNaN(field.value) ? '' : field.value}
         onChange={event => field.onChange(event.currentTarget.valueAsNumber)}
+        // After the spread, since RHF's own `disabled` would drop the value
+        // from the saved config
+        disabled={disabled}
         aria-invalid={error !== undefined}
       />
       <FieldError>{error?.message}</FieldError>

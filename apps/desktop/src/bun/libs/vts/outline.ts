@@ -1,8 +1,16 @@
 import { logger } from '../../logger'
 import type { VTSSession } from './client'
 
-/** The top and bottom of the model's visible part, in item coordinates */
-export type ModelBounds = { top: number; bottom: number }
+/**
+ * The top and bottom of the model's visible part, in item coordinates, and
+ * the window's size in pixels, each side of which spans 2 of those units
+ */
+export type ModelBounds = {
+  top: number
+  bottom: number
+  windowWidth: number
+  windowHeight: number
+}
 
 /** VTube Studio sends the outline 15 times a second */
 const OUTLINE_TIMEOUT = 1000
@@ -18,7 +26,7 @@ export const getModelBounds = async (
   try {
     // Waits before subscribing, since the first frame can arrive before the
     // subscription response
-    const [{ convexHull }] = await Promise.all([
+    const [{ convexHull, windowSize }] = await Promise.all([
       session.waitForEvent('ModelOutlineEvent', OUTLINE_TIMEOUT),
       session.request('EventSubscriptionRequest', {
         eventName: 'ModelOutlineEvent',
@@ -31,7 +39,9 @@ export const getModelBounds = async (
     const top = Math.min(Math.max(...ys), 1)
     const bottom = Math.max(Math.min(...ys), -1)
 
-    return top > bottom ? { top, bottom } : null
+    return top > bottom && windowSize.x > 0 && windowSize.y > 0
+      ? { top, bottom, windowWidth: windowSize.x, windowHeight: windowSize.y }
+      : null
   } catch (error) {
     logger.warn(
       '[VTS] Cannot read the model outline, aiming at its center',

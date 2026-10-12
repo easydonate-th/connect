@@ -32,6 +32,9 @@ const App = () => {
 
   const { isDirty, isValid, isSubmitting } = form.formState
 
+  // Tests what the form shows, saved or not
+  const handleSendTest = () => sendTestDonation(form.getValues())
+
   useUnsavedChangesToast({
     isDirty,
     isValid,
@@ -63,11 +66,11 @@ const App = () => {
             lastDonation={lastDonation}
             onConnect={connect}
             onDisconnect={disconnect}
-            onSendTest={sendTestDonation}
+            onSendTest={handleSendTest}
           />
           <Integrations
             canSendTest={socketUrl === null}
-            onSendTest={sendTestDonation}
+            onSendTest={handleSendTest}
           />
           <Settings />
           <div className="flex items-center gap-3">

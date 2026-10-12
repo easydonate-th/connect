@@ -2,7 +2,10 @@ import { useState } from 'react'
 
 import { useWidgetSocket } from '~/hooks/use-widget-socket'
 import { log } from '~/libs/logs'
-import { sendDonation } from '~/libs/rpc'
+import {
+  sendDonation,
+  sendTestDonation as sendTestDonationRPC,
+} from '~/libs/rpc'
 import { getSocketUrl } from '~/libs/utils'
 
 import type { Config } from '../../shared/config'
@@ -11,7 +14,8 @@ import type { Donation } from '../../shared/donation'
 /**
  * Connects to the alert widget on `connect`, or at launch when the stored
  * `config` has auto connect on, and forwards each donation, real or test, to
- * the main process.
+ * the main process. A real donation uses the saved config, and a test one the
+ * `config` it's sent with, such as the form's unsaved draft.
  */
 export const useWidgetConnection = ({ autoConnect, widgetUrl }: Config) => {
   const [socketUrl, setSocketUrl] = useState(() =>
@@ -22,11 +26,15 @@ export const useWidgetConnection = ({ autoConnect, widgetUrl }: Config) => {
   const [invalidUrl, setInvalidUrl] = useState<string | null>(null)
   const [lastDonation, setLastDonation] = useState<Donation | null>(null)
 
-  const forwardDonation = (donation: Donation) => {
+  const showDonation = (donation: Donation) => {
     log.info(
       `Donation ${donation.referenceNo}: ${donation.donatorName || 'Anonymous'} donated ${donation.amount} THB`
     )
     setLastDonation(donation)
+  }
+
+  const forwardDonation = (donation: Donation) => {
+    showDonation(donation)
     sendDonation(donation)
   }
 
@@ -50,16 +58,18 @@ export const useWidgetConnection = ({ autoConnect, widgetUrl }: Config) => {
     log.info('Disconnected from alert widget')
   }
 
-  const sendTestDonation = () => {
+  const sendTestDonation = (config: Config) => {
     const timestamp = Date.now()
-
-    forwardDonation({
+    const donation = {
       referenceNo: `TEST-${timestamp}`,
       donatorName: 'Test Donor',
       message: 'This is a test donation',
       amount: 100,
       timestamp,
-    })
+    }
+
+    showDonation(donation)
+    sendTestDonationRPC(donation, config)
   }
 
   return {

@@ -19,11 +19,28 @@ export const VTS_RULE_RANGES = {
   /** VTube Studio fits about 60 items, the user's own included */
   count: { min: 1, max: 20, integer: true },
 } as const
+/** Pixels a hit zone moves down, or up when negative */
+export const VTS_ZONE_OFFSET_RANGE = {
+  min: -1000,
+  max: 1000,
+  integer: true,
+} as const
+
+/** Pixels across the band items aimed at a zone land in, centered on the model */
+export const VTS_ZONE_WIDTH_RANGE = {
+  min: 0,
+  max: 2000,
+  integer: true,
+} as const
 
 /** Parts of the model an item can hit, from the top down */
 export const VTS_HIT_ZONES = ['head', 'body', 'feet'] as const
 
+/** Screen edges an item aimed at a zone can be thrown from */
+export const VTS_THROW_DIRECTIONS = ['left', 'right'] as const
+
 export type VTSHitZone = (typeof VTS_HIT_ZONES)[number]
+export type VTSThrowDirection = (typeof VTS_THROW_DIRECTIONS)[number]
 export type VTSThrowRangeKey = keyof typeof VTS_THROW_RANGES
 export type VTSRuleRangeKey = keyof typeof VTS_RULE_RANGES
 
@@ -77,6 +94,15 @@ const VTS_RULE_VALUE_SCHEMAS = {
   minAmount: rangeSchema(VTS_RULE_RANGES.minAmount),
   count: rangeSchema(VTS_RULE_RANGES.count),
 }
+const ZoneOffsetSchema = rangeSchema(VTS_ZONE_OFFSET_RANGE)
+const ZoneWidthSchema = rangeSchema(VTS_ZONE_WIDTH_RANGE)
+// An empty list, or a value from before directions were a list, means both
+const ZoneDirectionsSchema = listOf(z.enum(VTS_THROW_DIRECTIONS)).transform(
+  directions =>
+    directions.length > 0
+      ? VTS_THROW_DIRECTIONS.filter(direction => directions.includes(direction))
+      : [...VTS_THROW_DIRECTIONS]
+)
 
 // Every field falls back to its default on its own, so one bad value in
 // config.json never resets the rest of the config.
@@ -124,6 +150,33 @@ const VTSThrowRuleSchema = z.object({
     zones.length > 0
       ? VTS_HIT_ZONES.filter(zone => zones.includes(zone))
       : [...VTS_HIT_ZONES]
+  ),
+  /**
+   * Pixels each zone moves down, or up when negative, for models whose
+   * outline doesn't match where hits should land
+   */
+  zoneOffsets: withDefaults(
+    z.object({
+      head: withFallback(ZoneOffsetSchema, 0),
+      body: withFallback(ZoneOffsetSchema, 0),
+      feet: withFallback(ZoneOffsetSchema, 0),
+    })
+  ),
+  /** Pixels across each zone, centered on the model */
+  zoneWidths: withDefaults(
+    z.object({
+      head: withFallback(ZoneWidthSchema, 300),
+      body: withFallback(ZoneWidthSchema, 300),
+      feet: withFallback(ZoneWidthSchema, 300),
+    })
+  ),
+  /** The screen edges each zone's items are thrown from, one at random */
+  zoneDirections: withDefaults(
+    z.object({
+      head: ZoneDirectionsSchema,
+      body: ZoneDirectionsSchema,
+      feet: ZoneDirectionsSchema,
+    })
   ),
 })
 
@@ -220,6 +273,8 @@ export const validateConfig = ({ vrc, vts }: Config) => {
   const { osc, midi } = vrc
   const vtsThrow = vts.throw
   const portRange = `${PORT_RANGE.min}-${PORT_RANGE.max}`
+  // `formatRange` would read -1000-1,000
+  const zoneOffsetRange = `${VTS_ZONE_OFFSET_RANGE.min.toLocaleString()} to ${VTS_ZONE_OFFSET_RANGE.max.toLocaleString()}`
   const hasItems = vtsThrow.items.length + vtsThrow.customImages.length > 0
 
   // A field shows its first failed check
@@ -292,6 +347,26 @@ export const validateConfig = ({ vrc, vts }: Config) => {
       rule.zones.length > 0,
       'Choose at least one hit zone.'
     )
+
+    // An unchecked zone's settings are grayed out, so they can't block Save,
+    // and `ConfigSchema` heals them on save
+    for (const zone of rule.zones) {
+      check(
+        `${path}.zoneDirections.${zone}`,
+        rule.zoneDirections[zone].length > 0,
+        ''
+      )
+      check(
+        `${path}.zoneOffsets.${zone}`,
+        fits(ZoneOffsetSchema, rule.zoneOffsets[zone]),
+        zoneOffsetRange
+      )
+      check(
+        `${path}.zoneWidths.${zone}`,
+        fits(ZoneWidthSchema, rule.zoneWidths[zone]),
+        formatRange(VTS_ZONE_WIDTH_RANGE)
+      )
+    }
   }
 
   return errors

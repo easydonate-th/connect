@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
-import { set, useForm } from 'react-hook-form'
-import type { FieldErrors, Resolver } from 'react-hook-form'
+import { set, useForm, useFormContext } from 'react-hook-form'
+import type { FieldErrors, Resolver, UseFormReturn } from 'react-hook-form'
 import { toast } from 'sonner'
 
 import { log } from '~/libs/logs'
@@ -8,13 +8,16 @@ import { getConfig, saveConfig } from '~/libs/rpc'
 
 import {
   Config,
+  ConfigSchema,
   createDefaultConfig,
   validateConfig,
 } from '../../shared/config'
 
+// A main process built before a field existed leaves it out, which would show
+// an empty, invalid input instead of the field's default
 const loadInitialConfig = async (): Promise<Config> => {
   try {
-    return await getConfig()
+    return ConfigSchema.parse(await getConfig())
   } catch (error) {
     log.warn(
       `Failed to load settings, using defaults: ${error instanceof Error ? error.message : 'unknown error'}`
@@ -29,7 +32,7 @@ const loadInitialConfig = async (): Promise<Config> => {
  */
 const persistConfig = async (config: Config): Promise<Config | null> => {
   try {
-    return await saveConfig(config)
+    return ConfigSchema.parse(await saveConfig(config))
   } catch (error) {
     const description = error instanceof Error ? error.message : undefined
     toast.error('Failed to save settings', { description })
@@ -60,6 +63,23 @@ const resolveConfig: Resolver<Config> = values => {
   return { values: {}, errors }
 }
 
+const createSave = (
+  {
+    handleSubmit,
+    reset,
+  }: Pick<UseFormReturn<Config>, 'handleSubmit' | 'reset'>,
+  onSaved?: () => void
+) =>
+  handleSubmit(async values => {
+    const stored = await persistConfig(values)
+
+    if (stored) {
+      reset(stored)
+      log.info('Settings saved')
+      onSaved?.()
+    }
+  })
+
 /**
  * The config form, starting from the stored `config`. `save` sends it to the
  * main process, which sorts the rules and prunes picks no longer in the tabs.
@@ -70,7 +90,7 @@ export const useConfigForm = (config: Config) => {
     defaultValues: config,
     resolver: resolveConfig,
   })
-  const { handleSubmit, reset, subscribe, trigger } = form
+  const { subscribe, trigger } = form
 
   // RHF revalidates only the field that changed, but many checks span fields,
   // such as an output's switch and its device or items, or Min THB across
@@ -86,14 +106,14 @@ export const useConfigForm = (config: Config) => {
     })
   }, [subscribe, trigger])
 
-  const save = handleSubmit(async values => {
-    const stored = await persistConfig(values)
-
-    if (stored) {
-      reset(stored)
-      log.info('Settings saved')
-    }
-  })
+  const save = createSave(form)
 
   return { form, save }
 }
+
+/**
+ * `save` of the provided config form, for Save buttons outside `App`. It calls
+ * `onSaved` once the main process has stored the config.
+ */
+export const useConfigSave = (onSaved?: () => void) =>
+  createSave(useFormContext<Config>(), onSaved)

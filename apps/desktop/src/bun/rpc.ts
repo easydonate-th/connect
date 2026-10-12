@@ -1,5 +1,6 @@
 import { BrowserView } from 'electrobun/main'
 
+import { ConfigSchema } from '../shared/config'
 import type { AppRPC } from '../shared/rpc'
 import { getConfig, saveConfig } from './config'
 import { openDataFolder } from './libs/data-folder'
@@ -43,6 +44,10 @@ export const createAppRPC = () =>
       },
       messages: {
         donation: donation => forwardDonation(donation, getConfig()),
+        // Heals the draft's invalid fields and sorts its throw rules, which
+        // `sendDonationVTS` expects
+        testDonation: ({ donation, config }) =>
+          forwardDonation(donation, ConfigSchema.parse(config)),
       },
     },
   })

@@ -38,3 +38,5 @@ export const getPlatform = () => rpc.request.getPlatform()
 export const checkForUpdate = () => rpc.request.checkForUpdate()
 export const openExternal = (url: string) => rpc.request.openExternal(url)
 export const sendDonation = (donation: Donation) => rpc.send.donation(donation)
+export const sendTestDonation = (donation: Donation, config: Config) =>
+  rpc.send.testDonation({ donation, config })

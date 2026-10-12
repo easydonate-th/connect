@@ -50,6 +50,8 @@ export type AppRPC = {
     }
     messages: {
       donation: Donation
+      /** A test donation, forwarded with the UI's unsaved draft */
+      testDonation: { donation: Donation; config: Config }
     }
   }>
   webview: RPCSchema<{
