@@ -4,7 +4,7 @@ export default {
   app: {
     name: 'EasyDonate Connect',
     identifier: 'app.easydonate.connect',
-    version: '1.5.0',
+    version: '1.6.0',
   },
   build: {
     mainProcess: 'bun',
@@ -26,5 +26,9 @@ export default {
     },
     linux: { bundleCEF: false, icon: 'icons/icon.iconset/icon_512x512.png' },
     win: { bundleCEF: false, icon: 'icons/icon.iconset/icon_512x512.png' },
+  },
+  release: {
+    baseUrl:
+      'https://github.com/easydonate-th/connect/releases/latest/download',
   },
 } satisfies ElectrobunConfig

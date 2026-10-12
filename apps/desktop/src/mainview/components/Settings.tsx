@@ -32,7 +32,8 @@ const showDataFolder = async () => {
 }
 
 const Settings = () => {
-  const { version, update, isChecking, check } = useAppUpdate()
+  const { version, update, isChecking, isInstalling, check, install } =
+    useAppUpdate()
 
   return (
     <Card>
@@ -68,9 +69,9 @@ const Settings = () => {
             GitHub
           </Button>
           {update?.updateAvailable ? (
-            <Button onClick={() => openExternal(update.releaseUrl)}>
-              <DownloadIcon />
-              Download update
+            <Button disabled={isInstalling} onClick={install}>
+              {isInstalling ? <Spinner /> : <DownloadIcon />}
+              Update and restart
             </Button>
           ) : (
             <Button variant="outline" disabled={isChecking} onClick={check}>

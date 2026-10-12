@@ -5,7 +5,7 @@ import { ConfigSchema } from '../shared/config'
 import type { AppRPC } from '../shared/rpc'
 import { getConfig, saveConfig } from './config'
 import { forwardDonation } from './libs/forward'
-import { checkForUpdate, getAppVersion } from './libs/update'
+import { checkForUpdate, getAppVersion, installUpdate } from './libs/update'
 import { getMIDIDevices } from './libs/vrc/midi/winmm'
 import { testVTSConnection } from './libs/vts/connection'
 import { importVTSImages, pruneVTSImages } from './libs/vts/images'
@@ -48,6 +48,7 @@ export const createAppRPC = () =>
         getAppVersion: () => getAppVersion(),
         getPlatform: () => process.platform,
         checkForUpdate: () => checkForUpdate(),
+        installUpdate: () => installUpdate(),
         openExternal: url => {
           if (!Utils.openExternal(url)) {
             throw new Error(`Could not open ${url}`)

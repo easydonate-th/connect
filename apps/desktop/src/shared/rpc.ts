@@ -18,20 +18,17 @@ export type VTSImageImport = {
 
 export type UpdateCheck = {
   currentVersion: string
-  /** The desktop app version the latest GitHub release lists */
+  /** The version in the latest GitHub release's `update.json` */
   latestVersion: string
   updateAvailable: boolean
-  releaseUrl: string
 }
 
 export type AppRPC = {
   bun: RPCSchema<{
     requests: {
       getConfig: { params: undefined; response: Config }
-      /** Also deletes imported images the config no longer lists */
       saveConfig: { params: Config; response: Config }
       getMIDIDevices: { params: undefined; response: string[] }
-      // The first VTube Studio call asks the user to allow the plugin there
       getVTSItems: {
         params: Pick<VTSThrowConfig, 'host' | 'port'>
         response: string[]
@@ -43,9 +40,13 @@ export type AppRPC = {
       openDataFolder: { params: undefined; response: string }
       importVTSImages: { params: undefined; response: VTSImageImport }
       getAppVersion: { params: undefined; response: string }
-      /** `process.platform` of the main process */
       getPlatform: { params: undefined; response: string }
       checkForUpdate: { params: undefined; response: UpdateCheck }
+      /**
+       * Downloads the update, then quits and relaunches into it. Responds
+       * with the version it installs.
+       */
+      installUpdate: { params: undefined; response: string }
       openExternal: { params: string; response: string }
     }
     messages: {

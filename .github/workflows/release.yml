@@ -123,11 +123,9 @@ jobs:
           - runner: windows-latest
             target: win-x64
             installer: '*-Setup.zip'
-          # Pinned, since the macos-latest alias can move to another macOS
-          - runner: macos-15
+          - runner: macos-latest
             target: macos-arm64
             installer: '*.dmg'
-            # "-" signs ad hoc, which needs no Apple Developer ID
             signingIdentity: '-'
           - runner: ubuntu-latest
             target: linux-x64
@@ -158,12 +156,13 @@ jobs:
         uses: actions/upload-artifact@v7.0.2
         with:
           name: desktop-${{ matrix.target }}
-          path: apps/desktop/artifacts/${{ matrix.installer }}
+          path: |
+            apps/desktop/artifacts/${{ matrix.installer }}
+            apps/desktop/artifacts/stable-*
           if-no-files-found: error
 
   release:
     needs: [prepare, sdk, desktop]
-    # Runs when the sdk job is skipped too
     if: ${{ !cancelled() && !failure() }}
     runs-on: ubuntu-latest
     permissions:
@@ -181,6 +180,11 @@ jobs:
         with:
           path: out
           merge-multiple: true
+
+      - name: Carry forward update patches
+        run: |
+          gh release download --pattern 'stable-*.patch' --dir out --skip-existing \
+            || echo "::notice::The latest release has no update patches to carry forward."
 
       - name: Skip released SDK zip
         if: env.sdkBuilt == 'true'
@@ -221,13 +225,13 @@ jobs:
             prerelease=(--prerelease)
           fi
           gh release create "$tag" out/* \
+            --draft \
             --target "$GITHUB_SHA" \
             --title "$tag" \
             --notes-file notes.md \
             "${prerelease[@]}"
+          gh release edit "$tag" --draft=false
 
-  # Lists the SDK versions in the release zips, so it runs once the release
-  # exists, and only when the SDK or the listing source changed
   listing:
     needs: [prepare, release]
     if: ${{ !cancelled() && needs.release.result == 'success' && needs.prepare.outputs.listingChanged == 'true' }}

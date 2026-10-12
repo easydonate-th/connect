@@ -7,6 +7,8 @@ import { addLog } from './logs'
 
 // Outlasts the main process's two-minute wait for VTube Studio approval
 const VTS_REQUEST_TIME = 180_000
+// Outlasts the updater's 30-second wait for update.json
+const UPDATE_CHECK_TIME = 40_000
 
 type VTSEndpoint = Pick<VTSThrowConfig, 'host' | 'port'>
 
@@ -35,7 +37,11 @@ export const importVTSImages = () =>
 export const openDataFolder = () => rpc.request.openDataFolder()
 export const getAppVersion = () => rpc.request.getAppVersion()
 export const getPlatform = () => rpc.request.getPlatform()
-export const checkForUpdate = () => rpc.request.checkForUpdate()
+export const checkForUpdate = () =>
+  rpc.request.checkForUpdate(undefined, { maxRequestTime: UPDATE_CHECK_TIME })
+// Each download the updater makes has its own time limit
+export const installUpdate = () =>
+  rpc.request.installUpdate(undefined, { maxRequestTime: Infinity })
 export const openExternal = (url: string) => rpc.request.openExternal(url)
 export const sendDonation = (donation: Donation) => rpc.send.donation(donation)
 export const sendTestDonation = (donation: Donation, config: Config) =>
