@@ -4,7 +4,7 @@ export default {
   app: {
     name: 'EasyDonate Connect',
     identifier: 'app.easydonate.connect',
-    version: '1.6.1',
+    version: '1.6.2',
   },
   build: {
     mainProcess: 'bun',
