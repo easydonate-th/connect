@@ -1,6 +1,7 @@
 import { ApplicationMenu, BrowserWindow, Updater, Utils } from 'electrobun/main'
 
 import { setWindowIcon } from './icon'
+import { setUpdateStageSink } from './libs/update'
 import { setLogSink } from './logger'
 import { createAppRPC } from './rpc'
 import { acquireSingleInstance } from './single-instance'
@@ -59,6 +60,7 @@ const main = async () => {
   ])
 
   setLogSink(entry => mainWindow.webview.rpc?.send.log(entry))
+  setUpdateStageSink(stage => mainWindow.webview.rpc?.send.updateStage(stage))
 }
 
 if (acquireSingleInstance(`app.ezdn.connect-${channel}`)) {

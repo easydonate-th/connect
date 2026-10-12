@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useFormContext, useFormState } from 'react-hook-form'
 import { toast } from 'sonner'
 
+import UpdateProgress from '~/components/UpdateProgress'
 import { log } from '~/libs/logs'
 import {
   checkForUpdate,
@@ -9,6 +10,7 @@ import {
   installUpdate,
   openExternal,
 } from '~/libs/rpc'
+import { resetUpdateStage } from '~/libs/update-stage'
 
 import type { Config } from '../../shared/config'
 import type { UpdateCheck } from '../../shared/rpc'
@@ -40,8 +42,9 @@ export const useAppUpdate = () => {
     }
 
     setIsInstalling(true)
-    const toastId = toast.loading('Downloading update', {
-      description: 'The app restarts when it is ready.',
+    resetUpdateStage()
+    const toastId = toast.loading('Installing update', {
+      description: <UpdateProgress />,
     })
 
     try {

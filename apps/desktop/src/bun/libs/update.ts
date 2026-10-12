@@ -1,15 +1,54 @@
 import { Updater } from 'electrobun/main'
+import type { UpdateStatusType } from 'electrobun/main'
 
-import type { UpdateCheck } from '../../shared/rpc'
+import type { UpdateCheck, UpdateStage } from '../../shared/rpc'
 import { logger } from '../logger'
+
+type UpdateStageSink = (stage: UpdateStage) => void
 
 // The webview's toast title already says this
 const CHECK_ERROR_PREFIX = /^Failed to check for updates: /u
+
+// The statuses of a download and install. Only the full bundle download
+// reports a percent; a patch downloads without one.
+const STAGE_LABELS: Partial<Record<UpdateStatusType, string>> = {
+  'download-starting': 'Starting download',
+  'fetching-patch': 'Downloading patch',
+  'patch-found': 'Downloading patch',
+  'downloading-patch': 'Downloading patch',
+  'applying-patch': 'Applying patch',
+  'patch-applied': 'Applying patch',
+  'extracting-version': 'Applying patch',
+  'patch-chain-complete': 'Applying patch',
+  'patch-not-found': 'Downloading update',
+  'downloading-full-bundle': 'Downloading update',
+  'download-progress': 'Downloading update',
+  // Progress stops at 99 until the bundle is unpacked
+  decompressing: 'Preparing update',
+  'download-complete': 'Preparing update',
+  applying: 'Preparing update',
+}
+
+let stageSink: UpdateStageSink | undefined
+
+export const setUpdateStageSink = (next: UpdateStageSink) => {
+  stageSink = next
+}
 
 // The updater has one status callback; progress fires once per percent
 Updater.onStatusChange(entry => {
   if (entry.status !== 'download-progress') {
     logger.info(`[Update] ${entry.message}`)
+  }
+
+  const label = STAGE_LABELS[entry.status]
+
+  if (label) {
+    try {
+      stageSink?.({ label, percent: entry.details?.progress ?? null })
+    } catch {
+      //
+    }
   }
 })
 

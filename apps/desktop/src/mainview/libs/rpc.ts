@@ -4,6 +4,7 @@ import { Config, VTSThrowConfig } from '../../shared/config'
 import { Donation } from '../../shared/donation'
 import { AppRPC } from '../../shared/rpc'
 import { addLog } from './logs'
+import { setUpdateStage } from './update-stage'
 
 // Outlasts the main process's two-minute wait for VTube Studio approval
 const VTS_REQUEST_TIME = 180_000
@@ -18,6 +19,7 @@ const rpc = Electroview.defineRPC<AppRPC>({
     requests: {},
     messages: {
       log: entry => addLog(entry),
+      updateStage: stage => setUpdateStage(stage),
     },
   },
 })

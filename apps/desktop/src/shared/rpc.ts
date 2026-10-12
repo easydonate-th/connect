@@ -23,6 +23,13 @@ export type UpdateCheck = {
   updateAvailable: boolean
 }
 
+/** What the updater is doing while it installs an update */
+export type UpdateStage = {
+  label: string
+  /** 0 to 100, or `null` when the stage reports no progress */
+  percent: number | null
+}
+
 export type AppRPC = {
   bun: RPCSchema<{
     requests: {
@@ -59,6 +66,7 @@ export type AppRPC = {
     requests: Record<never, never>
     messages: {
       log: LogEntry
+      updateStage: UpdateStage
     }
   }>
 }
