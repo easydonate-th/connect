@@ -25,6 +25,6 @@ export default {
       codesign: !!process.env.ELECTROBUN_DEVELOPER_ID,
     },
     linux: { bundleCEF: false, icon: 'icons/icon.iconset/icon_512x512.png' },
-    win: { bundleCEF: false, icon: 'icons/icon.ico' },
+    win: { bundleCEF: false, icon: 'icons/icon.iconset/icon_512x512.png' },
   },
 } satisfies ElectrobunConfig
