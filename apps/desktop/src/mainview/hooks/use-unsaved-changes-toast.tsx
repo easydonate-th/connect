@@ -1,4 +1,4 @@
-import { SaveIcon } from 'lucide-react'
+import { SaveIcon, Undo2Icon } from 'lucide-react'
 import { useEffect, useEffectEvent, useSyncExternalStore } from 'react'
 import { toast } from 'sonner'
 
@@ -45,18 +45,23 @@ type UnsavedChangesToastOptions = {
   isValid: boolean
   isSaving: boolean
   onSave: () => void
+  onRevert: () => void
 }
 
-/** Lets the user save changes without scrolling to the Save button. */
+/**
+ * Lets the user save or revert changes without scrolling to the Save button.
+ */
 export const useUnsavedChangesToast = ({
   isDirty,
   isValid,
   isSaving,
   onSave,
+  onRevert,
 }: UnsavedChangesToastOptions) => {
-  // The toast keeps the button from its last update, so read the latest
+  // The toast keeps the buttons from its last update, so read the latest
   // `onSave`, whose draft may have changed since then
   const handleSave = useEffectEvent(onSave)
+  const handleRevert = useEffectEvent(onRevert)
   const isHidden = useSyncExternalStore(subscribeHiders, getIsHidden)
 
   useEffect(() => {
@@ -70,10 +75,23 @@ export const useUnsavedChangesToast = ({
       description: isValid ? undefined : 'Fix the invalid fields to save',
       duration: Number.POSITIVE_INFINITY,
       dismissible: false,
+      // A React element, because sonner's own cancel button does nothing while
+      // the toast is not dismissible
+      cancel: (
+        <Button
+          size="sm"
+          variant="outline"
+          className="ml-auto"
+          disabled={isSaving}
+          onClick={() => handleRevert()}
+        >
+          <Undo2Icon />
+          Revert
+        </Button>
+      ),
       action: (
         <Button
           size="sm"
-          className="ml-auto"
           disabled={!isValid || isSaving}
           onClick={() => handleSave()}
         >

@@ -59,9 +59,6 @@ const HitSound = () => {
   })
   const { errors } = useFormState({ control, name: 'vts.throw.hitVolume' })
 
-  const selectedSound = customSounds.find(
-    sound => sound.fileName === hitSound.value
-  )
   const canPreview =
     hitSound.value !== 'none' && errors.vts?.throw?.hitVolume === undefined
 
@@ -104,12 +101,14 @@ const HitSound = () => {
     }
   }
 
-  const handleRemoveSound = () => {
-    setValue('vts.throw.hitSound', 'punch', { shouldDirty: true })
+  const handleRemoveSound = (fileName: string) => {
+    if (fileName === hitSound.value) {
+      setValue('vts.throw.hitSound', 'punch', { shouldDirty: true })
+    }
     setValue(
       'vts.throw.customSounds',
       getValues('vts.throw.customSounds').filter(
-        sound => sound.fileName !== selectedSound?.fileName
+        sound => sound.fileName !== fileName
       ),
       { shouldDirty: true }
     )
@@ -142,27 +141,31 @@ const HitSound = () => {
                   <SelectSeparator />
                   <SelectGroup>
                     <SelectLabel>Your sounds</SelectLabel>
+                    {/* The button sits beside the item, not in it, because the
+                        trigger copies the selected item's content and the
+                        item selects on any click inside it */}
                     {customSounds.map(sound => (
-                      <SelectItem key={sound.fileName} value={sound.fileName}>
-                        {sound.name}
-                      </SelectItem>
+                      <div key={sound.fileName} className="relative">
+                        <SelectItem value={sound.fileName} className="pr-14">
+                          {sound.name}
+                        </SelectItem>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
+                          className="text-muted-foreground absolute inset-y-0 right-7 my-auto"
+                          onClick={() => handleRemoveSound(sound.fileName)}
+                          aria-label={`Remove ${sound.name}`}
+                        >
+                          <Trash2Icon />
+                        </Button>
+                      </div>
                     ))}
                   </SelectGroup>
                 </>
               )}
             </SelectContent>
           </Select>
-          {selectedSound && (
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={handleRemoveSound}
-              aria-label={`Remove ${selectedSound.name}`}
-            >
-              <Trash2Icon />
-            </Button>
-          )}
           <Button
             type="button"
             variant="outline"

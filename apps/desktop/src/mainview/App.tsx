@@ -33,7 +33,6 @@ const App = () => {
 
   const { isDirty, isValid, isSubmitting } = form.formState
 
-  // Tests what the form shows, saved or not
   const handleSendTest = () => sendTestDonation(form.getValues())
 
   useUnsavedChangesToast({
@@ -41,6 +40,7 @@ const App = () => {
     isValid,
     isSaving: isSubmitting,
     onSave: save,
+    onRevert: () => form.reset(),
   })
 
   return (
