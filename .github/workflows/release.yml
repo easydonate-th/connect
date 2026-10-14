@@ -181,8 +181,10 @@ jobs:
           if [[ $prerelease == true ]]; then
             flags=(--prerelease)
           fi
+          # The installers and the SDK files. The update files go to the
+          # bucket only.
           shopt -s extglob
-          gh release create "$tag" out/!(*.patch) \
+          gh release create "$tag" out/!(stable-*) \
             --draft \
             --target "$GITHUB_SHA" \
             --title "$tag" \
