@@ -1,5 +1,5 @@
-import { FileMusicIcon, PlayIcon, Trash2Icon } from 'lucide-react'
-import { ChangeEvent, useRef } from 'react'
+import { FileMusicIcon, PlayIcon, SquareIcon, Trash2Icon } from 'lucide-react'
+import { ChangeEvent, useEffect, useRef, useState } from 'react'
 import {
   useController,
   useFormContext,
@@ -23,7 +23,7 @@ import {
 import { Spinner } from '~/components/ui/spinner'
 import { AlignedField } from '~/components/VTS/fields'
 import { useVTSSoundImport } from '~/hooks/use-vts-sound-import'
-import { playHitSound } from '~/libs/hit-sound'
+import { previewHitSound, stopPreview } from '~/libs/hit-sound'
 
 import {
   Config,
@@ -43,6 +43,7 @@ const SOUND_LABELS: Record<VTSHitSound, string> = {
 }
 
 const HitSound = () => {
+  const [isPreviewing, setIsPreviewing] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { isImporting, importSounds } = useVTSSoundImport()
@@ -65,8 +66,13 @@ const HitSound = () => {
     hitSound.value !== 'none' && errors.vts?.throw?.hitVolume === undefined
 
   const handlePreview = () => {
-    if (hitSound.value !== 'none') {
-      playHitSound({ sound: hitSound.value, volume: hitVolume })
+    if (isPreviewing) {
+      stopPreview()
+    } else if (hitSound.value !== 'none') {
+      setIsPreviewing(true)
+      previewHitSound({ sound: hitSound.value, volume: hitVolume }, () =>
+        setIsPreviewing(false)
+      )
     }
   }
 
@@ -108,6 +114,10 @@ const HitSound = () => {
       { shouldDirty: true }
     )
   }
+
+  // Closing the accordion unmounts this, which would leave a long sound
+  // playing with no Stop button
+  useEffect(() => stopPreview, [])
 
   return (
     <div className="grid grid-cols-[1fr_8rem_auto] gap-4">
@@ -183,10 +193,17 @@ const HitSound = () => {
           type="button"
           variant="outline"
           onClick={handlePreview}
-          disabled={!canPreview}
+          disabled={!isPreviewing && !canPreview}
         >
-          <PlayIcon />
-          Preview
+          {isPreviewing ? <SquareIcon /> : <PlayIcon />}
+          {/* The hidden Preview keeps the button's width, so the fields beside
+              it don't move */}
+          <span className="grid text-left">
+            <span className="invisible col-start-1 row-start-1">Preview</span>
+            <span className="col-start-1 row-start-1">
+              {isPreviewing ? 'Stop' : 'Preview'}
+            </span>
+          </span>
         </Button>
       </AlignedField>
     </div>

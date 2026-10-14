@@ -1,8 +1,6 @@
 import type { HitSound } from '../../shared/rpc'
 import { log } from './logs'
 
-// Kenney's Impact Sounds (CC0), a few takes of each sound, so a donation's
-// hits don't all sound the same
 const SOUND_URLS = import.meta.glob<string>('../sounds/*.wav', {
   eager: true,
   query: '?url',
@@ -38,8 +36,6 @@ const warnMuted = () => {
 const pickRandom = <T>(values: readonly T[]) =>
   values[Math.floor(Math.random() * values.length)]
 
-// Created on first use, since Chromium warns about a context made before a
-// click
 const getContext = () => {
   context ??= new AudioContext()
 
@@ -52,16 +48,10 @@ const fetchBytes = async (url: string) => {
   return response.arrayBuffer()
 }
 
-/**
- * `libs/rpc.ts` passes its `readVTSSound` request, which this module can't
- * import, since `libs/rpc.ts` imports `playHitSound`.
- */
 export const setSoundReader = (read: SoundReader) => {
   readSound = read
 }
 
-// Over RPC, because `appdata://` is another origin than the page, and `fetch`
-// would need CORS headers from it
 const readUserSound = async (fileName: string) => {
   if (!readSound) {
     throw new Error('the RPC bridge is not ready')
@@ -72,8 +62,6 @@ const readUserSound = async (fileName: string) => {
   return Uint8Array.from(binary, char => char.codePointAt(0) ?? 0).buffer
 }
 
-// Web Audio rather than `<audio>`, which can fail to stream from the custom
-// `views://` scheme on macOS
 const decode = async (audio: AudioContext, read: () => Promise<ArrayBuffer>) =>
   audio.decodeAudioData(await read())
 
@@ -109,11 +97,6 @@ const loadSound = (audio: AudioContext, sound: string) => {
   return loadBuffer(audio, url, () => fetchBytes(url))
 }
 
-/**
- * `resume` waits for a click while the webview keeps sound off. A sound whose
- * output starts later than `START_TIMEOUT` is dropped, so the click doesn't
- * play every waiting hit at once.
- */
 const startOutput = async (audio: AudioContext) => {
   if (audio.state === 'running') {
     return true
@@ -131,29 +114,88 @@ const startOutput = async (audio: AudioContext) => {
   return performance.now() - startedAt < START_TIMEOUT
 }
 
+const load = async (sound: string) => {
+  const audio = getContext()
+  const [isRunning, buffer] = await Promise.all([
+    startOutput(audio),
+    loadSound(audio, sound),
+  ])
+
+  return isRunning ? { audio, buffer } : null
+}
+
+const start = (audio: AudioContext, buffer: AudioBuffer, volume: number) => {
+  const source = audio.createBufferSource()
+  const gain = audio.createGain()
+
+  source.buffer = buffer
+  gain.gain.value = volume / 100
+  source.connect(gain).connect(audio.destination)
+  source.start()
+
+  return source
+}
+
+const warnFailed = (message: string) =>
+  log.warn(`Failed to play the hit sound: ${message}`)
+
 /** Logs failures instead of throwing. */
 export const playHitSound = async ({ sound, volume }: HitSound) => {
   try {
-    const audio = getContext()
-    const [isRunning, buffer] = await Promise.all([
-      startOutput(audio),
-      loadSound(audio, sound),
-    ])
+    const loaded = await load(sound)
 
-    if (!isRunning) {
+    if (loaded) {
+      start(loaded.audio, loaded.buffer, volume)
+    }
+  } catch (error) {
+    warnFailed(error instanceof Error ? error.message : 'unknown error')
+  }
+}
+
+type Preview = { source?: AudioBufferSourceNode; onEnd: () => void }
+
+let preview: Preview | undefined
+
+export const stopPreview = () => {
+  const current = preview
+
+  preview = undefined
+  current?.source?.stop()
+  current?.onEnd()
+}
+
+export const previewHitSound = async (
+  { sound, volume }: HitSound,
+  onEnd: () => void
+) => {
+  stopPreview()
+
+  const current: Preview = { onEnd }
+
+  preview = current
+
+  try {
+    const loaded = await load(sound)
+
+    if (preview !== current) {
+      return
+    }
+    if (!loaded) {
+      stopPreview()
       return
     }
 
-    const source = audio.createBufferSource()
-    const gain = audio.createGain()
-
-    source.buffer = buffer
-    gain.gain.value = volume / 100
-    source.connect(gain).connect(audio.destination)
-    source.start()
+    current.source = start(loaded.audio, loaded.buffer, volume)
+    current.source.addEventListener('ended', () => {
+      if (preview === current) {
+        preview = undefined
+        onEnd()
+      }
+    })
   } catch (error) {
-    log.warn(
-      `Failed to play the hit sound: ${error instanceof Error ? error.message : 'unknown error'}`
-    )
+    if (preview === current) {
+      stopPreview()
+    }
+    warnFailed(error instanceof Error ? error.message : 'unknown error')
   }
 }
