@@ -11,6 +11,8 @@ import { setUpdateStage } from './update-stage'
 const VTS_REQUEST_TIME = 180_000
 // Outlasts the updater's 30-second wait for update.json
 const UPDATE_CHECK_TIME = 40_000
+// A long hit sound's base64 can take longer than the default to cross RPC
+const SOUND_TRANSFER_TIME = 60_000
 
 type VTSEndpoint = Pick<VTSThrowConfig, 'host' | 'port'>
 
@@ -28,7 +30,9 @@ const rpc = Electroview.defineRPC<AppRPC>({
 
 export const electroview = new Electroview({ rpc })
 
-setSoundReader(fileName => rpc.request.readVTSSound(fileName))
+setSoundReader(fileName =>
+  rpc.request.readVTSSound(fileName, { maxRequestTime: SOUND_TRANSFER_TIME })
+)
 
 export const getConfig = () => rpc.request.getConfig()
 export const saveConfig = (config: Config) => rpc.request.saveConfig(config)
@@ -40,8 +44,8 @@ export const testVTSConnection = (endpoint: VTSEndpoint) =>
 // Waits on a file dialog, which has no time limit
 export const importVTSImages = () =>
   rpc.request.importVTSImages(undefined, { maxRequestTime: Infinity })
-export const importVTSSounds = () =>
-  rpc.request.importVTSSounds(undefined, { maxRequestTime: Infinity })
+export const saveVTSSound = (sound: { name: string; data: string }) =>
+  rpc.request.saveVTSSound(sound, { maxRequestTime: SOUND_TRANSFER_TIME })
 export const openDataFolder = () => rpc.request.openDataFolder()
 export const getAppVersion = () => rpc.request.getAppVersion()
 export const getPlatform = () => rpc.request.getPlatform()

@@ -41,12 +41,10 @@ const START_X = 1.4
 const DROP_Y = -1.6
 const FLIGHT_FADE_MODE = 'easeIn'
 const DROP = { time: 0.7, fadeMode: 'easeIn' } as const
-/** Seconds between the items of one donation */
 const STAGGER = 0.15
 /** `ItemMoveRequest` leaves fields at this value or lower unchanged. */
 const UNCHANGED = -1000
 const ITEM_FILE_NAME_NOT_FOUND = 751
-/** -1 throws from the left edge, 1 from the right */
 const SIDES: Record<VTSThrowDirection, number> = { left: -1, right: 1 }
 /**
  * Where items aimed at each zone land, as fractions of the model's visible

@@ -1,7 +1,6 @@
 import { Progress } from '~/components/ui/progress'
 import { useUpdateStage } from '~/hooks/use-update-stage'
 
-/** The install toast's description: the updater's stage and its progress. */
 const UpdateProgress = () => {
   const { label, percent } = useUpdateStage()
 

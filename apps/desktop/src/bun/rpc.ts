@@ -10,11 +10,7 @@ import { getMIDIDevices } from './libs/vrc/midi/winmm'
 import { testVTSConnection } from './libs/vts/connection'
 import { importVTSImages, pruneVTSImages } from './libs/vts/images'
 import { getVTSItems } from './libs/vts/items'
-import {
-  importVTSSounds,
-  pruneVTSSounds,
-  readVTSSound,
-} from './libs/vts/sounds'
+import { pruneVTSSounds, readVTSSound, saveVTSSound } from './libs/vts/sounds'
 import { logger } from './logger'
 
 export const createAppRPC = () =>
@@ -44,7 +40,7 @@ export const createAppRPC = () =>
         getVTSItems: endpoint => getVTSItems(endpoint),
         testVTSConnection: endpoint => testVTSConnection(endpoint),
         importVTSImages: () => importVTSImages(),
-        importVTSSounds: () => importVTSSounds(),
+        saveVTSSound: sound => saveVTSSound(sound),
         readVTSSound: fileName => readVTSSound(fileName),
         openDataFolder: () => {
           const folder = Utils.paths.userData

@@ -7,13 +7,11 @@ export const VTS_THROW_RANGES = {
   size: { min: 0.05, max: 1, integer: false },
   /** Seconds from the screen edge to the model */
   flightTime: { min: 0.1, max: 2, integer: false },
-  /** Degrees the item turns on its way in */
   spin: { min: 0, max: 360, integer: false },
   /** Seconds to fade in when thrown and out after the hit */
   fadeTime: { min: 0, max: 2, integer: false },
   /** How hard each hit knocks the model's head; 0 turns it off */
   hitForce: { min: 0, max: 3, integer: false },
-  /** Percent of the hit sound's full volume */
   hitVolume: { min: 0, max: 100, integer: true },
 } as const
 export const VTS_RULE_RANGES = {
@@ -35,10 +33,8 @@ export const VTS_ZONE_WIDTH_RANGE = {
   integer: true,
 } as const
 
-/** Parts of the model an item can hit, from the top down */
 export const VTS_HIT_ZONES = ['head', 'body', 'feet'] as const
 
-/** Screen edges an item aimed at a zone can be thrown from */
 export const VTS_THROW_DIRECTIONS = ['left', 'right'] as const
 
 /**
@@ -141,18 +137,17 @@ const MIDIConfigSchema = z.object({
 })
 
 const VTSCustomImageSchema = z.object({
-  // The format `importVTSImages` gives, which also keeps the path inside
-  // `userData/vts-images`
-  fileName: z.string().regex(/^ezdn-[\da-f]{8}\.(?:gif|jpg|png)$/u),
-  /** The original file name, for display */
+  // The format `importVTSImages` gives, or the `ezdn-` prefixed one of earlier
+  // versions, which also keeps the path inside `userData/vts-images`
+  fileName: z.string().regex(/^(?:ezdn-)?[\da-f]{8}\.(?:gif|jpg|png)$/u),
   name: z.string(),
 })
 
 const VTSCustomSoundSchema = z.object({
-  // The format `importVTSSounds` gives, which also keeps the path inside
-  // `userData/vts-sounds`
-  fileName: z.string().regex(/^ezdn-[\da-f]{8}\.(?:mp3|ogg|wav)$/u),
-  /** The original file name, for display */
+  // The format `saveVTSSound` gives, or the `ezdn-` prefixed one of earlier
+  // versions (with `wav` and `ogg` from 1.8.0), which also keeps the path
+  // inside `userData/vts-sounds`
+  fileName: z.string().regex(/^(?:ezdn-)?[\da-f]{8}\.(?:mp3|ogg|wav)$/u),
   name: z.string(),
 })
 
@@ -293,7 +288,6 @@ export const createVTSThrowRule = (rule: Partial<VTSThrowRule> = {}) =>
 export const getVTSImageUrl = ({ fileName }: VTSCustomImage) =>
   `appdata://${VTS_IMAGES_DIR}/${encodeURIComponent(fileName)}`
 
-/** Whether `fileName` has the format of the user's sounds' file names */
 export const isVTSSoundFileName = (fileName: string) =>
   VTSCustomSoundSchema.shape.fileName.safeParse(fileName).success
 

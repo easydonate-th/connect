@@ -16,7 +16,6 @@ const DIRECTION_LABELS: Record<VTSThrowDirection, string> = {
 type ZoneDirectionFieldProps = {
   index: number
   zone: VTSHitZone
-  /** The zone's name, for the field's label */
   label: string
   disabled?: boolean
 }

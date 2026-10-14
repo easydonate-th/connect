@@ -15,9 +15,28 @@ export const startsWith = (bytes: Uint8Array, prefix: number[]) =>
   prefix.every((byte, index) => bytes[index] === byte)
 
 /**
- * Copies the files the user picks into `userData/<folderName>` as
- * `ezdn-<8 hex>.<ext>`, the name format VTube Studio requires of images.
- * `check` returns a file's extension, or throws why the app can't use it.
+ * Writes `bytes` to `userData/<folderName>` as `<8 hex>.<extension>` and returns
+ * the file name. VTube Studio accepts it for an image, since it wants 8-32
+ * letters, digits or hyphens with the extension.
+ */
+export const writeUserFile = async (
+  folderName: string,
+  extension: string,
+  bytes: Uint8Array
+) => {
+  const folder = getFolder(folderName)
+  const fileName = `${crypto.randomUUID().slice(0, 8)}.${extension}`
+
+  await fs.mkdir(folder, { recursive: true })
+  await fs.writeFile(path.join(folder, fileName), bytes)
+
+  return fileName
+}
+
+/**
+ * Copies the files the user picks into `userData/<folderName>` with
+ * `writeUserFile`. `check` returns a file's extension, or throws why the app
+ * can't use it.
  */
 export const importUserFiles = async (
   folderName: string,
@@ -33,7 +52,6 @@ export const importUserFiles = async (
     canChooseDirectory: false,
     allowsMultipleSelection: true,
   })
-  const folder = getFolder(folderName)
   const result: UserFileImport = { added: [], rejected: [] }
 
   for (const sourcePath of paths.filter(Boolean)) {
@@ -41,10 +59,8 @@ export const importUserFiles = async (
 
     try {
       const bytes = new Uint8Array(await fs.readFile(sourcePath))
-      const fileName = `ezdn-${crypto.randomUUID().slice(0, 8)}.${check(bytes)}`
+      const fileName = await writeUserFile(folderName, check(bytes), bytes)
 
-      await fs.mkdir(folder, { recursive: true })
-      await fs.writeFile(path.join(folder, fileName), bytes)
       result.added.push({ fileName, name })
     } catch (error) {
       result.rejected.push(
@@ -66,7 +82,6 @@ export const readUserFile = async (folderName: string, fileName: string) => {
   return bytes.toString('base64')
 }
 
-/** Deletes the files in `userData/<folderName>` that `keep` doesn't list. */
 export const pruneUserFiles = async (folderName: string, keep: UserFile[]) => {
   const folder = getFolder(folderName)
   const kept = new Set(keep.map(file => file.fileName))

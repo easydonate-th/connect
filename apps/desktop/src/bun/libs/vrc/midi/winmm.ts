@@ -34,7 +34,6 @@ const loadWinMM = () =>
 let winmm: ReturnType<typeof loadWinMM> | undefined
 const getWinMM = () => (winmm ??= loadWinMM())
 
-/** Throws unless a WinMM call returned MMSYSERR_NOERROR (0). */
 const check = (result: number, action: string) => {
   if (result !== 0) {
     throw new Error(`${action} failed (MMRESULT ${result})`)
@@ -65,10 +64,6 @@ export const getMIDIDevices = () => {
   return names
 }
 
-/**
- * Opens the MIDI output port named `name`, sends `messages` in chunks of
- * `chunkSize` with `interval` milliseconds between chunks, and closes it.
- */
 export const sendMIDI = async (
   name: string,
   messages: MIDIMessage[],
@@ -96,7 +91,6 @@ export const sendMIDI = async (
         start,
         start + chunkSize
       )) {
-        // Packed little-endian: status, data1, data2
         const packed = status + data1 * 0x1_00 + data2 * 0x1_00_00
         check(api.midiOutShortMsg(handle, packed), `Sending to "${name}"`)
       }

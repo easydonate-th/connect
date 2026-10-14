@@ -36,10 +36,6 @@ export const addLog = (entry: LogEntry) => {
   notify()
 }
 
-/**
- * Records an incoming socket frame for the Raw log toggle, minus heartbeat
- * replies and TTS fields.
- */
 export const addRawLog = (frame: string) => {
   const message = toRawLogFrame(frame)
   if (message === null) {

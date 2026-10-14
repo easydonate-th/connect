@@ -18,11 +18,9 @@ const PARAMETERS: { id: string; axis: Axis; gain: number }[] = [
   { id: 'FaceAngleY', axis: 'y', gain: 15 },
 ]
 
-/** Seconds between parameter updates */
 const TICK = 0.033
 /** Longest step integrated at once, so a slow response can't fling the head */
 const MAX_STEP = 0.05
-/** Swings about 1.6 times a second */
 const FREQUENCY = 2 * Math.PI * 1.6
 /** Below 1, so the head overshoots and wobbles back a few times */
 const DAMPING_RATIO = 0.3
@@ -134,7 +132,6 @@ export const createHitReaction = (session: VTSSession, strength: number) => {
         start()
       }
     },
-    /** Resolves once the head is back at rest. */
     settled: async () => {
       // A restart sets a new `loop` before the previous one resolves, so wait
       // until no loop is left

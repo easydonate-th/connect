@@ -17,10 +17,6 @@ import type { UpdateCheck } from '../../shared/rpc'
 
 const RELEASES_URL = 'https://github.com/easydonate-th/connect/releases/latest'
 
-/**
- * The app version, read on mount, the result of the last `check()`, and
- * `install()`, which downloads the update and restarts into it.
- */
 export const useAppUpdate = () => {
   const [version, setVersion] = useState<string | null>(null)
   const [update, setUpdate] = useState<UpdateCheck | null>(null)

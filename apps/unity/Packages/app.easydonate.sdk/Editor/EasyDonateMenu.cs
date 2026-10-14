@@ -10,9 +10,6 @@ namespace EasyDonate.SDK.Editor
     /// </summary>
     internal static class EasyDonateMenu
     {
-        /// <summary>
-        /// Creates DonateManager: the receiver with its VRC Midi Listener.
-        /// </summary>
         [MenuItem("GameObject/EasyDonate/Donate Manager", false, 10)]
         private static void CreateDonateManager(MenuCommand command)
         {

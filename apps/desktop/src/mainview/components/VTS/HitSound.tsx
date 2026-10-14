@@ -1,4 +1,5 @@
 import { FileMusicIcon, PlayIcon, Trash2Icon } from 'lucide-react'
+import { ChangeEvent, useRef } from 'react'
 import {
   useController,
   useFormContext,
@@ -8,7 +9,7 @@ import {
 
 import NumberField from '~/components/NumberField'
 import { Button } from '~/components/ui/button'
-import { Field, FieldDescription, FieldLabel } from '~/components/ui/field'
+import { Field, FieldLabel } from '~/components/ui/field'
 import {
   Select,
   SelectContent,
@@ -19,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
+import { Spinner } from '~/components/ui/spinner'
 import { AlignedField } from '~/components/VTS/fields'
 import { useVTSSoundImport } from '~/hooks/use-vts-sound-import'
 import { playHitSound } from '~/libs/hit-sound'
@@ -41,6 +43,8 @@ const SOUND_LABELS: Record<VTSHitSound, string> = {
 }
 
 const HitSound = () => {
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   const { isImporting, importSounds } = useVTSSoundImport()
 
   const { control, getValues, setValue } = useFormContext<Config>()
@@ -66,8 +70,23 @@ const HitSound = () => {
     }
   }
 
-  const handleAddSounds = async () => {
-    const added = await importSounds()
+  // The webview reads the picked files itself, so a large one never crosses
+  // RPC
+  const handleAddSounds = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFilesChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const files = [...(event.currentTarget.files ?? [])]
+
+    // Lets the user pick the same file again
+    event.currentTarget.value = ''
+
+    if (files.length === 0) {
+      return
+    }
+
+    const added = await importSounds(files)
 
     if (added.length > 0) {
       setValue(
@@ -140,15 +159,18 @@ const HitSound = () => {
             onClick={handleAddSounds}
             disabled={isImporting}
           >
-            <FileMusicIcon />
+            {isImporting ? <Spinner /> : <FileMusicIcon />}
             Add sounds
           </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="audio/*,video/*"
+            multiple
+            hidden
+            onChange={handleFilesChange}
+          />
         </div>
-        <FieldDescription>
-          This app plays it as each item hits, so capture desktop audio to put
-          it on stream. Your sounds can be MP3, WAV or OGG files under
-          5&nbsp;MB.
-        </FieldDescription>
       </Field>
       <NumberField
         name="vts.throw.hitVolume"

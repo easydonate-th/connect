@@ -36,7 +36,6 @@ const escapeChar = (char: string) => {
   )
 }
 
-/** Encodes a donation as the Control Change messages described above. */
 export const encodeDonation = (
   data: Donation,
   channel: number

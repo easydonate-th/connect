@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react'
 import { log } from '~/libs/logs'
 import { getMIDIDevices } from '~/libs/rpc'
 
-/** Lists the MIDI output ports, or logs the error and returns none. */
 const loadDevices = async () => {
   try {
     return await getMIDIDevices()

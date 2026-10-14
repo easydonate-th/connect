@@ -43,9 +43,6 @@ namespace EasyDonate.SDK.Editor
             Schedule();
         }
 
-        /// <summary>
-        /// Wires up the receivers in every open scene.
-        /// </summary>
         internal static void SetUpOpenScenes()
         {
             if (EditorApplication.isPlaying)

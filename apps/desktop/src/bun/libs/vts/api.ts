@@ -163,7 +163,6 @@ export type APIRequests = {
 
 type Point = { x: number; y: number }
 
-/** The events this app subscribes to, keyed by name, with their `data` */
 export type APIEvents = {
   /** VTube Studio sends it 15 times a second while a model is loaded */
   ModelOutlineEvent: {
@@ -182,7 +181,6 @@ export type APIEvents = {
 
 export type APIErrorData = { errorID: number; message: string }
 
-/** Envelope of every message VTube Studio sends */
 export type APIMessage = {
   requestID?: string
   messageType: string

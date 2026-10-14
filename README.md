@@ -51,3 +51,5 @@ bun run build
 ## Credits
 
 The VTube Studio hit sounds come from [Impact Sounds](https://kenney.nl/assets/impact-sounds) by [Kenney](https://kenney.nl). Kenney released them under [CC0](https://creativecommons.org/publicdomain/zero/1.0/). The converted files and Kenney's license are in `apps/desktop/src/mainview/sounds/`.
+
+The app converts added hit sounds to MP3 with [LAME](https://lame.sourceforge.io), which is under the [LGPL](https://www.gnu.org/licenses/lgpl-3.0.html). It uses the WebAssembly build from [wasm-media-encoders](https://github.com/arseneyr/wasm-media-encoders), which is under the MIT license.

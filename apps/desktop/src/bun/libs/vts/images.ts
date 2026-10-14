@@ -87,7 +87,6 @@ const readImageInfo = (bytes: Uint8Array): ImageInfo | null => {
 const isSideInRange = (side: number) =>
   side >= SIDE_RANGE.min && side <= SIDE_RANGE.max
 
-/** Why VTube Studio would reject the image, or `null` if it wouldn't. */
 const findImageProblem = (bytes: Uint8Array, info: ImageInfo) => {
   if (bytes.length >= MAX_BYTES) {
     return 'larger than 5 MB'

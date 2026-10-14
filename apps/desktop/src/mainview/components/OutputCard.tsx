@@ -17,7 +17,6 @@ import type { Config } from '../../shared/config'
 
 type OutputCardProps = {
   id: string
-  /** The output's `enabled` field, which the card's switch toggles */
   name: 'vrc.osc.enabled' | 'vrc.midi.enabled' | 'vts.throw.enabled'
   icon: LucideIcon
   title: string

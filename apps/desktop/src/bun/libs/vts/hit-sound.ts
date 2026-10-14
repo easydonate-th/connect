@@ -14,7 +14,6 @@ export const setHitSoundSink = (next: HitSoundSink) => {
   sink = next
 }
 
-/** Sends the config's hit sound to the webview, as the item lands. */
 export const playHitSound = ({ hitSound, hitVolume }: VTSThrowConfig) => {
   if (hitSound === 'none' || hitVolume === 0) {
     return

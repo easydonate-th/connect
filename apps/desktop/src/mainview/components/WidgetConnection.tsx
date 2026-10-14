@@ -52,9 +52,7 @@ const describeLastDonation = (donation: Donation | null) => {
 
 type WidgetConnectionProps = {
   status: ConnectionStatus
-  /** The socket URL in use, `null` while disconnected */
   socketUrl: string | null
-  /** The widget URL that last failed to connect */
   invalidUrl: string | null
   lastDonation: Donation | null
   onConnect: (widgetUrl: string) => void
@@ -78,7 +76,6 @@ const WidgetConnection = ({
     name: 'autoConnect',
   })
 
-  // True when the socket is using the URL in the field
   const isActive =
     socketUrl !== null && socketUrl === getSocketUrl(widgetUrl.value)
   const isUrlInvalid = invalidUrl === widgetUrl.value

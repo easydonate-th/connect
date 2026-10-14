@@ -7,7 +7,6 @@ import { Spinner } from '~/components/ui/spinner'
 
 const TOAST_ID = 'unsaved-changes'
 
-// How many components hide the toast
 let hiderCount = 0
 const listeners = new Set<() => void>()
 

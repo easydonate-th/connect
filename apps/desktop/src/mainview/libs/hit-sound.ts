@@ -9,7 +9,6 @@ const SOUND_URLS = import.meta.glob<string>('../sounds/*.wav', {
   import: 'default',
 })
 
-/** Longest wait for the audio output to start before a sound is dropped */
 const START_TIMEOUT = 1000
 
 type SoundReader = (fileName: string) => Promise<string>
@@ -93,13 +92,11 @@ const loadBuffer = async (
   try {
     return await buffer
   } catch (error) {
-    // Lets the next hit try again
     buffers.delete(key)
     throw error
   }
 }
 
-/** A random take of a preset, or one of the user's sounds by `fileName` */
 const loadSound = (audio: AudioContext, sound: string) => {
   const urls = takes.get(sound)
 
@@ -111,13 +108,6 @@ const loadSound = (audio: AudioContext, sound: string) => {
 
   return loadBuffer(audio, url, () => fetchBytes(url))
 }
-
-/**
- * Decodes one of the user's sounds, so an import can reject a file this
- * webview can't play. Throws if it can't.
- */
-export const loadUserSound = (fileName: string) =>
-  loadBuffer(getContext(), fileName, () => readUserSound(fileName))
 
 /**
  * `resume` waits for a click while the webview keeps sound off. A sound whose
@@ -141,10 +131,7 @@ const startOutput = async (audio: AudioContext) => {
   return performance.now() - startedAt < START_TIMEOUT
 }
 
-/**
- * Plays a random take of a preset, or one of the user's sounds. Logs failures
- * instead of throwing.
- */
+/** Logs failures instead of throwing. */
 export const playHitSound = async ({ sound, volume }: HitSound) => {
   try {
     const audio = getContext()
