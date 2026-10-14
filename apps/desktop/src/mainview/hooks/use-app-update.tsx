@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import { useFormContext, useFormState } from 'react-hook-form'
 import { toast } from 'sonner'
 
@@ -64,6 +64,13 @@ export const useAppUpdate = () => {
     }
   }
 
+  const showUpdateAvailable = (result: UpdateCheck) => {
+    toast.info(`Version ${result.latestVersion} is available`, {
+      description: `You have version ${result.currentVersion}.`,
+      action: { label: 'Update', onClick: install },
+    })
+  }
+
   const check = async () => {
     setIsChecking(true)
 
@@ -71,10 +78,7 @@ export const useAppUpdate = () => {
       const result = await checkForUpdate()
 
       if (result.updateAvailable) {
-        toast.info(`Version ${result.latestVersion} is available`, {
-          description: `You have version ${result.currentVersion}.`,
-          action: { label: 'Update', onClick: install },
-        })
+        showUpdateAvailable(result)
       } else {
         toast.success('You’re up to date', {
           description: `Version ${result.currentVersion} is the latest.`,
@@ -94,6 +98,14 @@ export const useAppUpdate = () => {
     setIsChecking(false)
   }
 
+  const handleLaunchCheck = useEffectEvent((result: UpdateCheck) => {
+    if (result.updateAvailable) {
+      showUpdateAvailable(result)
+    }
+
+    setUpdate(result)
+  })
+
   useEffect(() => {
     isDirtyRef.current = isDirty
   }, [isDirty])
@@ -110,6 +122,38 @@ export const useAppUpdate = () => {
     }
 
     loadVersion()
+  }, [])
+
+  useEffect(() => {
+    let isCancelled = false
+
+    const checkOnLaunch = async () => {
+      setIsChecking(true)
+
+      try {
+        const result = await checkForUpdate()
+
+        if (!isCancelled) {
+          handleLaunchCheck(result)
+        }
+      } catch (error) {
+        if (isCancelled) {
+          return
+        }
+
+        log.warn(
+          `Failed to check for updates on launch: ${error instanceof Error ? error.message : 'unknown error'}`
+        )
+      }
+
+      setIsChecking(false)
+    }
+
+    checkOnLaunch()
+
+    return () => {
+      isCancelled = true
+    }
   }, [])
 
   return { version, update, isChecking, isInstalling, check, install }
