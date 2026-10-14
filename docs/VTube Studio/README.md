@@ -23,3 +23,5 @@
 4. Choose or upload image and test it with, **Send Test Donation**
 
 5. Choose a **Hit sound** and its **Volume**, then click **Preview** to hear it. When an item hits your model, the app plays the sound. To put the sound on stream, capture desktop audio in your streaming software.
+
+   To use your own sound, click **Add sounds** and choose MP3, WAV or OGG files under 5 MB. The app adds them to the **Hit sound** list under **Your sounds** and selects the first one. To remove a sound, select it and click the trash button. The app deletes the removed file when you save.

@@ -1,4 +1,4 @@
-import { PlayIcon } from 'lucide-react'
+import { FileMusicIcon, PlayIcon, Trash2Icon } from 'lucide-react'
 import {
   useController,
   useFormContext,
@@ -12,11 +12,15 @@ import { Field, FieldDescription, FieldLabel } from '~/components/ui/field'
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
 import { AlignedField } from '~/components/VTS/fields'
+import { useVTSSoundImport } from '~/hooks/use-vts-sound-import'
 import { playHitSound } from '~/libs/hit-sound'
 
 import {
@@ -37,14 +41,22 @@ const SOUND_LABELS: Record<VTSHitSound, string> = {
 }
 
 const HitSound = () => {
-  const { control } = useFormContext<Config>()
+  const { isImporting, importSounds } = useVTSSoundImport()
+
+  const { control, getValues, setValue } = useFormContext<Config>()
   const { field: hitSound } = useController({
     control,
     name: 'vts.throw.hitSound',
   })
-  const hitVolume = useWatch({ control, name: 'vts.throw.hitVolume' })
+  const [hitVolume, customSounds] = useWatch({
+    control,
+    name: ['vts.throw.hitVolume', 'vts.throw.customSounds'],
+  })
   const { errors } = useFormState({ control, name: 'vts.throw.hitVolume' })
 
+  const selectedSound = customSounds.find(
+    sound => sound.fileName === hitSound.value
+  )
   const canPreview =
     hitSound.value !== 'none' && errors.vts?.throw?.hitVolume === undefined
 
@@ -54,28 +66,88 @@ const HitSound = () => {
     }
   }
 
+  const handleAddSounds = async () => {
+    const added = await importSounds()
+
+    if (added.length > 0) {
+      setValue(
+        'vts.throw.customSounds',
+        [...getValues('vts.throw.customSounds'), ...added],
+        { shouldDirty: true }
+      )
+      setValue('vts.throw.hitSound', added[0].fileName, { shouldDirty: true })
+    }
+  }
+
+  const handleRemoveSound = () => {
+    setValue('vts.throw.hitSound', 'punch', { shouldDirty: true })
+    setValue(
+      'vts.throw.customSounds',
+      getValues('vts.throw.customSounds').filter(
+        sound => sound.fileName !== selectedSound?.fileName
+      ),
+      { shouldDirty: true }
+    )
+  }
+
   return (
     <div className="grid grid-cols-[1fr_8rem_auto] gap-4">
       <Field>
         <FieldLabel htmlFor="vts-hit-sound">Hit sound</FieldLabel>
-        <Select
-          value={hitSound.value}
-          onValueChange={sound => hitSound.onChange(sound)}
-        >
-          <SelectTrigger id="vts-hit-sound">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent position="popper">
-            {VTS_HIT_SOUNDS.map(sound => (
-              <SelectItem key={sound} value={sound}>
-                {SOUND_LABELS[sound]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex gap-2">
+          <Select
+            value={hitSound.value}
+            onValueChange={sound => hitSound.onChange(sound)}
+          >
+            <SelectTrigger id="vts-hit-sound" className="min-w-0 flex-1">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent position="popper">
+              {VTS_HIT_SOUNDS.map(sound => (
+                <SelectItem key={sound} value={sound}>
+                  {SOUND_LABELS[sound]}
+                </SelectItem>
+              ))}
+              {customSounds.length > 0 && (
+                <>
+                  <SelectSeparator />
+                  <SelectGroup>
+                    <SelectLabel>Your sounds</SelectLabel>
+                    {customSounds.map(sound => (
+                      <SelectItem key={sound.fileName} value={sound.fileName}>
+                        {sound.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </>
+              )}
+            </SelectContent>
+          </Select>
+          {selectedSound && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={handleRemoveSound}
+              aria-label={`Remove ${selectedSound.name}`}
+            >
+              <Trash2Icon />
+            </Button>
+          )}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleAddSounds}
+            disabled={isImporting}
+          >
+            <FileMusicIcon />
+            Add sounds
+          </Button>
+        </div>
         <FieldDescription>
           This app plays it as each item hits, so capture desktop audio to put
-          it on stream.
+          it on stream. Your sounds can be MP3, WAV or OGG files under
+          5&nbsp;MB.
         </FieldDescription>
       </Field>
       <NumberField

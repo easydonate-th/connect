@@ -12,6 +12,8 @@ const SOUND_URLS = import.meta.glob<string>('../sounds/*.wav', {
 /** Longest wait for the audio output to start before a sound is dropped */
 const START_TIMEOUT = 1000
 
+type SoundReader = (fileName: string) => Promise<string>
+
 const takes = new Map<string, string[]>()
 
 for (const [path, url] of Object.entries(SOUND_URLS)) {
@@ -25,6 +27,7 @@ for (const [path, url] of Object.entries(SOUND_URLS)) {
 let context: AudioContext | undefined
 const buffers = new Map<string, Promise<AudioBuffer>>()
 let hasWarnedMuted = false
+let readSound: SoundReader | undefined
 
 const warnMuted = () => {
   if (!hasWarnedMuted) {
@@ -36,30 +39,85 @@ const warnMuted = () => {
 const pickRandom = <T>(values: readonly T[]) =>
   values[Math.floor(Math.random() * values.length)]
 
-// Web Audio rather than `<audio>`, which can fail to stream from the custom
-// `views://` scheme on macOS
-const decode = async (audio: AudioContext, url: string) => {
-  const response = await fetch(url)
+// Created on first use, since Chromium warns about a context made before a
+// click
+const getContext = () => {
+  context ??= new AudioContext()
 
-  return audio.decodeAudioData(await response.arrayBuffer())
+  return context
 }
 
-const loadBuffer = async (audio: AudioContext, url: string) => {
-  let buffer = buffers.get(url)
+const fetchBytes = async (url: string) => {
+  const response = await fetch(url)
+
+  return response.arrayBuffer()
+}
+
+/**
+ * `libs/rpc.ts` passes its `readVTSSound` request, which this module can't
+ * import, since `libs/rpc.ts` imports `playHitSound`.
+ */
+export const setSoundReader = (read: SoundReader) => {
+  readSound = read
+}
+
+// Over RPC, because `appdata://` is another origin than the page, and `fetch`
+// would need CORS headers from it
+const readUserSound = async (fileName: string) => {
+  if (!readSound) {
+    throw new Error('the RPC bridge is not ready')
+  }
+
+  const binary = atob(await readSound(fileName))
+
+  return Uint8Array.from(binary, char => char.codePointAt(0) ?? 0).buffer
+}
+
+// Web Audio rather than `<audio>`, which can fail to stream from the custom
+// `views://` scheme on macOS
+const decode = async (audio: AudioContext, read: () => Promise<ArrayBuffer>) =>
+  audio.decodeAudioData(await read())
+
+const loadBuffer = async (
+  audio: AudioContext,
+  key: string,
+  read: () => Promise<ArrayBuffer>
+) => {
+  let buffer = buffers.get(key)
 
   if (!buffer) {
-    buffer = decode(audio, url)
-    buffers.set(url, buffer)
+    buffer = decode(audio, read)
+    buffers.set(key, buffer)
   }
 
   try {
     return await buffer
   } catch (error) {
     // Lets the next hit try again
-    buffers.delete(url)
+    buffers.delete(key)
     throw error
   }
 }
+
+/** A random take of a preset, or one of the user's sounds by `fileName` */
+const loadSound = (audio: AudioContext, sound: string) => {
+  const urls = takes.get(sound)
+
+  if (!urls) {
+    return loadBuffer(audio, sound, () => readUserSound(sound))
+  }
+
+  const url = pickRandom(urls)
+
+  return loadBuffer(audio, url, () => fetchBytes(url))
+}
+
+/**
+ * Decodes one of the user's sounds, so an import can reject a file this
+ * webview can't play. Throws if it can't.
+ */
+export const loadUserSound = (fileName: string) =>
+  loadBuffer(getContext(), fileName, () => readUserSound(fileName))
 
 /**
  * `resume` waits for a click while the webview keeps sound off. A sound whose
@@ -83,24 +141,16 @@ const startOutput = async (audio: AudioContext) => {
   return performance.now() - startedAt < START_TIMEOUT
 }
 
-/** Plays a random take of the sound. Logs failures instead of throwing. */
+/**
+ * Plays a random take of a preset, or one of the user's sounds. Logs failures
+ * instead of throwing.
+ */
 export const playHitSound = async ({ sound, volume }: HitSound) => {
-  const urls = takes.get(sound)
-
-  if (!urls) {
-    log.warn(`Unknown hit sound: ${sound}`)
-
-    return
-  }
-
   try {
-    // Created on first use, since Chromium warns about a context made before
-    // a click
-    context ??= new AudioContext()
-    const audio = context
+    const audio = getContext()
     const [isRunning, buffer] = await Promise.all([
       startOutput(audio),
-      loadBuffer(audio, pickRandom(urls)),
+      loadSound(audio, sound),
     ])
 
     if (!isRunning) {

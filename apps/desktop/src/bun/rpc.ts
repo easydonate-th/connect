@@ -10,6 +10,11 @@ import { getMIDIDevices } from './libs/vrc/midi/winmm'
 import { testVTSConnection } from './libs/vts/connection'
 import { importVTSImages, pruneVTSImages } from './libs/vts/images'
 import { getVTSItems } from './libs/vts/items'
+import {
+  importVTSSounds,
+  pruneVTSSounds,
+  readVTSSound,
+} from './libs/vts/sounds'
 import { logger } from './logger'
 
 export const createAppRPC = () =>
@@ -19,12 +24,16 @@ export const createAppRPC = () =>
         getConfig: () => getConfig(),
         saveConfig: async config => {
           const saved = saveConfig(config)
+          const { customImages, customSounds } = saved.vts.throw
 
           try {
-            await pruneVTSImages(saved.vts.throw.customImages)
+            await Promise.all([
+              pruneVTSImages(customImages),
+              pruneVTSSounds(customSounds),
+            ])
           } catch (error) {
             logger.warn(
-              'Failed to delete removed VTube Studio images',
+              'Failed to delete removed VTube Studio images or hit sounds',
               error instanceof Error ? error : undefined
             )
           }
@@ -35,6 +44,8 @@ export const createAppRPC = () =>
         getVTSItems: endpoint => getVTSItems(endpoint),
         testVTSConnection: endpoint => testVTSConnection(endpoint),
         importVTSImages: () => importVTSImages(),
+        importVTSSounds: () => importVTSSounds(),
+        readVTSSound: fileName => readVTSSound(fileName),
         openDataFolder: () => {
           const folder = Utils.paths.userData
           fs.mkdirSync(folder, { recursive: true })

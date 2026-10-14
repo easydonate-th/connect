@@ -43,7 +43,8 @@ export const VTS_THROW_DIRECTIONS = ['left', 'right'] as const
 
 /**
  * Sounds the app plays when an item hits the model, each a set of takes in
- * `mainview/sounds`. VTube Studio's API can't play audio.
+ * `mainview/sounds`. VTube Studio's API can't play audio. The config's
+ * `hitSound` is one of these or the `fileName` of one of the user's sounds.
  */
 export const VTS_HIT_SOUNDS = [
   'none',
@@ -67,6 +68,7 @@ const VTS_THROW_RANGE_KEYS = Object.keys(VTS_THROW_RANGES) as VTSThrowRangeKey[]
 type Range = { min: number; max: number; integer: boolean }
 
 export const VTS_IMAGES_DIR = 'vts-images'
+export const VTS_SOUNDS_DIR = 'vts-sounds'
 
 // `z.catch`, renamed so the promise lint rules don't mistake it for a promise
 // `.catch`
@@ -146,6 +148,14 @@ const VTSCustomImageSchema = z.object({
   name: z.string(),
 })
 
+const VTSCustomSoundSchema = z.object({
+  // The format `importVTSSounds` gives, which also keeps the path inside
+  // `userData/vts-sounds`
+  fileName: z.string().regex(/^ezdn-[\da-f]{8}\.(?:mp3|ogg|wav)$/u),
+  /** The original file name, for display */
+  name: z.string(),
+})
+
 /**
  * A donation of at least `minAmount` THB throws `count` items, each at one of
  * the rule's `zones`. Each item comes at random from the config's `items` and
@@ -206,17 +216,22 @@ const VTSThrowConfigSchema = z
     /** Selected files from VTube Studio's `Items` folder */
     items: listOf(z.string().trim().min(1)),
     customImages: listOf(VTSCustomImageSchema),
+    customSounds: listOf(VTSCustomSoundSchema),
     rules: listOf(VTSThrowRuleSchema),
     size: withFallback(VTS_THROW_VALUE_SCHEMAS.size, 0.32),
     flightTime: withFallback(VTS_THROW_VALUE_SCHEMAS.flightTime, 0.45),
     spin: withFallback(VTS_THROW_VALUE_SCHEMAS.spin, 90),
     fadeTime: withFallback(VTS_THROW_VALUE_SCHEMAS.fadeTime, 0),
     hitForce: withFallback(VTS_THROW_VALUE_SCHEMAS.hitForce, 1),
-    hitSound: withFallback(z.enum(VTS_HIT_SOUNDS), 'punch'),
+    hitSound: withFallback(z.string(), 'punch'),
     hitVolume: withFallback(VTS_THROW_VALUE_SCHEMAS.hitVolume, 50),
   })
   .transform(config => {
     const imageNames = new Set(config.customImages.map(image => image.fileName))
+    const soundNames = new Set<string>([
+      ...VTS_HIT_SOUNDS,
+      ...config.customSounds.map(sound => sound.fileName),
+    ])
     // With no rules left, add the default one, which throws an item at every
     // donation
     const rules =
@@ -225,6 +240,7 @@ const VTSThrowConfigSchema = z
     // `sendDonationVTS` expects the rules sorted by `minAmount`
     return {
       ...config,
+      hitSound: soundNames.has(config.hitSound) ? config.hitSound : 'punch',
       rules: rules
         .map(rule => ({
           ...rule,
@@ -260,6 +276,7 @@ export const ConfigSchema = withDefaults(
 export type OSCConfig = z.output<typeof OSCConfigSchema>
 export type MIDIConfig = z.output<typeof MIDIConfigSchema>
 export type VTSCustomImage = z.output<typeof VTSCustomImageSchema>
+export type VTSCustomSound = z.output<typeof VTSCustomSoundSchema>
 export type VTSThrowRule = z.output<typeof VTSThrowRuleSchema>
 export type VTSThrowConfig = z.output<typeof VTSThrowConfigSchema>
 export type Config = z.output<typeof ConfigSchema>
@@ -275,6 +292,10 @@ export const createVTSThrowRule = (rule: Partial<VTSThrowRule> = {}) =>
  */
 export const getVTSImageUrl = ({ fileName }: VTSCustomImage) =>
   `appdata://${VTS_IMAGES_DIR}/${encodeURIComponent(fileName)}`
+
+/** Whether `fileName` has the format of the user's sounds' file names */
+export const isVTSSoundFileName = (fileName: string) =>
+  VTSCustomSoundSchema.shape.fileName.safeParse(fileName).success
 
 /** A message for each invalid field, keyed by its path in the config form. */
 export type ConfigErrors = Record<string, string>

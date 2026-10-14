@@ -3,7 +3,7 @@ import type { RPCSchema } from 'electrobun/view'
 import type {
   Config,
   VTSCustomImage,
-  VTSHitSound,
+  VTSCustomSound,
   VTSThrowConfig,
 } from './config'
 import type { Donation } from './donation'
@@ -21,6 +21,12 @@ export type VTSImageImport = {
   rejected: string[]
 }
 
+export type VTSSoundImport = {
+  added: VTSCustomSound[]
+  /** Why the import skipped each file that isn't a usable sound */
+  rejected: string[]
+}
+
 export type UpdateCheck = {
   currentVersion: string
   /** The version in the latest GitHub release's `update.json` */
@@ -30,7 +36,8 @@ export type UpdateCheck = {
 
 /** A sound for the webview to play as an item hits the model */
 export type HitSound = {
-  sound: Exclude<VTSHitSound, 'none'>
+  /** A preset other than `none`, or the `fileName` of one of the user's sounds */
+  sound: string
   /** 0 to 100 */
   volume: number
 }
@@ -58,6 +65,9 @@ export type AppRPC = {
       }
       openDataFolder: { params: undefined; response: string }
       importVTSImages: { params: undefined; response: VTSImageImport }
+      importVTSSounds: { params: undefined; response: VTSSoundImport }
+      /** One of the user's sounds, by `fileName`, as base64 */
+      readVTSSound: { params: string; response: string }
       getAppVersion: { params: undefined; response: string }
       getPlatform: { params: undefined; response: string }
       checkForUpdate: { params: undefined; response: UpdateCheck }

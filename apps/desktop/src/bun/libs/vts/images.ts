@@ -1,11 +1,12 @@
-import { Utils } from 'electrobun/main'
-import fs from 'node:fs/promises'
-import path from 'node:path'
-
 import { VTS_IMAGES_DIR } from '../../../shared/config'
 import type { VTSCustomImage } from '../../../shared/config'
 import type { VTSImageImport } from '../../../shared/rpc'
-import { logger } from '../../logger'
+import {
+  importUserFiles,
+  pruneUserFiles,
+  readUserFile,
+  startsWith,
+} from './user-files'
 
 type ImageType = 'png' | 'jpg' | 'gif'
 
@@ -16,11 +17,6 @@ const MAX_BYTES = 5 * 1024 * 1024
 const SIDE_RANGE = { min: 64, max: 2048 }
 
 const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]
-
-const getImagesDir = () => path.join(Utils.paths.userData, VTS_IMAGES_DIR)
-
-const startsWith = (bytes: Uint8Array, prefix: number[]) =>
-  prefix.every((byte, index) => bytes[index] === byte)
 
 /** Reads the size from a JPEG's start-of-frame segment. */
 const readJPEGSize = (view: DataView) => {
@@ -103,8 +99,7 @@ const findImageProblem = (bytes: Uint8Array, info: ImageInfo) => {
   return null
 }
 
-const importImage = async (sourcePath: string): Promise<VTSCustomImage> => {
-  const bytes = new Uint8Array(await fs.readFile(sourcePath))
+const checkImage = (bytes: Uint8Array) => {
   const info = readImageInfo(bytes)
 
   if (!info) {
@@ -117,65 +112,14 @@ const importImage = async (sourcePath: string): Promise<VTSCustomImage> => {
     throw new Error(problem)
   }
 
-  const fileName = `ezdn-${crypto.randomUUID().slice(0, 8)}.${info.type}`
-  const imagesDir = getImagesDir()
-
-  await fs.mkdir(imagesDir, { recursive: true })
-  await fs.writeFile(path.join(imagesDir, fileName), bytes)
-
-  return { fileName, name: path.basename(sourcePath) }
+  return info.type
 }
 
-export const importVTSImages = async (): Promise<VTSImageImport> => {
-  const paths = await Utils.openFileDialog({
-    // No filter, because on Windows, Electrobun makes one filter per extension
-    // and shows only the first, which hides JPGs and GIFs. `importImage`
-    // rejects unusable files instead.
-    allowedFileTypes: '*',
-    canChooseFiles: true,
-    canChooseDirectory: false,
-    allowsMultipleSelection: true,
-  })
-  const result: VTSImageImport = { added: [], rejected: [] }
+export const importVTSImages = (): Promise<VTSImageImport> =>
+  importUserFiles(VTS_IMAGES_DIR, 'Image', checkImage)
 
-  for (const sourcePath of paths.filter(Boolean)) {
-    try {
-      result.added.push(await importImage(sourcePath))
-    } catch (error) {
-      result.rejected.push(
-        `${path.basename(sourcePath)}: ${error instanceof Error ? error.message : 'unknown error'}`
-      )
-    }
-  }
+export const readVTSImage = ({ fileName }: VTSCustomImage) =>
+  readUserFile(VTS_IMAGES_DIR, fileName)
 
-  for (const reason of result.rejected) {
-    logger.warn(`[VTS] Image not added, ${reason}`)
-  }
-
-  return result
-}
-
-export const readVTSImage = async ({ fileName }: VTSCustomImage) => {
-  const bytes = await fs.readFile(path.join(getImagesDir(), fileName))
-
-  return bytes.toString('base64')
-}
-
-export const pruneVTSImages = async (keep: VTSCustomImage[]) => {
-  const imagesDir = getImagesDir()
-  const kept = new Set(keep.map(image => image.fileName))
-  let fileNames: string[]
-
-  try {
-    fileNames = await fs.readdir(imagesDir)
-  } catch {
-    // The folder doesn't exist until the user imports an image
-    return
-  }
-
-  await Promise.all(
-    fileNames
-      .filter(fileName => !kept.has(fileName))
-      .map(fileName => fs.rm(path.join(imagesDir, fileName), { force: true }))
-  )
-}
+export const pruneVTSImages = (keep: VTSCustomImage[]) =>
+  pruneUserFiles(VTS_IMAGES_DIR, keep)
