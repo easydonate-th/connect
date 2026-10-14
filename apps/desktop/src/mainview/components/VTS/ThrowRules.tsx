@@ -16,9 +16,6 @@ import {
   VTS_RULE_RANGES,
 } from '../../../shared/config'
 
-// Puts a new rule above the highest one, so its Min THB isn't a duplicate
-const NEW_RULE_STEP = 100
-
 type RuleDialog = { index: number; kind: RuleDialogKind }
 
 type ThrowRulesProps = {
@@ -47,7 +44,7 @@ const ThrowRules = ({ canSendTest, onSendTest }: ThrowRulesProps) => {
         .filter(Number.isFinite)
     )
     const minAmount = Number.isFinite(highest)
-      ? Math.min(highest + NEW_RULE_STEP, VTS_RULE_RANGES.minAmount.max)
+      ? Math.min(highest + 100, VTS_RULE_RANGES.minAmount.max)
       : VTS_RULE_RANGES.minAmount.min
 
     append(createVTSThrowRule({ minAmount }), { shouldFocus: false })
@@ -59,11 +56,10 @@ const ThrowRules = ({ canSendTest, onSendTest }: ThrowRulesProps) => {
   }
   const closeDialog = () => setIsDialogOpen(false)
 
-  // A closed dialog's rule may have been removed since
   const isDialogMounted = dialog !== null && dialog.index < fields.length
 
   return (
-    <Field>
+    <Field className="gap-3">
       <div className="flex items-center gap-2">
         <FieldLabel id="vts-rules-label" className="mr-auto">
           Logic
@@ -78,7 +74,7 @@ const ThrowRules = ({ canSendTest, onSendTest }: ThrowRulesProps) => {
           Add rule
         </Button>
       </div>
-      <ul aria-labelledby="vts-rules-label" className="flex flex-col gap-2">
+      <ul aria-labelledby="vts-rules-label" className="flex flex-col gap-3">
         {fields.map((field, index) => (
           <ThrowRule
             key={field.key}

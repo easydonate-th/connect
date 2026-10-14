@@ -48,7 +48,7 @@ const App = () => {
       <div className="bg-background min-h-screen">
         <main
           className={cn(
-            'container mx-auto flex max-w-3xl flex-col gap-6 px-4 py-10',
+            'container mx-auto flex max-w-3xl flex-col gap-8 px-4 py-10',
             { 'pb-32': isDirty }
           )}
         >

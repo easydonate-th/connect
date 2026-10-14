@@ -55,7 +55,7 @@ const Integrations = ({ canSendTest, onSendTest }: IntegrationsProps) => {
           <AccordionTrigger className="hover:bg-muted items-center rounded-none px-4 py-4 hover:no-underline">
             <CategoryLabel icon={Gamepad2Icon} name="VRChat" />
           </AccordionTrigger>
-          <AccordionContent className="flex h-auto flex-col gap-4 px-4 pt-px pb-4">
+          <AccordionContent className="flex h-auto flex-col gap-6 px-4 pt-px pb-6">
             <OSC />
             <MIDI isSupported={isMIDISupported} />
           </AccordionContent>
@@ -64,7 +64,7 @@ const Integrations = ({ canSendTest, onSendTest }: IntegrationsProps) => {
           <AccordionTrigger className="hover:bg-muted items-center rounded-none px-4 py-4 hover:no-underline">
             <CategoryLabel icon={VideoIcon} name="VTube Studio" />
           </AccordionTrigger>
-          <AccordionContent className="flex h-auto flex-col gap-4 px-4 pt-px pb-4">
+          <AccordionContent className="flex h-auto flex-col gap-6 px-4 pt-px pb-6">
             <Throw canSendTest={canSendTest} onSendTest={onSendTest} />
           </AccordionContent>
         </AccordionItem>

@@ -101,7 +101,7 @@ const ThrowRule = ({
   }
 
   return (
-    <li className="flex flex-col gap-2 rounded-md border p-3">
+    <li className="flex flex-col gap-2 rounded-md border p-4">
       <div className="grid grid-cols-[1fr_1fr_auto_auto_auto] gap-4">
         <NumberField
           name={`vts.throw.rules.${index}.minAmount`}

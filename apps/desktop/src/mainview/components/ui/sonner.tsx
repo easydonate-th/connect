@@ -27,6 +27,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
           '--normal-text': 'var(--popover-foreground)',
           '--normal-border': 'var(--border)',
           '--border-radius': 'var(--radius)',
+          // Sonner's 356px, in rem so it grows with the root font size
+          '--width': '22.25rem',
         } as React.CSSProperties
       }
       toastOptions={{

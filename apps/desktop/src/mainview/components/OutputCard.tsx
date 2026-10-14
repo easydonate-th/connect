@@ -41,7 +41,7 @@ const OutputCard = ({
   const titleId = `${id}-title`
 
   return (
-    <Card size="sm">
+    <Card>
       <CardHeader>
         <CardTitle id={titleId} className="flex items-center gap-2">
           <Icon className="text-muted-foreground size-4" />

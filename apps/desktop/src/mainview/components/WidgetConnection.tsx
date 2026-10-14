@@ -103,7 +103,7 @@ const WidgetConnection = ({
           <ConnectionBadge status={status} />
         </CardAction>
       </CardHeader>
-      <CardContent className="flex flex-col gap-4">
+      <CardContent className="flex flex-col gap-6">
         <form noValidate onSubmit={handleSubmit}>
           <Field data-invalid={isUrlInvalid}>
             <FieldLabel htmlFor="widget-url">Widget URL</FieldLabel>

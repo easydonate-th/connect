@@ -146,7 +146,7 @@ const Throw = ({ canSendTest, onSendTest }: ThrowProps) => {
       title="Throw item"
       description="Throw items at your model in VTube Studio."
     >
-      <FieldGroup className="gap-4">
+      <FieldGroup className="gap-6">
         <div className="grid grid-cols-[1fr_8rem_auto] gap-4">
           <Field data-invalid={hostError !== undefined}>
             <FieldLabel htmlFor="vts-host">Host</FieldLabel>
@@ -198,7 +198,7 @@ const Throw = ({ canSendTest, onSendTest }: ThrowProps) => {
                 <Badge variant="secondary">{customImages.length}</Badge>
               </TabsTrigger>
             </TabsList>
-            <TabsContent value="vts" className="flex flex-col gap-2">
+            <TabsContent value="vts" className="flex flex-col gap-3">
               <div className="flex items-center gap-2">
                 <p className="text-muted-foreground mr-auto text-sm">
                   {scannedItems === null
@@ -219,7 +219,7 @@ const Throw = ({ canSendTest, onSendTest }: ThrowProps) => {
               <ul className="flex h-56 flex-col overflow-y-auto rounded-md border">
                 {itemOptions.map(item => (
                   <li key={item} className="border-b last:border-b-0">
-                    <label className="hover:bg-muted flex cursor-pointer items-center gap-2 px-3 py-2 text-sm transition-colors">
+                    <label className="hover:bg-muted flex cursor-pointer items-center gap-2 px-3 py-2.5 text-sm transition-colors">
                       <Checkbox
                         checked={items.includes(item)}
                         onCheckedChange={isChecked =>
@@ -244,7 +244,7 @@ const Throw = ({ canSendTest, onSendTest }: ThrowProps) => {
                 )}
               </ul>
             </TabsContent>
-            <TabsContent value="images" className="flex flex-col gap-2">
+            <TabsContent value="images" className="flex flex-col gap-3">
               <div className="flex items-center gap-2">
                 <p className="text-muted-foreground mr-auto text-sm">
                   PNG, JPG or GIF, 64-2048&nbsp;px a side, under 5&nbsp;MB.
@@ -264,7 +264,7 @@ const Throw = ({ canSendTest, onSendTest }: ThrowProps) => {
                 {customImages.map(image => (
                   <li
                     key={image.fileName}
-                    className="flex items-center gap-2 border-b py-1 pr-1 pl-3 text-sm last:border-b-0"
+                    className="flex items-center gap-2 border-b py-1.5 pr-1.5 pl-3 text-sm last:border-b-0"
                   >
                     <ImageThumbnail image={image} />
                     <span className="truncate">{image.name}</span>
