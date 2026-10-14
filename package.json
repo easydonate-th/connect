@@ -14,12 +14,12 @@
     "fix": "ultracite fix"
   },
   "devDependencies": {
-    "lefthook": "2.2.1",
-    "oxfmt": "0.72.0",
-    "oxlint": "1.87.0",
-    "turbo": "2.11.7",
+    "lefthook": "2.2.2",
+    "oxfmt": "0.73.0",
+    "oxlint": "1.88.0",
+    "turbo": "2.11.8",
     "typescript": "7.0.2",
-    "ultracite": "8.0.0"
+    "ultracite": "8.0.1"
   },
   "packageManager": "bun@1.4.3"
 }
