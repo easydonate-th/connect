@@ -10,6 +10,7 @@ import { logger } from '../../logger'
 import type { APIRequests, FadeMode } from './api'
 import { allowCustomImages, VTSError, withVTSSession } from './client'
 import type { VTSSession } from './client'
+import { playHitSound } from './hit-sound'
 import { readVTSImage } from './images'
 import { getModelBounds } from './outline'
 import type { ModelBounds } from './outline'
@@ -230,7 +231,8 @@ const moveItem = async (
 
 /**
  * Flies one item at one of the rule's zones, from the side that zone allows,
- * knocks the model's head away from it, bounces it off and drops it.
+ * knocks the model's head away from it, plays the hit sound, bounces it off
+ * and drops it.
  */
 const throwItem = async (
   session: VTSSession,
@@ -273,6 +275,7 @@ const throwItem = async (
   const force =
     ZONES[zone].force / Math.hypot(target.x - start.x, target.y - start.y)
   reaction.hit((target.x - start.x) * force, (target.y - start.y) * force)
+  playHitSound(config)
 
   // Unloading starts the fade-out, so the item fades while it drops
   await Promise.all([

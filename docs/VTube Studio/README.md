@@ -21,3 +21,5 @@
 <img src="image-2.png" alt="VTube Studio plugin permission prompt" width="440" />
 
 4. Choose or upload image and test it with, **Send Test Donation**
+
+5. Choose a **Hit sound** and its **Volume**, then click **Preview** to hear it. When an item hits your model, the app plays the sound. To put the sound on stream, capture desktop audio in your streaming software.

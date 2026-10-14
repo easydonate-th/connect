@@ -13,6 +13,8 @@ export const VTS_THROW_RANGES = {
   fadeTime: { min: 0, max: 2, integer: false },
   /** How hard each hit knocks the model's head; 0 turns it off */
   hitForce: { min: 0, max: 3, integer: false },
+  /** Percent of the hit sound's full volume */
+  hitVolume: { min: 0, max: 100, integer: true },
 } as const
 export const VTS_RULE_RANGES = {
   minAmount: { min: 0, max: 1_000_000, integer: false },
@@ -39,8 +41,23 @@ export const VTS_HIT_ZONES = ['head', 'body', 'feet'] as const
 /** Screen edges an item aimed at a zone can be thrown from */
 export const VTS_THROW_DIRECTIONS = ['left', 'right'] as const
 
+/**
+ * Sounds the app plays when an item hits the model, each a set of takes in
+ * `mainview/sounds`. VTube Studio's API can't play audio.
+ */
+export const VTS_HIT_SOUNDS = [
+  'none',
+  'punch',
+  'soft',
+  'wood',
+  'metal',
+  'glass',
+  'bell',
+] as const
+
 export type VTSHitZone = (typeof VTS_HIT_ZONES)[number]
 export type VTSThrowDirection = (typeof VTS_THROW_DIRECTIONS)[number]
+export type VTSHitSound = (typeof VTS_HIT_SOUNDS)[number]
 export type VTSThrowRangeKey = keyof typeof VTS_THROW_RANGES
 export type VTSRuleRangeKey = keyof typeof VTS_RULE_RANGES
 
@@ -89,6 +106,7 @@ const VTS_THROW_VALUE_SCHEMAS = {
   spin: rangeSchema(VTS_THROW_RANGES.spin),
   fadeTime: rangeSchema(VTS_THROW_RANGES.fadeTime),
   hitForce: rangeSchema(VTS_THROW_RANGES.hitForce),
+  hitVolume: rangeSchema(VTS_THROW_RANGES.hitVolume),
 }
 const VTS_RULE_VALUE_SCHEMAS = {
   minAmount: rangeSchema(VTS_RULE_RANGES.minAmount),
@@ -194,6 +212,8 @@ const VTSThrowConfigSchema = z
     spin: withFallback(VTS_THROW_VALUE_SCHEMAS.spin, 90),
     fadeTime: withFallback(VTS_THROW_VALUE_SCHEMAS.fadeTime, 0),
     hitForce: withFallback(VTS_THROW_VALUE_SCHEMAS.hitForce, 1),
+    hitSound: withFallback(z.enum(VTS_HIT_SOUNDS), 'punch'),
+    hitVolume: withFallback(VTS_THROW_VALUE_SCHEMAS.hitVolume, 50),
   })
   .transform(config => {
     const imageNames = new Set(config.customImages.map(image => image.fileName))

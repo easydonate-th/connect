@@ -47,3 +47,7 @@ bun run dev
 
 bun run build
 ```
+
+## Credits
+
+The VTube Studio hit sounds come from [Impact Sounds](https://kenney.nl/assets/impact-sounds) by [Kenney](https://kenney.nl). Kenney released them under [CC0](https://creativecommons.org/publicdomain/zero/1.0/). The converted files and Kenney's license are in `apps/desktop/src/mainview/sounds/`.

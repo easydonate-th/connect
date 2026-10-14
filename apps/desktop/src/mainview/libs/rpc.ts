@@ -3,6 +3,7 @@ import { Electroview } from 'electrobun/view'
 import { Config, VTSThrowConfig } from '../../shared/config'
 import { Donation } from '../../shared/donation'
 import { AppRPC } from '../../shared/rpc'
+import { playHitSound } from './hit-sound'
 import { addLog } from './logs'
 import { setUpdateStage } from './update-stage'
 
@@ -20,6 +21,7 @@ const rpc = Electroview.defineRPC<AppRPC>({
     messages: {
       log: entry => addLog(entry),
       updateStage: stage => setUpdateStage(stage),
+      hitSound: sound => playHitSound(sound),
     },
   },
 })

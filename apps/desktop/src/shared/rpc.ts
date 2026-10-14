@@ -1,6 +1,11 @@
 import type { RPCSchema } from 'electrobun/view'
 
-import type { Config, VTSCustomImage, VTSThrowConfig } from './config'
+import type {
+  Config,
+  VTSCustomImage,
+  VTSHitSound,
+  VTSThrowConfig,
+} from './config'
 import type { Donation } from './donation'
 import type { LogEntry } from './log'
 
@@ -21,6 +26,13 @@ export type UpdateCheck = {
   /** The version in the latest GitHub release's `update.json` */
   latestVersion: string
   updateAvailable: boolean
+}
+
+/** A sound for the webview to play as an item hits the model */
+export type HitSound = {
+  sound: Exclude<VTSHitSound, 'none'>
+  /** 0 to 100 */
+  volume: number
 }
 
 /** What the updater is doing while it installs an update */
@@ -67,6 +79,7 @@ export type AppRPC = {
     messages: {
       log: LogEntry
       updateStage: UpdateStage
+      hitSound: HitSound
     }
   }>
 }

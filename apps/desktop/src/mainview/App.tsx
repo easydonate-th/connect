@@ -11,6 +11,7 @@ import WidgetConnection from '~/components/WidgetConnection'
 import { initialConfigPromise, useConfigForm } from '~/hooks/use-config-form'
 import { useUnsavedChangesToast } from '~/hooks/use-unsaved-changes-toast'
 import { useWidgetConnection } from '~/hooks/use-widget-connection'
+import { openExternal } from '~/libs/rpc'
 import { cn } from '~/libs/utils'
 
 const App = () => {
@@ -98,6 +99,19 @@ const App = () => {
             </div>
           </div>
           {isLogsOpen && <LogsPanel />}
+          <footer className="text-muted-foreground text-center text-xs">
+            Hit sounds from{' '}
+            <Button
+              variant="link"
+              className="h-auto p-0 text-xs"
+              onClick={() =>
+                openExternal('https://kenney.nl/assets/impact-sounds')
+              }
+            >
+              Impact Sounds by Kenney
+            </Button>
+            , CC0
+          </footer>
         </main>
       </div>
     </FormProvider>

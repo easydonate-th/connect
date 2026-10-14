@@ -58,6 +58,7 @@
 *.otf   binary
 *.woff  binary
 *.woff2 binary
+*.wav   binary
 *.zip   binary
 *.exe   binary
 *.dll   binary

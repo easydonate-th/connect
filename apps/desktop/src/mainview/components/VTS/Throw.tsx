@@ -28,6 +28,7 @@ import { Input } from '~/components/ui/input'
 import { Spinner } from '~/components/ui/spinner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { AlignedField } from '~/components/VTS/fields'
+import HitSound from '~/components/VTS/HitSound'
 import ImageThumbnail from '~/components/VTS/ImageThumbnail'
 import ThrowRules from '~/components/VTS/ThrowRules'
 import { useVTSConnectionTest } from '~/hooks/use-vts-connection-test'
@@ -304,6 +305,7 @@ const Throw = ({ canSendTest, onSendTest }: ThrowProps) => {
             />
           ))}
         </div>
+        <HitSound />
         <ThrowRules canSendTest={canSendTest} onSendTest={onSendTest} />
       </FieldGroup>
     </OutputCard>

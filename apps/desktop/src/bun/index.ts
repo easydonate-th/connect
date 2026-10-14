@@ -1,7 +1,9 @@
 import { ApplicationMenu, BrowserWindow, Updater, Utils } from 'electrobun/main'
 
+import { allowAutoplay } from './autoplay'
 import { setWindowIcon } from './icon'
 import { setUpdateStageSink } from './libs/update'
+import { setHitSoundSink } from './libs/vts/hit-sound'
 import { setLogSink } from './logger'
 import { createAppRPC } from './rpc'
 import { acquireSingleInstance } from './single-instance'
@@ -28,6 +30,8 @@ const getMainViewUrl = async () => {
 
 const main = async () => {
   const url = await getMainViewUrl()
+
+  allowAutoplay()
 
   const mainWindow = new BrowserWindow({
     title: 'EasyDonate Connect',
@@ -61,6 +65,7 @@ const main = async () => {
 
   setLogSink(entry => mainWindow.webview.rpc?.send.log(entry))
   setUpdateStageSink(stage => mainWindow.webview.rpc?.send.updateStage(stage))
+  setHitSoundSink(sound => mainWindow.webview.rpc?.send.hitSound(sound))
 }
 
 if (acquireSingleInstance(`app.ezdn.connect-${channel}`)) {
