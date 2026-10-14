@@ -1,7 +1,7 @@
 import type { HitSound } from '../../shared/rpc'
 import { log } from './logs'
 
-const SOUND_URLS = import.meta.glob<string>('../sounds/*.wav', {
+const SOUND_URLS = import.meta.glob<string>('../sounds/*.mp3', {
   eager: true,
   query: '?url',
   import: 'default',
@@ -14,7 +14,7 @@ type SoundReader = (fileName: string) => Promise<string>
 const takes = new Map<string, string[]>()
 
 for (const [path, url] of Object.entries(SOUND_URLS)) {
-  const sound = /(?<sound>[a-z]+)-\d+\.wav$/u.exec(path)?.groups?.sound
+  const sound = /(?<sound>[a-z]+)-\d+\.mp3$/u.exec(path)?.groups?.sound
 
   if (sound) {
     takes.set(sound, [...(takes.get(sound) ?? []), url])

@@ -74,8 +74,9 @@ export const VTS_IMAGES_DIR = 'vts-images'
 export const VTS_SOUNDS_DIR = 'vts-sounds'
 
 // `z.catch`, renamed so the promise lint rules don't mistake it for a promise
-// `.catch`
-const { catch: withFallback } = z
+// `.catch`. Read as a member, not destructured: destructuring `z` keeps every
+// zod export, locales and JSON Schema included, in both bundles
+const withFallback = z.catch
 
 const withDefaults = <T extends z.ZodType>(schema: T) =>
   withFallback(schema, () => schema.parse({}))

@@ -20,7 +20,11 @@ const config = defineConfig({
     dedupe: ['react', 'react-dom'],
   },
   root: './src/mainview',
-  build: { outDir: '../../dist', emptyOutDir: true },
+  build: {
+    outDir: '../../dist',
+    emptyOutDir: true,
+    assetsInlineLimit: 0,
+  },
   server: { port: 5173, strictPort: true },
   legacy: { inconsistentCjsInterop: true },
 })
