@@ -28,7 +28,6 @@ export default {
     win: { bundleCEF: false, icon: 'icons/icon.iconset/icon_256x256.png' },
   },
   release: {
-    baseUrl:
-      'https://github.com/easydonate-th/connect/releases/latest/download',
+    baseUrl: 'https://nozomi.easydonate.app/connect',
   },
 } satisfies ElectrobunConfig
