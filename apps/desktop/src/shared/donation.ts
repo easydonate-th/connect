@@ -21,6 +21,7 @@ export type Donation = {
 
 export const parseDonationMessage = (frame: string): Donation | null => {
   let message
+
   try {
     message = parseSocketFrame(frame)
   } catch {

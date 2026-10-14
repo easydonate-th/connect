@@ -87,14 +87,17 @@ const RuleZonesDialog = ({
   const [isResetOpen, setIsResetOpen] = useState(false)
 
   const { control, setValue } = useFormContext<Config>()
+
   const { field: zones } = useController({
     control,
     name: `vts.throw.rules.${index}.zones`,
   })
+
   const minAmount = useWatch({
     control,
     name: `vts.throw.rules.${index}.minAmount`,
   })
+
   const { isDirty, isValid, isSubmitting } = useFormState({ control })
   const save = useConfigSave(onClose)
 

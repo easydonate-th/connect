@@ -49,14 +49,17 @@ const HitSound = () => {
   const { isImporting, importSounds } = useVTSSoundImport()
 
   const { control, getValues, setValue } = useFormContext<Config>()
+
   const { field: hitSound } = useController({
     control,
     name: 'vts.throw.hitSound',
   })
+
   const [hitVolume, customSounds] = useWatch({
     control,
     name: ['vts.throw.hitVolume', 'vts.throw.customSounds'],
   })
+
   const { errors } = useFormState({ control, name: 'vts.throw.hitVolume' })
 
   const canPreview =
@@ -105,6 +108,7 @@ const HitSound = () => {
     if (fileName === hitSound.value) {
       setValue('vts.throw.hitSound', 'punch', { shouldDirty: true })
     }
+
     setValue(
       'vts.throw.customSounds',
       getValues('vts.throw.customSounds').filter(

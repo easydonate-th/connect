@@ -31,14 +31,17 @@ const MIDI = ({ isSupported }: MIDIProps) => {
   const { devices, isScanning, scan } = useMIDIDevices()
 
   const { control } = useFormContext<Config>()
+
   const {
     field: deviceName,
     fieldState: { error: deviceError },
   } = useController({ control, name: 'vrc.midi.deviceName' })
 
   const isDeviceFound = devices.includes(deviceName.value)
+
   const isDeviceMissing =
     deviceName.value !== '' && !isDeviceFound && !isScanning
+
   // Keep a saved device in the list while its port is missing. Radix Select
   // rejects empty item values, so the list leaves out unnamed ports.
   const options = (

@@ -22,6 +22,7 @@ const loadInitialConfig = async (): Promise<Config> => {
     log.warn(
       `Failed to load settings, using defaults: ${error instanceof Error ? error.message : 'unknown error'}`
     )
+
     return createDefaultConfig()
   }
 }
@@ -37,6 +38,7 @@ const persistConfig = async (config: Config): Promise<Config | null> => {
     const description = error instanceof Error ? error.message : undefined
     toast.error('Failed to save settings', { description })
     log.error(`Failed to save settings: ${description ?? 'unknown error'}`)
+
     return null
   }
 }
@@ -90,6 +92,7 @@ export const useConfigForm = (config: Config) => {
     defaultValues: config,
     resolver: resolveConfig,
   })
+
   const { subscribe, trigger } = form
 
   // RHF revalidates only the field that changed, but many checks span fields,

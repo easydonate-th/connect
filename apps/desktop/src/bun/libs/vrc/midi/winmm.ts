@@ -55,9 +55,11 @@ export const getMIDIDevices = () => {
       api.midiOutGetDevCapsW(BigInt(id), ptr(caps), CAPS_SIZE),
       `Reading MIDI device ${id}`
     )
+
     const name = new TextDecoder('utf-16le').decode(
       caps.subarray(NAME_OFFSET, NAME_OFFSET + NAME_BYTES)
     )
+
     names.push(name.split('\0')[0] ?? '')
   }
 

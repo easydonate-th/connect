@@ -6,6 +6,7 @@ const WIDGET_URL_REGEX =
 
 export const getSocketUrl = (widgetUrl: string): string | null => {
   const search = WIDGET_URL_REGEX.exec(widgetUrl.trim())?.groups?.search
+
   if (search === undefined) {
     return null
   }

@@ -71,6 +71,7 @@ const WidgetConnection = ({
 }: WidgetConnectionProps) => {
   const { control } = useFormContext<Config>()
   const { field: widgetUrl } = useController({ control, name: 'widgetUrl' })
+
   const { field: autoConnect } = useController({
     control,
     name: 'autoConnect',
@@ -78,10 +79,12 @@ const WidgetConnection = ({
 
   const isActive =
     socketUrl !== null && socketUrl === getSocketUrl(widgetUrl.value)
+
   const isUrlInvalid = invalidUrl === widgetUrl.value
 
   const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault()
+
     if (isActive) {
       onDisconnect()
     } else {

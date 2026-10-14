@@ -68,9 +68,11 @@ export const convertToMP3 = async (file: File) => {
 
   const audio = decoded.numberOfChannels > 2 ? await toStereo(decoded) : decoded
   const channelCount = audio.numberOfChannels === 1 ? 1 : 2
+
   const channels = Array.from({ length: channelCount }, (_, index) =>
     audio.getChannelData(index)
   )
+
   const encoder = await createMP3Encoder()
   const chunks: Uint8Array<ArrayBuffer>[] = []
 

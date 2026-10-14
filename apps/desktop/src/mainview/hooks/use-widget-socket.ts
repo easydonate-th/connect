@@ -22,9 +22,11 @@ const toStatus = (
   if (socketUrl === null) {
     return 'idle'
   }
+
   if (readyState === ReadyState.OPEN) {
     return 'connected'
   }
+
   if (readyState === ReadyState.CONNECTING) {
     return 'connecting'
   }
@@ -66,6 +68,7 @@ export const useWidgetSocket = (
       onMessage: (event: MessageEvent<string>) => {
         addRawLog(event.data)
         const donation = parseDonationMessage(event.data)
+
         if (donation) {
           onDonation(donation)
         }

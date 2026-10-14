@@ -60,14 +60,17 @@ type RuleItemsDialogProps = {
 
 const RuleItemsDialog = ({ index, open, onClose }: RuleItemsDialogProps) => {
   const { control } = useFormContext<Config>()
+
   const { field: items } = useController({
     control,
     name: `vts.throw.rules.${index}.items`,
   })
+
   const { field: images } = useController({
     control,
     name: `vts.throw.rules.${index}.images`,
   })
+
   const [minAmount, selectedItems, customImages] = useWatch({
     control,
     name: [

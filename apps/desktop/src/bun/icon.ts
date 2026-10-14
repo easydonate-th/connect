@@ -39,16 +39,19 @@ export const setWindowIcon = (window: BrowserWindow) => {
   }).symbols
 
   const hwnd = window.ptr
+
   if (!hwnd || !user32.IsWindow(hwnd)) {
     logger.warn(
       'Failed to set the window icon because the window has no handle'
     )
+
     return
   }
 
   const iconPath = ptr(
     toWideString(path.join(PATHS.RESOURCES_FOLDER, 'app.ico'))
   )
+
   // The GetSystemMetrics indexes are SM_CXICON 11, SM_CYICON 12, SM_CXSMICON 49
   // and SM_CYSMICON 50
   const sizes = [
@@ -65,10 +68,13 @@ export const setWindowIcon = (window: BrowserWindow) => {
       user32.GetSystemMetrics(cy),
       LR_LOADFROMFILE
     )
+
     if (!icon) {
       logger.warn('Failed to load Resources/app.ico')
+
       return
     }
+
     user32.SendMessageW(hwnd, WM_SETICON, kind, icon)
   }
 }

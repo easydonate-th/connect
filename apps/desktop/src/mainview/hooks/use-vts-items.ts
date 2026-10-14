@@ -17,6 +17,7 @@ const loadItems = async (endpoint: Endpoint) => {
     log.error(
       `Failed to list VTube Studio items: ${description ?? 'unknown error'}`
     )
+
     return null
   }
 }

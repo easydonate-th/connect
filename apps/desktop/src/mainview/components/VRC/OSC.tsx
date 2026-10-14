@@ -16,6 +16,7 @@ import { Config, PORT_RANGE } from '../../../shared/config'
 
 const OSC = () => {
   const { control } = useFormContext<Config>()
+
   const {
     field: host,
     fieldState: { error: hostError },

@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 export const PORT_RANGE = { min: 1, max: 65_535, integer: true } as const
 export const MIDI_CHANNEL_RANGE = { min: 1, max: 16, integer: true } as const
+
 export const VTS_THROW_RANGES = {
   /** 0 is the smallest item size and 1 the biggest. The default is 0.32. */
   size: { min: 0.05, max: 1, integer: false },
@@ -14,11 +15,13 @@ export const VTS_THROW_RANGES = {
   hitForce: { min: 0, max: 3, integer: false },
   hitVolume: { min: 0, max: 100, integer: true },
 } as const
+
 export const VTS_RULE_RANGES = {
   minAmount: { min: 0, max: 1_000_000, integer: false },
   /** VTube Studio fits about 60 items, the user's own included */
   count: { min: 1, max: 20, integer: true },
 } as const
+
 /** Pixels a hit zone moves down, or up when negative */
 export const VTS_ZONE_OFFSET_RANGE = {
   min: -1000,
@@ -53,9 +56,13 @@ export const VTS_HIT_SOUNDS = [
 ] as const
 
 export type VTSHitZone = (typeof VTS_HIT_ZONES)[number]
+
 export type VTSThrowDirection = (typeof VTS_THROW_DIRECTIONS)[number]
+
 export type VTSHitSound = (typeof VTS_HIT_SOUNDS)[number]
+
 export type VTSThrowRangeKey = keyof typeof VTS_THROW_RANGES
+
 export type VTSRuleRangeKey = keyof typeof VTS_RULE_RANGES
 
 // SAFETY: `Object.keys` lists exactly the keys of the literal above
@@ -98,6 +105,7 @@ const createId = () =>
 const HostSchema = z.string().trim().min(1)
 const PortSchema = rangeSchema(PORT_RANGE)
 const MIDIChannelSchema = rangeSchema(MIDI_CHANNEL_RANGE)
+
 const VTS_THROW_VALUE_SCHEMAS = {
   size: rangeSchema(VTS_THROW_RANGES.size),
   flightTime: rangeSchema(VTS_THROW_RANGES.flightTime),
@@ -106,12 +114,15 @@ const VTS_THROW_VALUE_SCHEMAS = {
   hitForce: rangeSchema(VTS_THROW_RANGES.hitForce),
   hitVolume: rangeSchema(VTS_THROW_RANGES.hitVolume),
 }
+
 const VTS_RULE_VALUE_SCHEMAS = {
   minAmount: rangeSchema(VTS_RULE_RANGES.minAmount),
   count: rangeSchema(VTS_RULE_RANGES.count),
 }
+
 const ZoneOffsetSchema = rangeSchema(VTS_ZONE_OFFSET_RANGE)
 const ZoneWidthSchema = rangeSchema(VTS_ZONE_WIDTH_RANGE)
+
 // An empty list, or a value from before directions were a list, means both
 const ZoneDirectionsSchema = listOf(z.enum(VTS_THROW_DIRECTIONS)).transform(
   directions =>
@@ -223,10 +234,12 @@ const VTSThrowConfigSchema = z
   })
   .transform(config => {
     const imageNames = new Set(config.customImages.map(image => image.fileName))
+
     const soundNames = new Set<string>([
       ...VTS_HIT_SOUNDS,
       ...config.customSounds.map(sound => sound.fileName),
     ])
+
     // With no rules left, add the default one, which throws an item at every
     // donation
     const rules =
@@ -269,11 +282,17 @@ export const ConfigSchema = withDefaults(
 )
 
 export type OSCConfig = z.output<typeof OSCConfigSchema>
+
 export type MIDIConfig = z.output<typeof MIDIConfigSchema>
+
 export type VTSCustomImage = z.output<typeof VTSCustomImageSchema>
+
 export type VTSCustomSound = z.output<typeof VTSCustomSoundSchema>
+
 export type VTSThrowRule = z.output<typeof VTSThrowRuleSchema>
+
 export type VTSThrowConfig = z.output<typeof VTSThrowConfigSchema>
+
 export type Config = z.output<typeof ConfigSchema>
 
 export const createDefaultConfig = (): Config => ConfigSchema.parse({})

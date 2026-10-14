@@ -17,6 +17,7 @@ const getMainViewUrl = async () => {
 
       await fetch(DEV_SERVER_URL, { method: 'HEAD' })
       console.log(`Using the Vite dev server at ${DEV_SERVER_URL} for HMR`)
+
       return DEV_SERVER_URL
     } catch {
       console.log(

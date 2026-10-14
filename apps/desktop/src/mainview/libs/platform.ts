@@ -8,6 +8,7 @@ const loadPlatform = async () => {
     log.warn(
       `Failed to read the platform, showing every output: ${error instanceof Error ? error.message : 'unknown error'}`
     )
+
     return null
   }
 }

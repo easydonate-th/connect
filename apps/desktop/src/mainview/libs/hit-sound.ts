@@ -116,6 +116,7 @@ const startOutput = async (audio: AudioContext) => {
 
 const load = async (sound: string) => {
   const audio = getContext()
+
   const [isRunning, buffer] = await Promise.all([
     startOutput(audio),
     loadSound(audio, sound),
@@ -180,8 +181,10 @@ export const previewHitSound = async (
     if (preview !== current) {
       return
     }
+
     if (!loaded) {
       stopPreview()
+
       return
     }
 
@@ -196,6 +199,7 @@ export const previewHitSound = async (
     if (preview === current) {
       stopPreview()
     }
+
     warnFailed(error instanceof Error ? error.message : 'unknown error')
   }
 }

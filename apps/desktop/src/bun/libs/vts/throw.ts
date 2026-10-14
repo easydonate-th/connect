@@ -37,15 +37,18 @@ type Target = { model: ModelPosition; bounds: ModelBounds | null }
 
 /** Screen edges are at -1 and 1, so the item starts just out of view. */
 const START_X = 1.4
+
 /** Below the bottom edge, where the item drops out after the hit. */
 const DROP_Y = -1.6
 const FLIGHT_FADE_MODE = 'easeIn'
 const DROP = { time: 0.7, fadeMode: 'easeIn' } as const
 const STAGGER = 0.15
+
 /** `ItemMoveRequest` leaves fields at this value or lower unchanged. */
 const UNCHANGED = -1000
 const ITEM_FILE_NAME_NOT_FOUND = 751
 const SIDES: Record<VTSThrowDirection, number> = { left: -1, right: 1 }
+
 /**
  * Where items aimed at each zone land, as fractions of the model's visible
  * height from its top, and how hard a hit there knocks the head.
@@ -92,9 +95,11 @@ const aimAt = (
 // item and every imported image
 const pickChoices = (rule: VTSThrowRule, config: VTSThrowConfig) => {
   const items = rule.custom ? rule.items : config.items
+
   const images = rule.custom
     ? config.customImages.filter(image => rule.images.includes(image.fileName))
     : config.customImages
+
   const choices: Choice[] = [
     ...items.map(fileName => ({ kind: 'item' as const, fileName })),
     ...images.map(image => ({ kind: 'image' as const, image })),
@@ -155,15 +160,18 @@ const loadImage = async (
       ) {
         throw error
       }
+
       // VTube Studio restarted and cleared its copy
       forgetImageName(key, cached)
     }
   }
 
   const upload = uploadImage(session, image, placement)
+
   const name = (async () => {
     try {
       const { fileName } = await upload
+
       return fileName
     } catch {
       return null
@@ -217,6 +225,7 @@ const moveItem = async (
       },
     ],
   })
+
   const [result] = movedItems
 
   if (result && !result.success) {
@@ -267,11 +276,13 @@ const throwItem = async (
     rotation: -side * spin,
   })
   await sleep(flightTime)
+
   // Dividing by the flight distance leaves a unit direction, so the hit's
   // strength is the zone's force, which is lower for zones farther from the
   // head
   const force =
     ZONES[zone].force / Math.hypot(target.x - start.x, target.y - start.y)
+
   reaction.hit((target.x - start.x) * force, (target.y - start.y) * force)
   playHitSound(config)
 
@@ -303,6 +314,7 @@ export const sendDonationVTS = async (
   config: VTSThrowConfig
 ) => {
   const { host, port } = config
+
   // `ConfigSchema` sorts rules by `minAmount`, so this is the highest reached
   const rule = config.rules.findLast(
     ({ minAmount }) => minAmount <= data.amount
@@ -324,6 +336,7 @@ export const sendDonationVTS = async (
     if (!model.modelLoaded) {
       throw new Error('No model loaded in VTube Studio')
     }
+
     if (choices.some(choice => choice.kind === 'image')) {
       await allowCustomImages(session)
     }
@@ -341,14 +354,17 @@ export const sendDonationVTS = async (
     }
 
     const reaction = createHitReaction(session, config.hitForce)
+
     const results = await Promise.allSettled(
       choices.map(async (choice, index) => {
         await sleep(index * STAGGER)
         await throwItem(session, config, choice, rule, aim, reaction)
       })
     )
+
     // Closing the session would cut the head's swing short
     await reaction.settled()
+
     const failures = results.flatMap((result, index) =>
       result.status === 'rejected'
         ? [{ choice: choices[index], reason: result.reason }]
@@ -358,6 +374,7 @@ export const sendDonationVTS = async (
     if (failures.length === choices.length && failures[0]) {
       throw failures[0].reason
     }
+
     for (const { choice, reason } of failures) {
       logger.warn(
         `[VTS] Failed to throw ${getChoiceName(choice)}`,

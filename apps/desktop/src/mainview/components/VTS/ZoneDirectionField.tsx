@@ -29,6 +29,7 @@ const ZoneDirectionField = ({
   const id = useId()
 
   const { control } = useFormContext<Config>()
+
   const {
     field: directions,
     fieldState: { error },

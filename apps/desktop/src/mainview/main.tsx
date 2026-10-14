@@ -8,6 +8,7 @@ import { Spinner } from '~/components/ui/spinner'
 import { TooltipProvider } from '~/components/ui/tooltip'
 
 const rootElement = document.querySelector('#root')
+
 if (!rootElement) {
   throw new Error('Root element not found')
 }

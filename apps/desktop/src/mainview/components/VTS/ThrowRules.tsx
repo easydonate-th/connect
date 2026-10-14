@@ -29,6 +29,7 @@ const ThrowRules = ({ canSendTest, onSendTest }: ThrowRulesProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   const { control, getValues } = useFormContext<Config>()
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'vts.throw.rules',
@@ -43,6 +44,7 @@ const ThrowRules = ({ canSendTest, onSendTest }: ThrowRulesProps) => {
         .map(rule => rule.minAmount)
         .filter(Number.isFinite)
     )
+
     const minAmount = Number.isFinite(highest)
       ? Math.min(highest + 100, VTS_RULE_RANGES.minAmount.max)
       : VTS_RULE_RANGES.minAmount.min
@@ -54,6 +56,7 @@ const ThrowRules = ({ canSendTest, onSendTest }: ThrowRulesProps) => {
     setDialog({ index, kind })
     setIsDialogOpen(true)
   }
+
   const closeDialog = () => setIsDialogOpen(false)
 
   const isDialogMounted = dialog !== null && dialog.index < fields.length

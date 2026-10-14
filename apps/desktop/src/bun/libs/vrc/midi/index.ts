@@ -27,12 +27,14 @@ export const sendDonationMIDI = async (data: Donation, config: MIDIConfig) => {
 
   const messages = encodeDonation(data, channel)
   const previous = queue
+
   const send = (async () => {
     // The previous send's caller reports its failure. That failure must not
     // stop this one
     await Promise.allSettled([previous])
     await sendMIDI(deviceName, messages, PACING)
   })()
+
   queue = send
   await send
 

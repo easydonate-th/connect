@@ -12,6 +12,7 @@ const listeners = new Set<() => void>()
 
 const setHiderCount = (count: number) => {
   hiderCount = count
+
   for (const listener of listeners) {
     listener()
   }
@@ -67,6 +68,7 @@ export const useUnsavedChangesToast = ({
   useEffect(() => {
     if (!isDirty || isHidden) {
       toast.dismiss(TOAST_ID)
+
       return
     }
 

@@ -52,10 +52,12 @@ const ThrowRule = ({
   const id = useId()
 
   const { control } = useFormContext<Config>()
+
   const { field: custom } = useController({
     control,
     name: `vts.throw.rules.${index}.custom`,
   })
+
   const [minAmount, items, images, zones] = useWatch({
     control,
     name: [
@@ -65,6 +67,7 @@ const ThrowRule = ({
       `vts.throw.rules.${index}.zones`,
     ],
   })
+
   const { errors } = useFormState({ control, name: `vts.throw.rules.${index}` })
 
   const customId = `${id}-custom`
@@ -75,17 +78,21 @@ const ThrowRule = ({
   const zoneOffsetErrors = errors.vts?.throw?.rules?.[index]?.zoneOffsets
   const zoneWidthErrors = errors.vts?.throw?.rules?.[index]?.zoneWidths
   const zoneDirectionErrors = errors.vts?.throw?.rules?.[index]?.zoneDirections
+
   // The dialog shows these by each field, but once it closes only the row
   // can tell why Save is off
   const zoneOffsetError = VTS_HIT_ZONES.map(
     zone => zoneOffsetErrors?.[zone]
   ).find(error => error !== undefined)
+
   const zoneWidthError = VTS_HIT_ZONES.map(
     zone => zoneWidthErrors?.[zone]
   ).find(error => error !== undefined)
+
   const zoneDirectionError = VTS_HIT_ZONES.map(
     zone => zoneDirectionErrors?.[zone]
   ).find(error => error !== undefined)
+
   const isZonesInvalid =
     zonesError !== undefined ||
     zoneDirectionError !== undefined ||

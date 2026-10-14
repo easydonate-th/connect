@@ -22,6 +22,7 @@ const loadImages = async (): Promise<VTSCustomImage[]> => {
     const description = error instanceof Error ? error.message : undefined
     toast.error('Failed to add images', { description })
     log.error(`Failed to add images: ${description ?? 'unknown error'}`)
+
     return []
   }
 }

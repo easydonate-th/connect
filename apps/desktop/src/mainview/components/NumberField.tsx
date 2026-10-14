@@ -28,6 +28,7 @@ const NumberField = ({
   const id = useId()
 
   const { control } = useFormContext<Config>()
+
   const {
     field,
     fieldState: { error },

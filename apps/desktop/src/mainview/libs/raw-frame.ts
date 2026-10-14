@@ -9,6 +9,7 @@ const HIDDEN_KEYS = new Set(['ttsMessage', 'ttsTitle', 'ttsHash', 'ttsConfig'])
  */
 export const toRawLogFrame = (frame: string): string | null => {
   let json
+
   try {
     json = parseSocketFrame(frame, (key: string, value) =>
       HIDDEN_KEYS.has(key) ? undefined : value

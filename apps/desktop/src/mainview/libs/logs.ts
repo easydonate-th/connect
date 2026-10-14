@@ -22,6 +22,7 @@ const listeners = new Set<() => void>()
 
 const append = (lines: LogLine[], line: Omit<LogLine, 'id'>) => {
   nextId += 1
+
   return [...lines.slice(1 - MAX_LOG_LINES), { ...line, id: nextId }]
 }
 
@@ -38,6 +39,7 @@ export const addLog = (entry: LogEntry) => {
 
 export const addRawLog = (frame: string) => {
   const message = toRawLogFrame(frame)
+
   if (message === null) {
     return
   }
@@ -60,6 +62,7 @@ export const clearLogs = () => {
 
 export const subscribeLogs = (listener: () => void) => {
   listeners.add(listener)
+
   return () => {
     listeners.delete(listener)
   }
@@ -76,6 +79,7 @@ export const mergeLogLines = (a: LogLine[], b: LogLine[]) => {
   while (indexA < a.length || indexB < b.length) {
     const lineA = a[indexA]
     const lineB = b[indexB]
+
     if (lineA && (!lineB || lineA.id < lineB.id)) {
       merged.push(lineA)
       indexA += 1

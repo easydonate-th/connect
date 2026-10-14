@@ -23,6 +23,7 @@ export const allowAutoplay = () => {
       returns: FFIType.bool,
     },
   }).symbols
+
   const current = process.env[ARGUMENTS_VARIABLE]
   const value = current ? `${current} ${AUTOPLAY_ARGUMENT}` : AUTOPLAY_ARGUMENT
 

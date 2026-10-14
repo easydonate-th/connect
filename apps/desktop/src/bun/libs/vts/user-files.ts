@@ -52,6 +52,7 @@ export const importUserFiles = async (
     canChooseDirectory: false,
     allowsMultipleSelection: true,
   })
+
   const result: UserFileImport = { added: [], rejected: [] }
 
   for (const sourcePath of paths.filter(Boolean)) {

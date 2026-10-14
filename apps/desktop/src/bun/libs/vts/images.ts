@@ -28,6 +28,7 @@ const readJPEGSize = (view: DataView) => {
     }
 
     const marker = view.getUint8(offset + 1)
+
     // SOF0-SOF15, minus DHT (C4), JPG (C8) and DAC (CC), which share the range
     const isFrame =
       marker >= 0xc0 &&
@@ -68,6 +69,7 @@ const readImageInfo = (bytes: Uint8Array): ImageInfo | null => {
       height: view.getUint32(20),
     }
   }
+
   // "GIF8"
   if (startsWith(bytes, [0x47, 0x49, 0x46, 0x38]) && bytes.length >= 10) {
     return {
@@ -76,8 +78,10 @@ const readImageInfo = (bytes: Uint8Array): ImageInfo | null => {
       height: view.getUint16(8, true),
     }
   }
+
   if (startsWith(bytes, [0xff, 0xd8])) {
     const size = readJPEGSize(view)
+
     return size && { type: 'jpg', ...size }
   }
 
@@ -91,6 +95,7 @@ const findImageProblem = (bytes: Uint8Array, info: ImageInfo) => {
   if (bytes.length >= MAX_BYTES) {
     return 'larger than 5 MB'
   }
+
   if (!isSideInRange(info.width) || !isSideInRange(info.height)) {
     return `${info.width}x${info.height} px, each side must be ${SIDE_RANGE.min}-${SIDE_RANGE.max} px`
   }

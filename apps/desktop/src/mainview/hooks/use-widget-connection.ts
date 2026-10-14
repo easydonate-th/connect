@@ -21,6 +21,7 @@ export const useWidgetConnection = ({ autoConnect, widgetUrl }: Config) => {
   const [socketUrl, setSocketUrl] = useState(() =>
     autoConnect ? getSocketUrl(widgetUrl) : null
   )
+
   // The widget URL Connect last rejected, which the UI flags until the user
   // edits it
   const [invalidUrl, setInvalidUrl] = useState<string | null>(null)
@@ -60,6 +61,7 @@ export const useWidgetConnection = ({ autoConnect, widgetUrl }: Config) => {
 
   const sendTestDonation = (config: Config) => {
     const timestamp = Date.now()
+
     const donation = {
       referenceNo: `TEST-${timestamp}`,
       donatorName: 'Test Donor',

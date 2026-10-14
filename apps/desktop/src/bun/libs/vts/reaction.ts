@@ -19,11 +19,14 @@ const PARAMETERS: { id: string; axis: Axis; gain: number }[] = [
 ]
 
 const TICK = 0.033
+
 /** Longest step integrated at once, so a slow response can't fling the head */
 const MAX_STEP = 0.05
 const FREQUENCY = 2 * Math.PI * 1.6
+
 /** Below 1, so the head overshoots and wobbles back a few times */
 const DAMPING_RATIO = 0.3
+
 /**
  * Velocity one hit gives at strength 1. The displacement then peaks near 0.6.
  */
@@ -38,6 +41,7 @@ const stepSpring = (spring: Spring, seconds: number) => {
   const acceleration =
     -(FREQUENCY ** 2) * spring.position -
     2 * DAMPING_RATIO * FREQUENCY * spring.velocity
+
   spring.velocity += acceleration * seconds
   spring.position += spring.velocity * seconds
 
@@ -62,6 +66,7 @@ export const createHitReaction = (session: VTSSession, strength: number) => {
     x: { position: 0, velocity: 0 },
     y: { position: 0, velocity: 0 },
   }
+
   let loop: Promise<void> | undefined
   let hasFailed = false
 
@@ -110,6 +115,7 @@ export const createHitReaction = (session: VTSSession, strength: number) => {
         )
       } finally {
         loop = undefined
+
         // A hit landed between the last settled check and `loop = undefined`
         if (!hasFailed && !isSettled()) {
           start()

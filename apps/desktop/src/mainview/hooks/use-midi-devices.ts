@@ -10,6 +10,7 @@ const loadDevices = async () => {
     log.error(
       `Failed to list MIDI devices: ${error instanceof Error ? error.message : 'unknown error'}`
     )
+
     return []
   }
 }

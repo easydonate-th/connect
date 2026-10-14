@@ -30,6 +30,7 @@ const escapeChar = (char: string) => {
   }
 
   const offset = code - 0x1_00_00
+
   return (
     escapeUnit(0xd8_00 + Math.floor(offset / 0x4_00)) +
     escapeUnit(0xdc_00 + (offset % 0x4_00))
@@ -53,6 +54,7 @@ export const encodeDonation = (
     checksum = (checksum + code) % 128
     messages.push([status, CC_DATA, code])
   }
+
   messages.push([status, CC_END, checksum])
 
   return messages

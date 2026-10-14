@@ -65,28 +65,34 @@ const Throw = ({ canSendTest, onSendTest }: ThrowProps) => {
   const { isTesting, test } = useVTSConnectionTest()
 
   const { control, getValues, setValue } = useFormContext<Config>()
+
   const {
     field: host,
     fieldState: { error: hostError },
   } = useController({ control, name: 'vts.throw.host' })
+
   const [port, items, customImages] = useWatch({
     control,
     name: ['vts.throw.port', 'vts.throw.items', 'vts.throw.customImages'],
   })
+
   const { errors } = useFormState({
     control,
     name: ['vts.throw.port', 'vts.throw.items'],
   })
 
   const itemsError = errors.vts?.throw?.items
+
   const isEndpointInvalid =
     hostError !== undefined || errors.vts?.throw?.port !== undefined
+
   // Only a scan can tell that a selected item is gone, so until then the list
   // shows only the selected items
   const missingItems =
     scannedItems === null
       ? []
       : items.filter(item => !scannedItems.includes(item))
+
   const itemOptions =
     scannedItems === null ? items : [...scannedItems, ...missingItems]
 

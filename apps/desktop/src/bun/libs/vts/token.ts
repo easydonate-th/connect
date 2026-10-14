@@ -32,6 +32,7 @@ export const readToken = (): string | undefined => {
     const { authenticationToken } = JSON.parse(
       fs.readFileSync(tokenPath, 'utf-8')
     ) as { authenticationToken: string }
+
     currentToken = authenticationToken
   } catch (error) {
     logger.warn(

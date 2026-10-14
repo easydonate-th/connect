@@ -21,6 +21,7 @@ export const resetUpdateStage = () => setUpdateStage(INITIAL_STAGE)
 
 export const subscribeUpdateStage = (listener: () => void) => {
   listeners.add(listener)
+
   return () => {
     listeners.delete(listener)
   }

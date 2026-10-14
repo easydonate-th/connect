@@ -34,6 +34,7 @@ export const getModelBounds = async (
         config: { draw: false },
       }),
     ])
+
     const ys = convexHull.map(point => point.y)
     // Items can only hit the part on screen
     const top = Math.min(Math.max(...ys), 1)

@@ -23,6 +23,7 @@ const acquireMutex = (name: string) => {
 
   const mutexName = toWideString(`Local\\${name}`)
   const exist = kernel32.OpenMutexW(SYNCHRONIZE, false, ptr(mutexName))
+
   if (exist) {
     kernel32.CloseHandle(exist)
 
@@ -35,8 +36,10 @@ const acquireMutex = (name: string) => {
 }
 
 let lockFile: number | undefined
+
 const acquireFileLock = (name: string) => {
   let libc
+
   try {
     libc = dlopen(process.platform === 'darwin' ? 'libc.dylib' : 'libc.so.6', {
       flock: { args: [FFIType.i32, FFIType.i32], returns: FFIType.i32 },

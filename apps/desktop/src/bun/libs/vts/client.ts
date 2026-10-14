@@ -22,6 +22,7 @@ const PLUGIN: PluginInfo = {
 
 const CONNECT_TIMEOUT = 5000
 const REQUEST_TIMEOUT = 10_000
+
 // VTube Studio answers a token or permission request that shows a popup only
 // after the user clicks Allow or Deny
 const APPROVAL_TIMEOUT = 120_000
@@ -61,6 +62,7 @@ type EventWaiter = PendingRequest & { eventName: string }
 const openSocket = async ({ host, port }: Endpoint) => {
   const socket = new WebSocket(`ws://${host}:${port}`)
   const { promise, resolve, reject } = Promise.withResolvers<WebSocket>()
+
   const fail = () =>
     reject(
       new Error(
@@ -88,6 +90,7 @@ const createSession = (socket: WebSocket): VTSSession => {
 
   socket.addEventListener('message', event => {
     let message: APIMessage
+
     try {
       message = JSON.parse(String(event.data))
     } catch {
@@ -105,6 +108,7 @@ const createSession = (socket: WebSocket): VTSSession => {
     // Skips messages without a pending request, such as events
     const { requestID } = message
     const entry = requestID ? pending.get(requestID) : undefined
+
     if (!requestID || !entry) {
       return
     }
@@ -125,11 +129,14 @@ const createSession = (socket: WebSocket): VTSSession => {
       clearTimeout(entry.timer)
       entry.reject(new Error('Connection to VTube Studio closed'))
     }
+
     pending.clear()
+
     for (const waiter of eventWaiters) {
       clearTimeout(waiter.timer)
       waiter.reject(new Error('Connection to VTube Studio closed'))
     }
+
     eventWaiters.clear()
   })
 
@@ -144,6 +151,7 @@ const createSession = (socket: WebSocket): VTSSession => {
 
     const requestID = crypto.randomUUID()
     const { promise, resolve, reject } = Promise.withResolvers<APIMessage>()
+
     const timer = setTimeout(() => {
       pending.delete(requestID)
       reject(new Error(`${messageType} timed out`))
@@ -161,6 +169,7 @@ const createSession = (socket: WebSocket): VTSSession => {
     )
 
     const response = await promise
+
     // SAFETY: VTube Studio answers `messageType` with its documented response
     return response.data as APIRequests[typeof messageType]['response']
   }
@@ -170,6 +179,7 @@ const createSession = (socket: WebSocket): VTSSession => {
     timeout
   ) => {
     const { promise, resolve, reject } = Promise.withResolvers<APIMessage>()
+
     const waiter: EventWaiter = {
       eventName,
       resolve,
@@ -183,6 +193,7 @@ const createSession = (socket: WebSocket): VTSSession => {
     eventWaiters.add(waiter)
 
     const message = await promise
+
     // SAFETY: VTube Studio sends `eventName` with its documented data
     return message.data as APIEvents[typeof eventName]
   }
@@ -205,12 +216,14 @@ let tokenRequest: Promise<string> | undefined
 
 const fetchToken = async (session: VTSSession) => {
   logger.info('[VTS] Waiting for approval in VTube Studio')
+
   try {
     const { authenticationToken } = await session.request(
       'AuthenticationTokenRequest',
       PLUGIN,
       APPROVAL_TIMEOUT
     )
+
     writeToken(authenticationToken)
 
     return authenticationToken
@@ -243,6 +256,7 @@ const fetchCustomImagePermission = async (session: VTSSession) => {
       { requestedPermission: 'LoadCustomImagesAsItems' },
       APPROVAL_TIMEOUT
     )
+
     const isGranted = permissions.some(
       permission =>
         permission.name === 'LoadCustomImagesAsItems' && permission.granted
@@ -272,6 +286,7 @@ export const withVTSSession = async <T>(
 
   try {
     await authenticate(session)
+
     return await run(session)
   } finally {
     session.close()

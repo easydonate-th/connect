@@ -15,12 +15,14 @@ export const forwardDonation = async (data: Donation, { vrc, vts }: Config) => {
       send: () => sendDonationOSC(data, vrc.osc),
     })
   }
+
   if (vrc.midi.enabled && isOutputSupported('midi', process.platform)) {
     outputs.push({
       name: 'MIDI',
       send: () => sendDonationMIDI(data, vrc.midi),
     })
   }
+
   if (vts.throw.enabled) {
     outputs.push({
       name: 'VTube Studio',

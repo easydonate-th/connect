@@ -21,6 +21,7 @@ const readConfigFile = (): Config => {
       `Failed to read ${configPath}, using defaults`,
       error instanceof Error ? error : undefined
     )
+
     return createDefaultConfig()
   }
 }

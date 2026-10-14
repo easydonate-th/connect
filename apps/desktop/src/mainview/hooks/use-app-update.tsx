@@ -34,11 +34,13 @@ export const useAppUpdate = () => {
       toast.warning('Save your changes first', {
         description: 'Updating restarts the app, which discards them.',
       })
+
       return
     }
 
     setIsInstalling(true)
     resetUpdateStage()
+
     const toastId = toast.loading('Installing update', {
       description: <UpdateProgress />,
     })

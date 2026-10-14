@@ -50,6 +50,7 @@ const LogsPanel = () => {
 
   useEffect(() => {
     const element = scrollRef.current
+
     if (element && lines.length > 0) {
       element.scrollTop = element.scrollHeight
     }
