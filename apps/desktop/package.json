@@ -11,7 +11,7 @@
   "dependencies": {
     "class-variance-authority": "0.7.1",
     "cn": "0.4.0",
-    "electrobun": "2.0.3-beta.24",
+    "electrobun": "2.0.3-beta.26",
     "lucide-react": "1.57.0",
     "node-osc": "11.7.1",
     "radix-ui": "1.8.1",

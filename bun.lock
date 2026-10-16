@@ -18,7 +18,7 @@
       "dependencies": {
         "class-variance-authority": "0.7.1",
         "cn": "0.4.0",
-        "electrobun": "2.0.3-beta.24",
+        "electrobun": "2.0.3-beta.26",
         "lucide-react": "1.57.0",
         "node-osc": "11.7.1",
         "radix-ui": "1.8.1",
@@ -590,7 +590,7 @@
 
     "ee-first": ["ee-first@1.1.1", "", {}, "sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow=="],
 
-    "electrobun": ["electrobun@2.0.3-beta.24", "", { "bin": { "electrobun": "bin/electrobun.cjs" } }, "sha512-1K+rNMhO/IyoVvRO7YM3lZB06N+Lf2781XkgWL/Xur5hhBMyitK8/bI6s20D/xASaASrnRa0CIMjIHn3K1647Q=="],
+    "electrobun": ["electrobun@2.0.3-beta.26", "", { "bin": { "electrobun": "bin/electrobun.cjs" } }, "sha512-q7o5r+LzliD1JkaPOcMMsEdx+3wXMQUHCOXfbJrrq6tq2Cnfl/ThQ+s/SYf7XbU3LL9qA5e5P+dRPRgZjZSGGQ=="],
 
     "electron-to-chromium": ["electron-to-chromium@1.5.452", "", {}, "sha512-cVvk1YBSj6571VmV6hdJTqj94Y79xSu8cj6Y9t6ae4Y4431z8/7EJFvu3rVp90xhfuv9BpPKUmaLfTo4+FOGBg=="],
 
