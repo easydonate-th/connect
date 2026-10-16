@@ -173,7 +173,6 @@ export type APIEvents = {
      * Points outside the window go past -1 or 1.
      */
     convexHull: Point[]
-    /** Average of the `convexHull` points */
     convexHullCenter: Point
     windowSize: Point
   }

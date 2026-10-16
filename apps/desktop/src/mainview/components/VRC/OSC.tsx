@@ -11,10 +11,13 @@ import {
   FieldLabel,
 } from '~/components/ui/field'
 import { Input } from '~/components/ui/input'
+import { useMessages } from '~/hooks/use-messages'
 
 import { Config, PORT_RANGE } from '../../../shared/config'
 
 const OSC = () => {
+  const m = useMessages()
+
   const { control } = useFormContext<Config>()
 
   const {
@@ -28,11 +31,11 @@ const OSC = () => {
       name="vrc.osc.enabled"
       icon={RadioTowerIcon}
       title="OSC"
-      description="Send donations to VRChat’s OSC input over UDP."
+      description={m.vrc.osc.description}
     >
       <FieldGroup className="grid grid-cols-[1fr_8rem] gap-4">
         <Field data-invalid={hostError !== undefined}>
-          <FieldLabel htmlFor="osc-host">Host</FieldLabel>
+          <FieldLabel htmlFor="osc-host">{m.vrc.osc.host}</FieldLabel>
           <Input
             {...host}
             id="osc-host"
@@ -44,14 +47,12 @@ const OSC = () => {
           {hostError ? (
             <FieldError>{hostError.message}</FieldError>
           ) : (
-            <FieldDescription>
-              VRChat runs on this machine by default.
-            </FieldDescription>
+            <FieldDescription>{m.vrc.osc.hostDescription}</FieldDescription>
           )}
         </Field>
         <NumberField
           name="vrc.osc.port"
-          label="Port"
+          label={m.vrc.osc.port}
           range={PORT_RANGE}
           placeholder="9000"
         />

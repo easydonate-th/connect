@@ -37,6 +37,7 @@ import {
 import { Spinner } from '~/components/ui/spinner'
 import ZoneDirectionField from '~/components/VTS/ZoneDirectionField'
 import { useConfigSave } from '~/hooks/use-config-form'
+import { useMessages } from '~/hooks/use-messages'
 import { useHideUnsavedChangesToast } from '~/hooks/use-unsaved-changes-toast'
 
 import {
@@ -48,25 +49,10 @@ import {
 } from '../../../shared/config'
 import type { VTSHitZone } from '../../../shared/config'
 
-const ZONE_OPTIONS: Record<
-  VTSHitZone,
-  { label: string; description: string; icon: LucideIcon }
-> = {
-  head: {
-    label: 'Head',
-    description: 'Top of the model. Knocks the head hardest.',
-    icon: SmileIcon,
-  },
-  body: {
-    label: 'Body',
-    description: 'Middle of the model.',
-    icon: ShirtIcon,
-  },
-  feet: {
-    label: 'Feet',
-    description: 'Bottom of the model, or of what’s on screen.',
-    icon: FootprintsIcon,
-  },
+const ZONE_ICONS: Record<VTSHitZone, LucideIcon> = {
+  head: SmileIcon,
+  body: ShirtIcon,
+  feet: FootprintsIcon,
 }
 
 type RuleZonesDialogProps = {
@@ -84,6 +70,8 @@ const RuleZonesDialog = ({
   onSendTest,
   onClose,
 }: RuleZonesDialogProps) => {
+  const m = useMessages()
+
   const [isResetOpen, setIsResetOpen] = useState(false)
 
   const { control, setValue } = useFormContext<Config>()
@@ -138,13 +126,13 @@ const RuleZonesDialog = ({
       >
         <DialogHeader>
           <DialogTitle>
-            Hit zones for {Number.isNaN(minAmount) ? '?' : minAmount}
-            &nbsp;THB
+            {m.vts.rules.zonesTitle(Number.isNaN(minAmount) ? '?' : minAmount)}
           </DialogTitle>
         </DialogHeader>
         <ul className="grid grid-cols-3 gap-2">
           {VTS_HIT_ZONES.map(zone => {
-            const { label, description, icon: Icon } = ZONE_OPTIONS[zone]
+            const { label, description } = m.vts.rules.zones[zone]
+            const Icon = ZONE_ICONS[zone]
             const isDisabled = !zones.value.includes(zone)
 
             return (
@@ -171,14 +159,14 @@ const RuleZonesDialog = ({
                 />
                 <NumberField
                   name={`vts.throw.rules.${index}.zoneOffsets.${zone}`}
-                  label={`${label} offset (px)`}
+                  label={m.vts.rules.zoneOffset(label)}
                   range={VTS_ZONE_OFFSET_RANGE}
                   step={10}
                   disabled={isDisabled}
                 />
                 <NumberField
                   name={`vts.throw.rules.${index}.zoneWidths.${zone}`}
-                  label={`${label} zone (px)`}
+                  label={m.vts.rules.zoneWidth(label)}
                   range={VTS_ZONE_WIDTH_RANGE}
                   step={10}
                   disabled={isDisabled}
@@ -187,23 +175,20 @@ const RuleZonesDialog = ({
             )
           })}
         </ul>
-        <DialogDescription>
-          Offsets: − moves toward the top, + toward the bottom
-        </DialogDescription>
+        <DialogDescription>{m.vts.rules.offsetsHint}</DialogDescription>
         <DialogFooter className="items-center">
           <Popover open={isResetOpen} onOpenChange={setIsResetOpen}>
             <PopoverTrigger asChild>
               <Button type="button" variant="outline" className="mr-auto">
                 <RotateCcwIcon />
-                Reset
+                {m.vts.rules.reset}
               </Button>
             </PopoverTrigger>
             <PopoverContent align="start" side="top">
               <PopoverHeader>
-                <PopoverTitle>Reset hit zones?</PopoverTitle>
+                <PopoverTitle>{m.vts.rules.resetTitle}</PopoverTitle>
                 <PopoverDescription>
-                  Every zone, side, offset and width of this rule goes back to
-                  its default. Nothing is saved until you click Save.
+                  {m.vts.rules.resetDescription}
                 </PopoverDescription>
               </PopoverHeader>
               <div className="flex justify-end gap-2">
@@ -213,7 +198,7 @@ const RuleZonesDialog = ({
                   size="sm"
                   onClick={() => setIsResetOpen(false)}
                 >
-                  Cancel
+                  {m.vts.rules.cancel}
                 </Button>
                 <Button
                   type="button"
@@ -221,7 +206,7 @@ const RuleZonesDialog = ({
                   size="sm"
                   onClick={resetZones}
                 >
-                  Reset
+                  {m.vts.rules.reset}
                 </Button>
               </div>
             </PopoverContent>
@@ -233,7 +218,7 @@ const RuleZonesDialog = ({
             onClick={handleSave}
           >
             {isSubmitting ? <Spinner /> : <SaveIcon />}
-            Save
+            {m.vts.rules.save}
           </Button>
         </DialogFooter>
       </DialogContent>

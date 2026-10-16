@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import { useWidgetSocket } from '~/hooks/use-widget-socket'
+import { getMessages } from '~/libs/i18n'
 import { log } from '~/libs/logs'
 import {
   sendDonation,
@@ -11,19 +12,11 @@ import { getSocketUrl } from '~/libs/utils'
 import type { Config } from '../../shared/config'
 import type { Donation } from '../../shared/donation'
 
-/**
- * Connects to the alert widget on `connect`, or at launch when the stored
- * `config` has auto connect on, and forwards each donation, real or test, to
- * the main process. A real donation uses the saved config, and a test one the
- * `config` it's sent with, such as the form's unsaved draft.
- */
 export const useWidgetConnection = ({ autoConnect, widgetUrl }: Config) => {
   const [socketUrl, setSocketUrl] = useState(() =>
     autoConnect ? getSocketUrl(widgetUrl) : null
   )
 
-  // The widget URL Connect last rejected, which the UI flags until the user
-  // edits it
   const [invalidUrl, setInvalidUrl] = useState<string | null>(null)
   const [lastDonation, setLastDonation] = useState<Donation | null>(null)
 
@@ -61,11 +54,12 @@ export const useWidgetConnection = ({ autoConnect, widgetUrl }: Config) => {
 
   const sendTestDonation = (config: Config) => {
     const timestamp = Date.now()
+    const m = getMessages().widget
 
     const donation = {
       referenceNo: `TEST-${timestamp}`,
-      donatorName: 'Test Donor',
-      message: 'This is a test donation',
+      donatorName: m.testDonorName,
+      message: m.testMessage,
       amount: 100,
       timestamp,
     }

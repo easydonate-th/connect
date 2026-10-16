@@ -1,6 +1,6 @@
 import type { UpdateStage } from '../../shared/rpc'
 
-const INITIAL_STAGE: UpdateStage = { label: 'Starting download', percent: null }
+const INITIAL_STAGE: UpdateStage = { stage: 'starting', percent: null }
 
 let stage = INITIAL_STAGE
 const listeners = new Set<() => void>()

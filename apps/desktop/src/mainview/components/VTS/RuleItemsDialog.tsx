@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from '~/components/ui/dialog'
 import ImageThumbnail from '~/components/VTS/ImageThumbnail'
+import { useMessages } from '~/hooks/use-messages'
 
 import type { Config } from '../../../shared/config'
 
@@ -59,6 +60,8 @@ type RuleItemsDialogProps = {
 }
 
 const RuleItemsDialog = ({ index, open, onClose }: RuleItemsDialogProps) => {
+  const m = useMessages()
+
   const { control } = useFormContext<Config>()
 
   const { field: items } = useController({
@@ -85,17 +88,14 @@ const RuleItemsDialog = ({ index, open, onClose }: RuleItemsDialogProps) => {
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            Custom items for {Number.isNaN(minAmount) ? '?' : minAmount}
-            &nbsp;THB
+            {m.vts.rules.itemsTitle(Number.isNaN(minAmount) ? '?' : minAmount)}
           </DialogTitle>
-          <DialogDescription>
-            Each throw of this rule picks one of these at random.
-          </DialogDescription>
+          <DialogDescription>{m.vts.rules.itemsDescription}</DialogDescription>
         </DialogHeader>
         <div className="flex max-h-[60vh] flex-col gap-4 overflow-y-auto">
           <PickerSection
-            title="VTube Studio"
-            emptyText="Select items in the VTube Studio tab first."
+            title={m.vts.rules.vtsItems}
+            emptyText={m.vts.rules.vtsItemsEmpty}
             isEmpty={selectedItems.length === 0}
           >
             <ul className="flex flex-col rounded-md border">
@@ -118,8 +118,8 @@ const RuleItemsDialog = ({ index, open, onClose }: RuleItemsDialogProps) => {
             </ul>
           </PickerSection>
           <PickerSection
-            title="Your images"
-            emptyText="Add images in the Your images tab first."
+            title={m.vts.rules.yourImages}
+            emptyText={m.vts.rules.yourImagesEmpty}
             isEmpty={customImages.length === 0}
           >
             <ul className="grid grid-cols-4 gap-2">
@@ -151,12 +151,12 @@ const RuleItemsDialog = ({ index, open, onClose }: RuleItemsDialogProps) => {
         </div>
         <DialogFooter className="items-center">
           <p className="text-muted-foreground mr-auto text-sm">
-            {items.value.length + images.value.length} picked
+            {m.vts.rules.picked(items.value.length + images.value.length)}
           </p>
           <DialogClose asChild>
             <Button type="button">
               <CheckIcon />
-              Done
+              {m.vts.rules.done}
             </Button>
           </DialogClose>
         </DialogFooter>

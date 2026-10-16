@@ -9,6 +9,7 @@ import RuleItemsDialog from '~/components/VTS/RuleItemsDialog'
 import RuleZonesDialog from '~/components/VTS/RuleZonesDialog'
 import ThrowRule from '~/components/VTS/ThrowRule'
 import type { RuleDialogKind } from '~/components/VTS/ThrowRule'
+import { useMessages } from '~/hooks/use-messages'
 
 import {
   Config,
@@ -24,6 +25,8 @@ type ThrowRulesProps = {
 }
 
 const ThrowRules = ({ canSendTest, onSendTest }: ThrowRulesProps) => {
+  const m = useMessages()
+
   // The last dialog opened stays mounted after it closes, so it can animate out
   const [dialog, setDialog] = useState<RuleDialog | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -65,7 +68,7 @@ const ThrowRules = ({ canSendTest, onSendTest }: ThrowRulesProps) => {
     <Field className="gap-3">
       <div className="flex items-center gap-2">
         <FieldLabel id="vts-rules-label" className="mr-auto">
-          Logic
+          {m.vts.rules.logic}
         </FieldLabel>
         <TestDonationButton
           canSend={canSendTest}
@@ -74,7 +77,7 @@ const ThrowRules = ({ canSendTest, onSendTest }: ThrowRulesProps) => {
         />
         <Button type="button" variant="outline" size="sm" onClick={addRule}>
           <PlusIcon />
-          Add rule
+          {m.vts.rules.addRule}
         </Button>
       </div>
       <ul aria-labelledby="vts-rules-label" className="flex flex-col gap-3">

@@ -15,11 +15,8 @@ export type ModelBounds = {
 /** VTube Studio sends the outline 15 times a second */
 const OUTLINE_TIMEOUT = 1000
 
-/**
- * Reads the model's bounds from one outline frame. Returns `null` when VTube
- * Studio sends no frame (versions before the event) or the model is out of
- * view.
- */
+// `null` when VTube Studio sends no frame (versions before the event) or the
+// model is out of view
 export const getModelBounds = async (
   session: VTSSession
 ): Promise<ModelBounds | null> => {

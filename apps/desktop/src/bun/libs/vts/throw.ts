@@ -44,7 +44,6 @@ const FLIGHT_FADE_MODE = 'easeIn'
 const DROP = { time: 0.7, fadeMode: 'easeIn' } as const
 const STAGGER = 0.15
 
-/** `ItemMoveRequest` leaves fields at this value or lower unchanged. */
 const UNCHANGED = -1000
 const ITEM_FILE_NAME_NOT_FOUND = 751
 const SIDES: Record<VTSThrowDirection, number> = { left: -1, right: 1 }
@@ -91,8 +90,6 @@ const aimAt = (
   }
 }
 
-// Without `custom`, a rule picks from both tabs: every selected VTube Studio
-// item and every imported image
 const pickChoices = (rule: VTSThrowRule, config: VTSThrowConfig) => {
   const items = rule.custom ? rule.items : config.items
 
@@ -236,11 +233,6 @@ const moveItem = async (
   }
 }
 
-/**
- * Flies one item at one of the rule's zones, from the side that zone allows,
- * knocks the model's head away from it, plays the hit sound, bounces it off
- * and drops it.
- */
 const throwItem = async (
   session: VTSSession,
   config: VTSThrowConfig,

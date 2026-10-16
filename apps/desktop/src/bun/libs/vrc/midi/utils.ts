@@ -21,7 +21,6 @@ const CONTROL_CHANGE = 0xb0
 
 const escapeUnit = (unit: number) => `\\u${unit.toString(16).padStart(4, '0')}`
 
-/** Escapes one character for JSON, using a surrogate pair above U+FFFF. */
 const escapeChar = (char: string) => {
   const code = char.codePointAt(0) ?? 0
 

@@ -2,8 +2,11 @@ import { BrowserView, Utils } from 'electrobun/main'
 import fs from 'node:fs'
 
 import { ConfigSchema } from '../shared/config'
+import { isLanguage } from '../shared/i18n'
+import { TranslatableError } from '../shared/i18n/error'
 import type { AppRPC } from '../shared/rpc'
 import { getConfig, saveConfig } from './config'
+import { getLanguage, saveLanguage } from './language'
 import { forwardDonation } from './libs/forward'
 import { checkForUpdate, getAppVersion, installUpdate } from './libs/update'
 import { getMIDIDevices } from './libs/vrc/midi/winmm'
@@ -13,7 +16,11 @@ import { getVTSItems } from './libs/vts/items'
 import { pruneVTSSounds, readVTSSound, saveVTSSound } from './libs/vts/sounds'
 import { logger } from './logger'
 
-export const createAppRPC = () =>
+type AppRPCOptions = {
+  onLanguageChange: () => void
+}
+
+export const createAppRPC = ({ onLanguageChange }: AppRPCOptions) =>
   BrowserView.defineRPC<AppRPC>({
     handlers: {
       requests: {
@@ -47,10 +54,17 @@ export const createAppRPC = () =>
           fs.mkdirSync(folder, { recursive: true })
 
           if (!Utils.openPath(folder)) {
-            throw new Error(`Could not open ${folder}`)
+            throw new TranslatableError('openFolderFailed', folder)
           }
 
           return folder
+        },
+        getLanguage: () => getLanguage(),
+        setLanguage: language => {
+          const saved = saveLanguage(isLanguage(language) ? language : 'en')
+          onLanguageChange()
+
+          return saved
         },
         getAppVersion: () => getAppVersion(),
         getPlatform: () => process.platform,
@@ -58,7 +72,7 @@ export const createAppRPC = () =>
         installUpdate: () => installUpdate(),
         openExternal: url => {
           if (!Utils.openExternal(url)) {
-            throw new Error(`Could not open ${url}`)
+            throw new TranslatableError('openUrlFailed', url)
           }
 
           return url

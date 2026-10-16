@@ -14,8 +14,7 @@ import { sendMIDI } from './winmm'
  */
 const PACING = { chunkSize: 16, interval: 32 }
 
-// The last queued send. Donations go out one at a time, so two never
-// interleave on the port
+// Donations go out one at a time, so two never interleave on the port
 let queue: Promise<void> = Promise.resolve()
 
 export const sendDonationMIDI = async (data: Donation, config: MIDIConfig) => {

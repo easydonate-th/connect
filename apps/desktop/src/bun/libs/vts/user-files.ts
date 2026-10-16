@@ -2,11 +2,13 @@ import { Utils } from 'electrobun/main'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
+import { describeMessage, TranslatableError } from '../../../shared/i18n/error'
+import type { RejectedFile } from '../../../shared/rpc'
 import { logger } from '../../logger'
 
 type UserFile = { fileName: string; name: string }
 
-type UserFileImport = { added: UserFile[]; rejected: string[] }
+type UserFileImport = { added: UserFile[]; rejected: RejectedFile[] }
 
 const getFolder = (folderName: string) =>
   path.join(Utils.paths.userData, folderName)
@@ -33,11 +35,7 @@ export const writeUserFile = async (
   return fileName
 }
 
-/**
- * Copies the files the user picks into `userData/<folderName>` with
- * `writeUserFile`. `check` returns a file's extension, or throws why the app
- * can't use it.
- */
+/** `check` returns a file's extension, or throws why the app can't use it. */
 export const importUserFiles = async (
   folderName: string,
   kind: string,
@@ -64,14 +62,18 @@ export const importUserFiles = async (
 
       result.added.push({ fileName, name })
     } catch (error) {
-      result.rejected.push(
-        `${name}: ${error instanceof Error ? error.message : 'unknown error'}`
-      )
+      result.rejected.push({
+        name,
+        reason:
+          error instanceof Error
+            ? error.message
+            : new TranslatableError('unknownError').message,
+      })
     }
   }
 
-  for (const reason of result.rejected) {
-    logger.warn(`[VTS] ${kind} not added, ${reason}`)
+  for (const { name, reason } of result.rejected) {
+    logger.warn(`[VTS] ${kind} not added, ${name}: ${describeMessage(reason)}`)
   }
 
   return result

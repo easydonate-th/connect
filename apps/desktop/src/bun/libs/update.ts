@@ -1,6 +1,7 @@
 import { Updater } from 'electrobun/main'
 import type { UpdateStatusType } from 'electrobun/main'
 
+import { TranslatableError } from '../../shared/i18n/error'
 import type { UpdateCheck, UpdateStage } from '../../shared/rpc'
 import { logger } from '../logger'
 
@@ -9,24 +10,24 @@ type UpdateStageSink = (stage: UpdateStage) => void
 // The webview's toast title already says this
 const CHECK_ERROR_PREFIX = /^Failed to check for updates: /u
 
-// The statuses of a download and install. Only the full bundle download
-// reports a percent; a patch downloads without one.
-const STAGE_LABELS: Partial<Record<UpdateStatusType, string>> = {
-  'download-starting': 'Starting download',
-  'fetching-patch': 'Downloading patch',
-  'patch-found': 'Downloading patch',
-  'downloading-patch': 'Downloading patch',
-  'applying-patch': 'Applying patch',
-  'patch-applied': 'Applying patch',
-  'extracting-version': 'Applying patch',
-  'patch-chain-complete': 'Applying patch',
-  'patch-not-found': 'Downloading update',
-  'downloading-full-bundle': 'Downloading update',
-  'download-progress': 'Downloading update',
+// Only the full bundle download reports a percent; a patch downloads without
+// one.
+const STAGES: Partial<Record<UpdateStatusType, UpdateStage['stage']>> = {
+  'download-starting': 'starting',
+  'fetching-patch': 'downloadingPatch',
+  'patch-found': 'downloadingPatch',
+  'downloading-patch': 'downloadingPatch',
+  'applying-patch': 'applyingPatch',
+  'patch-applied': 'applyingPatch',
+  'extracting-version': 'applyingPatch',
+  'patch-chain-complete': 'applyingPatch',
+  'patch-not-found': 'downloadingUpdate',
+  'downloading-full-bundle': 'downloadingUpdate',
+  'download-progress': 'downloadingUpdate',
   // Progress stops at 99 until the bundle is unpacked
-  decompressing: 'Preparing update',
-  'download-complete': 'Preparing update',
-  applying: 'Preparing update',
+  decompressing: 'preparingUpdate',
+  'download-complete': 'preparingUpdate',
+  applying: 'preparingUpdate',
 }
 
 let stageSink: UpdateStageSink | undefined
@@ -41,11 +42,11 @@ Updater.onStatusChange(entry => {
     logger.info(`[Update] ${entry.message}`)
   }
 
-  const label = STAGE_LABELS[entry.status]
+  const stage = STAGES[entry.status]
 
-  if (label) {
+  if (stage) {
     try {
-      stageSink?.({ label, percent: entry.details?.progress ?? null })
+      stageSink?.({ stage, percent: entry.details?.progress ?? null })
     } catch {
       //
     }
@@ -77,18 +78,16 @@ export const checkForUpdate = async (): Promise<UpdateCheck> => {
   }
 }
 
-/**
- * Downloads the update the last check found, then quits and relaunches into
- * it. Resolves with the new version once the relaunch starts; the app quits
- * shortly after.
- */
+// Resolves once the relaunch starts; the app quits shortly after
 export const installUpdate = async () => {
   await Updater.downloadUpdate()
 
   const downloaded = Updater.updateInfo()
 
   if (!downloaded.updateReady) {
-    throw new Error(downloaded.error || 'The update was not downloaded')
+    throw downloaded.error
+      ? new Error(downloaded.error)
+      : new TranslatableError('updateNotDownloaded')
   }
 
   // applyUpdate reports failure through its status, not by throwing
@@ -97,9 +96,11 @@ export const installUpdate = async () => {
   const last = Updater.getStatusHistory().at(-1)
 
   if (last?.status !== 'launching-new-version') {
-    throw new Error(
-      Updater.updateInfo().error || last?.message || 'The update did not start'
-    )
+    const message = Updater.updateInfo().error || last?.message
+
+    throw message
+      ? new Error(message)
+      : new TranslatableError('updateNotStarted')
   }
 
   return downloaded.version

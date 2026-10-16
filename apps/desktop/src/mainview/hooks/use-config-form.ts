@@ -3,6 +3,7 @@ import { set, useForm, useFormContext } from 'react-hook-form'
 import type { FieldErrors, Resolver, UseFormReturn } from 'react-hook-form'
 import { toast } from 'sonner'
 
+import { getMessages, subscribeLanguage } from '~/libs/i18n'
 import { log } from '~/libs/logs'
 import { getConfig, saveConfig } from '~/libs/rpc'
 
@@ -12,6 +13,7 @@ import {
   createDefaultConfig,
   validateConfig,
 } from '../../shared/config'
+import { describeError } from '../../shared/i18n/error'
 
 // A main process built before a field existed leaves it out, which would show
 // an empty, invalid input instead of the field's default
@@ -20,24 +22,23 @@ const loadInitialConfig = async (): Promise<Config> => {
     return ConfigSchema.parse(await getConfig())
   } catch (error) {
     log.warn(
-      `Failed to load settings, using defaults: ${error instanceof Error ? error.message : 'unknown error'}`
+      `Failed to load settings, using defaults: ${describeError(error) ?? 'unknown error'}`
     )
 
     return createDefaultConfig()
   }
 }
 
-/**
- * Saves `config` and returns the stored value. On failure, it shows a toast
- * and returns `null`.
- */
 const persistConfig = async (config: Config): Promise<Config | null> => {
   try {
     return ConfigSchema.parse(await saveConfig(config))
   } catch (error) {
-    const description = error instanceof Error ? error.message : undefined
-    toast.error('Failed to save settings', { description })
-    log.error(`Failed to save settings: ${description ?? 'unknown error'}`)
+    toast.error(getMessages().app.form.saveFailed, {
+      description: describeError(error, getMessages()),
+    })
+    log.error(
+      `Failed to save settings: ${describeError(error) ?? 'unknown error'}`
+    )
 
     return null
   }
@@ -50,7 +51,7 @@ const persistConfig = async (config: Config): Promise<Config | null> => {
 export const initialConfigPromise = loadInitialConfig()
 
 const resolveConfig: Resolver<Config> = values => {
-  const messages = Object.entries(validateConfig(values))
+  const messages = Object.entries(validateConfig(values, getMessages()))
 
   if (messages.length === 0) {
     return { values, errors: {} }
@@ -83,9 +84,8 @@ const createSave = (
   })
 
 /**
- * The config form, starting from the stored `config`. `save` sends it to the
- * main process, which sorts the rules and prunes picks no longer in the tabs.
- * `save` then resets the form to the config the main process stored.
+ * `save` resets the form to what the main process stored, which sorts the rules
+ * and prunes picks no longer in the tabs.
  */
 export const useConfigForm = (config: Config) => {
   const form = useForm<Config>({
@@ -108,6 +108,15 @@ export const useConfigForm = (config: Config) => {
       },
     })
   }, [subscribe, trigger])
+
+  // The errors hold text, so a language switch renders them again
+  useEffect(
+    () =>
+      subscribeLanguage(() => {
+        trigger()
+      }),
+    [trigger]
+  )
 
   const save = createSave(form)
 

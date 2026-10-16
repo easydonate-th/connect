@@ -2,6 +2,7 @@ import { ApplicationMenu, BrowserWindow, Updater, Utils } from 'electrobun/main'
 
 import { allowAutoplay } from './autoplay'
 import { setWindowIcon } from './icon'
+import { getMessages } from './language'
 import { setUpdateStageSink } from './libs/update'
 import { setHitSoundSink } from './libs/vts/hit-sound'
 import { setLogSink } from './logger'
@@ -29,6 +30,29 @@ const getMainViewUrl = async () => {
   return 'views://mainview/index.html'
 }
 
+const setMenu = () => {
+  const { menu } = getMessages().app
+
+  ApplicationMenu.setApplicationMenu([
+    {
+      label: menu.app,
+      submenu: [{ role: 'quit', label: menu.quit }],
+    },
+    {
+      label: menu.edit,
+      submenu: [
+        { role: 'undo', label: menu.undo },
+        { role: 'redo', label: menu.redo },
+        { type: 'separator' },
+        { role: 'cut', label: menu.cut },
+        { role: 'copy', label: menu.copy },
+        { role: 'paste', label: menu.paste },
+        { role: 'selectAll', label: menu.selectAll },
+      ],
+    },
+  ])
+}
+
 const main = async () => {
   const url = await getMainViewUrl()
 
@@ -37,32 +61,14 @@ const main = async () => {
   const mainWindow = new BrowserWindow({
     title: 'EasyDonate Connect',
     url,
-    rpc: createAppRPC(),
-    // Serves `userData` as `appdata://`, for thumbnails of the user's images
+    rpc: createAppRPC({ onLanguageChange: setMenu }),
     allowedProtocols: { appData: true },
     frame: { width: 800, height: 720, x: 200, y: 200 },
   })
 
   setWindowIcon(mainWindow)
 
-  ApplicationMenu.setApplicationMenu([
-    {
-      label: 'App',
-      submenu: [{ role: 'quit' }],
-    },
-    {
-      label: 'Edit',
-      submenu: [
-        { role: 'undo' },
-        { role: 'redo' },
-        { type: 'separator' },
-        { role: 'cut' },
-        { role: 'copy' },
-        { role: 'paste' },
-        { role: 'selectAll' },
-      ],
-    },
-  ])
+  setMenu()
 
   setLogSink(entry => mainWindow.webview.rpc?.send.log(entry))
   setUpdateStageSink(stage => mainWindow.webview.rpc?.send.updateStage(stage))
@@ -75,7 +81,7 @@ if (acquireSingleInstance(`app.ezdn.connect-${channel}`)) {
   await Utils.showMessageBox({
     type: 'info',
     title: 'EasyDonate Connect',
-    message: 'Application is already running',
+    message: getMessages().app.alreadyRunning,
   })
   Utils.quit()
 }

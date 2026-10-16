@@ -9,13 +9,18 @@ import { Button } from '~/components/ui/button'
 import { Spinner } from '~/components/ui/spinner'
 import WidgetConnection from '~/components/WidgetConnection'
 import { initialConfigPromise, useConfigForm } from '~/hooks/use-config-form'
+import { useMessages } from '~/hooks/use-messages'
 import { useUnsavedChangesToast } from '~/hooks/use-unsaved-changes-toast'
 import { useWidgetConnection } from '~/hooks/use-widget-connection'
-import { openExternal } from '~/libs/rpc'
+import { languagePromise } from '~/libs/i18n'
 import { cn } from '~/libs/utils'
 
+import { openExternal } from './libs/rpc'
+
 const App = () => {
+  use(languagePromise)
   const initialConfig = use(initialConfigPromise)
+  const m = useMessages()
 
   const [isLogsOpen, setIsLogsOpen] = useState(false)
 
@@ -56,9 +61,7 @@ const App = () => {
             <h1 className="font-heading text-3xl font-semibold tracking-tight">
               EasyDonate Connect
             </h1>
-            <p className="text-muted-foreground text-sm">
-              Forward donations to your destination
-            </p>
+            <p className="text-muted-foreground text-sm">{m.app.tagline}</p>
           </header>
           <WidgetConnection
             status={status}
@@ -94,7 +97,7 @@ const App = () => {
                 onClick={save}
               >
                 {isSubmitting ? <Spinner /> : <SaveIcon />}
-                Save
+                {m.app.save}
               </Button>
             </div>
           </div>

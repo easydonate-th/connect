@@ -1,3 +1,4 @@
+import { describeError } from '../shared/i18n/error'
 import type { LogEntry, LogLevel } from '../shared/log'
 
 type LogSink = (entry: LogEntry) => void
@@ -25,7 +26,7 @@ const write = (level: LogLevel, message: string) => {
 }
 
 const withCause = (message: string, cause?: Error) =>
-  cause ? `${message}: ${cause.message}` : message
+  cause ? `${message}: ${describeError(cause)}` : message
 
 export const logger = {
   info: (message: string) => write('info', message),

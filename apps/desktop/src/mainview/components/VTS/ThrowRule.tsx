@@ -19,6 +19,7 @@ import {
   TooltipTrigger,
 } from '~/components/ui/tooltip'
 import { AlignedField } from '~/components/VTS/fields'
+import { useMessages } from '~/hooks/use-messages'
 
 import {
   Config,
@@ -26,15 +27,19 @@ import {
   VTS_RULE_RANGES,
   VTSThrowRule,
 } from '../../../shared/config'
+import type { Messages } from '../../../shared/i18n'
 
 export type RuleDialogKind = 'items' | 'zones'
 
-const formatZones = (zones: VTSThrowRule['zones']) =>
+const formatZones = (
+  zones: VTSThrowRule['zones'],
+  messages: Messages['vts']['rules']
+) =>
   zones.length === VTS_HIT_ZONES.length
-    ? 'All'
+    ? messages.allZones
     : zones.length === 0
-      ? 'None'
-      : zones.map(zone => zone[0].toUpperCase() + zone.slice(1)).join(', ')
+      ? messages.noZones
+      : zones.map(zone => messages.zones[zone].label).join(', ')
 
 type ThrowRuleProps = {
   index: number
@@ -50,6 +55,7 @@ const ThrowRule = ({
   onOpenDialog,
 }: ThrowRuleProps) => {
   const id = useId()
+  const m = useMessages()
 
   const { control } = useFormContext<Config>()
 
@@ -112,13 +118,13 @@ const ThrowRule = ({
       <div className="grid grid-cols-[1fr_1fr_auto_auto_auto] gap-4">
         <NumberField
           name={`vts.throw.rules.${index}.minAmount`}
-          label="Min THB"
+          label={m.vts.rules.minAmount}
           range={VTS_RULE_RANGES.minAmount}
           step={10}
         />
         <NumberField
           name={`vts.throw.rules.${index}.count`}
-          label="Items to throw"
+          label={m.vts.rules.count}
           range={VTS_RULE_RANGES.count}
           step={1}
         />
@@ -132,7 +138,7 @@ const ThrowRule = ({
               }
             />
             <Label htmlFor={customId} className="cursor-pointer font-normal">
-              Custom image
+              {m.vts.rules.customImage}
             </Label>
             <Button
               type="button"
@@ -140,16 +146,16 @@ const ThrowRule = ({
               size="sm"
               disabled={!custom.value}
               onClick={() => onOpenDialog('items')}
-              aria-label={`Choose custom items, ${pickedCount} picked`}
+              aria-label={m.vts.rules.chooseLabel(pickedCount)}
             >
               <ImagesIcon />
-              Choose
+              {m.vts.rules.choose}
               <Badge variant="secondary">{pickedCount}</Badge>
             </Button>
           </div>
         </AlignedField>
         <Field data-invalid={isZonesInvalid}>
-          <FieldLabel htmlFor={zonesId}>Hit zone</FieldLabel>
+          <FieldLabel htmlFor={zonesId}>{m.vts.rules.hitZone}</FieldLabel>
           <div className="flex h-8 items-center">
             <Button
               id={zonesId}
@@ -160,7 +166,7 @@ const ThrowRule = ({
               aria-invalid={isZonesInvalid}
             >
               <CrosshairIcon />
-              {formatZones(zones)}
+              {formatZones(zones, m.vts.rules)}
             </Button>
           </div>
         </Field>
@@ -176,14 +182,14 @@ const ThrowRule = ({
                   size="icon"
                   disabled={!canRemove}
                   onClick={onRemove}
-                  aria-label={`Remove the ${minAmount} THB rule`}
+                  aria-label={m.vts.rules.removeRule(minAmount)}
                 >
                   <Trash2Icon />
                 </Button>
               </span>
             </TooltipTrigger>
             {!canRemove && (
-              <TooltipContent>You need at least one rule.</TooltipContent>
+              <TooltipContent>{m.vts.rules.needOneRule}</TooltipContent>
             )}
           </Tooltip>
         </AlignedField>
@@ -191,12 +197,11 @@ const ThrowRule = ({
       <FieldError>{itemsError?.message}</FieldError>
       <FieldError>
         {zonesError?.message ??
-          (zoneDirectionError &&
-            'Choose at least one side for each hit zone.') ??
+          (zoneDirectionError && m.vts.rules.zoneDirectionsError) ??
           (zoneOffsetError &&
-            `Hit zone offsets must be ${zoneOffsetError.message} px.`) ??
+            m.vts.rules.zoneOffsetsError(zoneOffsetError.message ?? '')) ??
           (zoneWidthError &&
-            `Hit zone widths must be ${zoneWidthError.message} px.`)}
+            m.vts.rules.zoneWidthsError(zoneWidthError.message ?? ''))}
       </FieldError>
     </li>
   )

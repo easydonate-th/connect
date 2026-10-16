@@ -3,6 +3,8 @@ import { useFormContext, useFormState } from 'react-hook-form'
 import { toast } from 'sonner'
 
 import UpdateProgress from '~/components/UpdateProgress'
+import { useMessages } from '~/hooks/use-messages'
+import { getMessages } from '~/libs/i18n'
 import { log } from '~/libs/logs'
 import {
   checkForUpdate,
@@ -13,9 +15,16 @@ import {
 import { resetUpdateStage } from '~/libs/update-stage'
 
 import type { Config } from '../../shared/config'
+import type { Messages } from '../../shared/i18n'
+import { describeError } from '../../shared/i18n/error'
 import type { UpdateCheck } from '../../shared/rpc'
 
 const RELEASES_URL = 'https://github.com/easydonate-th/connect/releases/latest'
+
+type ToastTextProps = { text: (messages: Messages) => string }
+
+/** Text of a toast that stays up, read on render so it follows the language */
+const ToastText = ({ text }: ToastTextProps) => text(useMessages())
 
 export const useAppUpdate = () => {
   const [version, setVersion] = useState<string | null>(null)
@@ -31,8 +40,8 @@ export const useAppUpdate = () => {
   const install = async () => {
     // Restarting would drop the draft without asking
     if (isDirtyRef.current) {
-      toast.warning('Save your changes first', {
-        description: 'Updating restarts the app, which discards them.',
+      toast.warning(getMessages().settings.saveFirst, {
+        description: getMessages().settings.saveFirstDescription,
       })
 
       return
@@ -41,35 +50,43 @@ export const useAppUpdate = () => {
     setIsInstalling(true)
     resetUpdateStage()
 
-    const toastId = toast.loading('Installing update', {
-      description: <UpdateProgress />,
-    })
+    const toastId = toast.loading(
+      <ToastText text={m => m.settings.installing} />,
+      { description: <UpdateProgress /> }
+    )
 
     try {
       const newVersion = await installUpdate()
-      toast.loading(`Restarting into version ${newVersion}`, {
-        id: toastId,
-        description: undefined,
-      })
+      toast.loading(
+        <ToastText
+          text={m => m.settings.restarting({ version: newVersion })}
+        />,
+        { id: toastId, description: undefined }
+      )
     } catch (error) {
-      const description = error instanceof Error ? error.message : undefined
-      toast.error('Failed to install update', {
+      toast.error(getMessages().settings.installFailed, {
         id: toastId,
-        description,
+        description: describeError(error, getMessages()),
         action: {
-          label: 'Download',
+          label: getMessages().settings.download,
           onClick: () => openExternal(RELEASES_URL),
         },
       })
-      log.error(`Failed to install update: ${description ?? 'unknown error'}`)
+      log.error(
+        `Failed to install update: ${describeError(error) ?? 'unknown error'}`
+      )
       setIsInstalling(false)
     }
   }
 
   const showUpdateAvailable = (result: UpdateCheck) => {
-    toast.info(`Version ${result.latestVersion} is available`, {
-      description: `You have version ${result.currentVersion}.`,
-      action: { label: 'Update', onClick: install },
+    const m = getMessages()
+
+    toast.info(m.settings.updateAvailable({ version: result.latestVersion }), {
+      description: m.settings.currentVersion({
+        version: result.currentVersion,
+      }),
+      action: { label: m.settings.update, onClick: install },
     })
   }
 
@@ -82,17 +99,20 @@ export const useAppUpdate = () => {
       if (result.updateAvailable) {
         showUpdateAvailable(result)
       } else {
-        toast.success('You’re up to date', {
-          description: `Version ${result.currentVersion} is the latest.`,
+        toast.success(getMessages().settings.upToDate, {
+          description: getMessages().settings.isLatest({
+            version: result.currentVersion,
+          }),
         })
       }
 
       setUpdate(result)
     } catch (error) {
-      const description = error instanceof Error ? error.message : undefined
-      toast.error('Failed to check for updates', { description })
+      toast.error(getMessages().settings.checkFailed, {
+        description: describeError(error, getMessages()),
+      })
       log.error(
-        `Failed to check for updates: ${description ?? 'unknown error'}`
+        `Failed to check for updates: ${describeError(error) ?? 'unknown error'}`
       )
       setUpdate(null)
     }
@@ -118,7 +138,7 @@ export const useAppUpdate = () => {
         setVersion(await getAppVersion())
       } catch (error) {
         log.error(
-          `Failed to read the app version: ${error instanceof Error ? error.message : 'unknown error'}`
+          `Failed to read the app version: ${describeError(error) ?? 'unknown error'}`
         )
       }
     }
@@ -144,7 +164,7 @@ export const useAppUpdate = () => {
         }
 
         log.warn(
-          `Failed to check for updates on launch: ${error instanceof Error ? error.message : 'unknown error'}`
+          `Failed to check for updates on launch: ${describeError(error) ?? 'unknown error'}`
         )
       }
 

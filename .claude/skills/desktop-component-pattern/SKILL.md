@@ -36,7 +36,7 @@ export default ComponentA
 
 In this order, one blank line between sections. Do not label them with comments.
 
-1. **Hooks**: hooks that don't depend on anything below: `use(promise)`, `useId`, `useLogs`, `useUpdateStage`.
+1. **Hooks**: hooks that don't depend on anything below: `use(promise)`, `useId`, `useMessages`, `useLogs`, `useUpdateStage`.
 2. **State**: `useState` and `useRef`.
 3. **Data fetching and mutation**: hooks that load or send data over RPC or the socket: `useMIDIDevices`, `useVTSItems`, `useVTSImageImport`, `useVTSSoundImport`, `useVTSConnectionTest`, `useAppUpdate`, `useWidgetConnection`.
 4. **Form**: `useConfigForm`, `useFormContext`, `useController`, `useFieldArray`, `useWatch`, `useFormState`, `useConfigSave`.
@@ -56,7 +56,10 @@ If a hook needs state or a handler from the component body (so it can't sit in i
 - A helper component that only this file uses (`CategoryLabel` in `Integrations`, `PickerSection` in `RuleItemsDialog`) sits above the main component with its own `<Name>Props` type. A file that holds small shared components, such as `VTS/fields.tsx`, uses named exports instead of a default.
 - A component that renders more than once on the page (`NumberField`, `ThrowRule`, `ZoneDirectionField`) makes its ids with `useId()`, suffixed for each control (`` `${id}-custom` ``). A component that renders once uses static ids (`osc-host`, `midi-device`).
 - `AlignedField` (`VTS/fields.tsx`) wraps a button or checkbox that sits in a grid row beside labeled inputs, so it lines up with them under an invisible label.
-- Comments explain why, not which section a line is in. A one-line `/** */` on a prop or component states what isn't obvious from its name (`/** False while the socket is connected or connecting */`).
+- Write few comments. Before you add one, cover it and read the code: if a reader would write the same sentence back, leave it out. A name that says what a function, hook, prop or constant does needs no doc comment, and neither does a type, a range or a step the code already shows.
+  - Keep: a platform or library quirk, an API or protocol rule, where a magic number comes from, why a line that looks wrong is right, and `SAFETY:`, lint-disable and `@ts-expect-error` reasons.
+  - Cut: a doc that repeats the name (`/** The UI text in the current language */` on `useMessages`), lists the steps of the body, labels a section, or restates the type.
+  - A one-line `/** */` on a prop states only what its name can't (`/** False while the socket is connected or connecting */` on `canSend`).
 
 ## Config form
 
@@ -89,4 +92,10 @@ A dialog for one rule (`VTS/RuleItemsDialog`, `VTS/RuleZonesDialog`) takes `inde
 - A field with a `FieldDescription` shows the error in its place: `{hostError ? <FieldError>{hostError.message}</FieldError> : <FieldDescription>…</FieldDescription>}`.
 - Mark the field with `data-invalid` on `Field` and `aria-invalid` on the control.
 - Errors that don't come from the config, such as a missing MIDI device after a scan or an invalid widget URL on Connect, stay in component state and don't block Save.
-- A failed RPC call reports twice, with the same text: `toast.error('Failed to …', { description })` and `log.error(...)`, where `description` is `error instanceof Error ? error.message : undefined`.
+- A failed RPC call reports twice: `toast.error(getMessages().<ns>.<x>Failed, { description: describeError(error, getMessages()) })` in the user's language, and ``log.error(`Failed to …: ${describeError(error) ?? 'unknown error'}`)`` in English (`describeError` from `src/shared/i18n/error.ts`).
+
+## Text
+
+- Every string the user can see (JSX text, `placeholder`, `aria-label`, tooltips, toasts, labels for config values) lives in a namespace file in `src/shared/i18n/messages/`, in both `en` and `th`. A component reads it with `const m = useMessages()`. Code outside React, such as a toast in an async helper, calls `getMessages()` from `~/libs/i18n` when it runs, never at module load. Log lines, and the logs panel with its Logs button, stay English literals in code.
+- Text with values is a function with named parameters, so a translation can put them in its own order.
+- A toast that stays on screen must re-render its text when the language changes. Put `m` in the effect's dependencies, or render the text through a component that calls `useMessages()`.

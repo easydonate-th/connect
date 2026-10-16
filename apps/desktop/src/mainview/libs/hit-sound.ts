@@ -1,3 +1,4 @@
+import { describeError } from '../../shared/i18n/error'
 import type { HitSound } from '../../shared/rpc'
 import { log } from './logs'
 
@@ -149,7 +150,7 @@ export const playHitSound = async ({ sound, volume }: HitSound) => {
       start(loaded.audio, loaded.buffer, volume)
     }
   } catch (error) {
-    warnFailed(error instanceof Error ? error.message : 'unknown error')
+    warnFailed(describeError(error) ?? 'unknown error')
   }
 }
 
@@ -200,6 +201,6 @@ export const previewHitSound = async (
       stopPreview()
     }
 
-    warnFailed(error instanceof Error ? error.message : 'unknown error')
+    warnFailed(describeError(error) ?? 'unknown error')
   }
 }

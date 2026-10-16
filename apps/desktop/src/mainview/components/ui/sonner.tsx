@@ -9,11 +9,16 @@ import {
 } from 'lucide-react'
 import { Toaster as Sonner, type ToasterProps } from 'sonner'
 
+import { useMessages } from '~/hooks/use-messages'
+
 const Toaster = ({ ...props }: ToasterProps) => {
+  const m = useMessages()
+
   return (
     <Sonner
       theme="light"
       className="toaster group"
+      containerAriaLabel={m.app.notifications}
       icons={{
         success: <CircleCheckIcon className="size-4" />,
         info: <InfoIcon className="size-4" />,

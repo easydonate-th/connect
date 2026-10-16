@@ -1,5 +1,6 @@
 import { isVTSSoundFileName, VTS_SOUNDS_DIR } from '../../../shared/config'
 import type { VTSCustomSound } from '../../../shared/config'
+import { TranslatableError } from '../../../shared/i18n/error'
 import {
   pruneUserFiles,
   readUserFile,
@@ -23,7 +24,7 @@ export const saveVTSSound = async ({
   const bytes = new Uint8Array(Buffer.from(data, 'base64'))
 
   if (!isMP3(bytes)) {
-    throw new Error(`${name} is not an MP3`)
+    throw new TranslatableError('soundNotMP3', name)
   }
 
   return { fileName: await writeUserFile(VTS_SOUNDS_DIR, 'mp3', bytes), name }
@@ -32,7 +33,7 @@ export const saveVTSSound = async ({
 export const readVTSSound = (fileName: string) => {
   // The webview names the file, so this keeps the path inside the folder
   if (!isVTSSoundFileName(fileName)) {
-    throw new Error(`Not a sound file name: ${fileName}`)
+    throw new TranslatableError('soundFileNameInvalid', fileName)
   }
 
   return readUserFile(VTS_SOUNDS_DIR, fileName)

@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 
 import { Button } from '~/components/ui/button'
 import { Spinner } from '~/components/ui/spinner'
+import { useMessages } from '~/hooks/use-messages'
 
 const TOAST_ID = 'unsaved-changes'
 
@@ -26,10 +27,6 @@ const subscribeHiders = (listener: () => void) => {
 
 const getIsHidden = () => hiderCount > 0
 
-/**
- * Hides the unsaved changes toast while `isActive` is true, for an open dialog
- * with its own Save button.
- */
 export const useHideUnsavedChangesToast = (isActive: boolean) =>
   useEffect(() => {
     if (!isActive) {
@@ -59,6 +56,7 @@ export const useUnsavedChangesToast = ({
   onSave,
   onRevert,
 }: UnsavedChangesToastOptions) => {
+  const m = useMessages()
   // The toast keeps the buttons from its last update, so read the latest
   // `onSave`, whose draft may have changed since then
   const handleSave = useEffectEvent(onSave)
@@ -72,9 +70,9 @@ export const useUnsavedChangesToast = ({
       return
     }
 
-    toast.warning('Unsaved changes', {
+    toast.warning(m.app.unsavedChanges, {
       id: TOAST_ID,
-      description: isValid ? undefined : 'Fix the invalid fields to save',
+      description: isValid ? undefined : m.app.fixInvalidFields,
       duration: Number.POSITIVE_INFINITY,
       dismissible: false,
       // A React element, because sonner's own cancel button does nothing while
@@ -88,7 +86,7 @@ export const useUnsavedChangesToast = ({
           onClick={() => handleRevert()}
         >
           <Undo2Icon />
-          Revert
+          {m.app.revert}
         </Button>
       ),
       action: (
@@ -98,9 +96,9 @@ export const useUnsavedChangesToast = ({
           onClick={() => handleSave()}
         >
           {isSaving ? <Spinner /> : <SaveIcon />}
-          Save
+          {m.app.save}
         </Button>
       ),
     })
-  }, [isDirty, isValid, isSaving, isHidden])
+  }, [isDirty, isValid, isSaving, isHidden, m])
 }

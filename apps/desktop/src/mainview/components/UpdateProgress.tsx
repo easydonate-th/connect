@@ -1,8 +1,12 @@
 import { Progress } from '~/components/ui/progress'
+import { useMessages } from '~/hooks/use-messages'
 import { useUpdateStage } from '~/hooks/use-update-stage'
 
 const UpdateProgress = () => {
-  const { label, percent } = useUpdateStage()
+  const { stage, percent } = useUpdateStage()
+  const m = useMessages()
+
+  const label = m.settings.updateStages[stage]
 
   return (
     <div className="flex w-full flex-col gap-2">

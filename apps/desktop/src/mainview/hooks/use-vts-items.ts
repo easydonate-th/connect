@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 
+import { getMessages } from '~/libs/i18n'
 import { log } from '~/libs/logs'
 import { getVTSItems } from '~/libs/rpc'
 
 import type { VTSThrowConfig } from '../../shared/config'
+import { describeError } from '../../shared/i18n/error'
 
 type Endpoint = Pick<VTSThrowConfig, 'host' | 'port'>
 
@@ -12,10 +14,11 @@ const loadItems = async (endpoint: Endpoint) => {
   try {
     return await getVTSItems(endpoint)
   } catch (error) {
-    const description = error instanceof Error ? error.message : undefined
-    toast.error('Failed to list VTube Studio items', { description })
+    toast.error(getMessages().vts.throw.listItemsFailed, {
+      description: describeError(error, getMessages()),
+    })
     log.error(
-      `Failed to list VTube Studio items: ${description ?? 'unknown error'}`
+      `Failed to list VTube Studio items: ${describeError(error) ?? 'unknown error'}`
     )
 
     return null

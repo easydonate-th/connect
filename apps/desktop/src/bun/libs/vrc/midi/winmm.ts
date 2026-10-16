@@ -1,12 +1,13 @@
 import { dlopen, FFIType, ptr } from 'bun:ffi'
 
+import { TranslatableError } from '../../../../shared/i18n/error'
+
 /**
  * Sends MIDI through the Windows multimedia API in winmm.dll, which `bun:ffi`
  * loads, so the app needs no native addon. WinMM cannot create ports, so the
  * user creates one with a virtual MIDI driver such as loopMIDI.
  */
 
-/** A 3-byte channel message: status, data1, data2. */
 export type MIDIMessage = [number, number, number]
 
 // MIDIOUTCAPSW: wMid, wPid (WORD), vDriverVersion (UINT), szPname (WCHAR[32]),
@@ -34,13 +35,13 @@ const loadWinMM = () =>
 let winmm: ReturnType<typeof loadWinMM> | undefined
 const getWinMM = () => (winmm ??= loadWinMM())
 
-const check = (result: number, action: string) => {
+const check = (result: number, fail: (code: number) => Error) => {
   if (result !== 0) {
-    throw new Error(`${action} failed (MMRESULT ${result})`)
+    throw fail(result)
   }
 }
 
-/** Returns the MIDI output port names, indexed by WinMM device ID. */
+/** Port names, indexed by WinMM device ID */
 export const getMIDIDevices = () => {
   if (process.platform !== 'win32') {
     return []
@@ -53,7 +54,7 @@ export const getMIDIDevices = () => {
     const caps = new Uint8Array(CAPS_SIZE)
     check(
       api.midiOutGetDevCapsW(BigInt(id), ptr(caps), CAPS_SIZE),
-      `Reading MIDI device ${id}`
+      code => new TranslatableError('midiReadFailed', id, code)
     )
 
     const name = new TextDecoder('utf-16le').decode(
@@ -80,7 +81,10 @@ export const sendMIDI = async (
   const api = getWinMM()
   const handleOut = new BigUint64Array(1)
   // The last three arguments are callback, callback data and CALLBACK_NULL
-  check(api.midiOutOpen(ptr(handleOut), id, 0n, 0n, 0), `Opening "${name}"`)
+  check(
+    api.midiOutOpen(ptr(handleOut), id, 0n, 0n, 0),
+    code => new TranslatableError('midiOpenFailed', name, code)
+  )
   const handle = handleOut[0] ?? 0n
 
   try {
@@ -94,7 +98,10 @@ export const sendMIDI = async (
         start + chunkSize
       )) {
         const packed = status + data1 * 0x1_00 + data2 * 0x1_00_00
-        check(api.midiOutShortMsg(handle, packed), `Sending to "${name}"`)
+        check(
+          api.midiOutShortMsg(handle, packed),
+          code => new TranslatableError('midiSendFailed', name, code)
+        )
       }
     }
   } finally {

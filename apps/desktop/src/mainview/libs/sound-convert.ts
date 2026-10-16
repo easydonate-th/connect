@@ -1,10 +1,26 @@
 import { createEncoder } from 'wasm-media-encoders'
 import mp3WasmUrl from 'wasm-media-encoders/wasm/mp3?url'
 
+import { en } from '../../shared/i18n'
+import type { Messages } from '../../shared/i18n'
+
 const SAMPLE_RATE = 44_100
 const VBR_QUALITY = 2
 const BLOCK_LENGTH = SAMPLE_RATE
 const BASE64_CHUNK = 0x60_00
+
+type ConvertErrorKey = keyof Messages['vts']['hitSound']['convertErrors']
+
+/** Its message is English for the log; `key` picks the toast's text. */
+export class SoundConvertError extends Error {
+  readonly key: ConvertErrorKey
+
+  constructor(key: ConvertErrorKey) {
+    super(en.vts.hitSound.convertErrors[key])
+    this.name = 'SoundConvertError'
+    this.key = key
+  }
+}
 
 let wasm: Promise<ArrayBuffer> | undefined
 
@@ -32,7 +48,7 @@ const decode = async (file: File) => {
   try {
     return await context.decodeAudioData(await file.arrayBuffer())
   } catch {
-    throw new Error('not an audio or video file this app can read')
+    throw new SoundConvertError('unreadable')
   }
 }
 
@@ -63,7 +79,7 @@ export const convertToMP3 = async (file: File) => {
   const decoded = await decode(file)
 
   if (decoded.length === 0) {
-    throw new Error('it has no audio')
+    throw new SoundConvertError('noAudio')
   }
 
   const audio = decoded.numberOfChannels > 2 ? await toStereo(decoded) : decoded

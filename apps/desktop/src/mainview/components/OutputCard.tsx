@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from '~/components/ui/card'
 import { Switch } from '~/components/ui/switch'
+import { useMessages } from '~/hooks/use-messages'
 
 import type { Config } from '../../shared/config'
 
@@ -35,6 +36,8 @@ const OutputCard = ({
   isSupported = true,
   children,
 }: OutputCardProps) => {
+  const m = useMessages()
+
   const { control } = useFormContext<Config>()
   const { field: enabled } = useController({ control, name })
 
@@ -47,7 +50,9 @@ const OutputCard = ({
           <Icon className="text-muted-foreground size-4" />
           {title}
           {!isSupported && (
-            <Badge variant="secondary">Platform not supported</Badge>
+            <Badge variant="secondary">
+              {m.app.integrations.platformNotSupported}
+            </Badge>
           )}
         </CardTitle>
         <CardDescription>{description}</CardDescription>

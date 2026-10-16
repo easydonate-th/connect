@@ -31,6 +31,7 @@ import { AlignedField } from '~/components/VTS/fields'
 import HitSound from '~/components/VTS/HitSound'
 import ImageThumbnail from '~/components/VTS/ImageThumbnail'
 import ThrowRules from '~/components/VTS/ThrowRules'
+import { useMessages } from '~/hooks/use-messages'
 import { useVTSConnectionTest } from '~/hooks/use-vts-connection-test'
 import { useVTSImageImport } from '~/hooks/use-vts-image-import'
 import { useVTSItems } from '~/hooks/use-vts-items'
@@ -43,15 +44,14 @@ import {
 } from '../../../shared/config'
 
 const MOTION_FIELDS: {
-  field: VTSThrowRangeKey
-  label: string
+  field: Exclude<VTSThrowRangeKey, 'hitVolume'>
   step: number
 }[] = [
-  { field: 'size', label: 'Size', step: 0.01 },
-  { field: 'flightTime', label: 'Flight (s)', step: 0.05 },
-  { field: 'spin', label: 'Spin (°)', step: 15 },
-  { field: 'fadeTime', label: 'Fade (s)', step: 0.1 },
-  { field: 'hitForce', label: 'Hit force', step: 0.25 },
+  { field: 'size', step: 0.01 },
+  { field: 'flightTime', step: 0.05 },
+  { field: 'spin', step: 15 },
+  { field: 'fadeTime', step: 0.1 },
+  { field: 'hitForce', step: 0.25 },
 ]
 
 type ThrowProps = {
@@ -60,6 +60,8 @@ type ThrowProps = {
 }
 
 const Throw = ({ canSendTest, onSendTest }: ThrowProps) => {
+  const m = useMessages()
+
   const { items: scannedItems, isScanning, scan } = useVTSItems()
   const { isImporting, importImages } = useVTSImageImport()
   const { isTesting, test } = useVTSConnectionTest()
@@ -149,13 +151,13 @@ const Throw = ({ canSendTest, onSendTest }: ThrowProps) => {
       id="vts-throw"
       name="vts.throw.enabled"
       icon={TargetIcon}
-      title="Throw item"
-      description="Throw items at your model in VTube Studio."
+      title={m.vts.throw.title}
+      description={m.vts.throw.description}
     >
       <FieldGroup className="gap-6">
         <div className="grid grid-cols-[1fr_8rem_auto] gap-4">
           <Field data-invalid={hostError !== undefined}>
-            <FieldLabel htmlFor="vts-host">Host</FieldLabel>
+            <FieldLabel htmlFor="vts-host">{m.vts.throw.host}</FieldLabel>
             <Input
               {...host}
               id="vts-host"
@@ -168,7 +170,7 @@ const Throw = ({ canSendTest, onSendTest }: ThrowProps) => {
           </Field>
           <NumberField
             name="vts.throw.port"
-            label="Port"
+            label={m.vts.throw.port}
             range={PORT_RANGE}
             placeholder="8001"
           />
@@ -180,14 +182,14 @@ const Throw = ({ canSendTest, onSendTest }: ThrowProps) => {
               disabled={isTesting || isEndpointInvalid}
             >
               {isTesting ? <Spinner /> : <PlugZapIcon />}
-              Test connection
+              {m.vts.throw.testConnection}
             </Button>
           </AlignedField>
         </div>
         <Field
           data-invalid={missingItems.length > 0 || itemsError !== undefined}
         >
-          <FieldLabel id="vts-items-label">Items</FieldLabel>
+          <FieldLabel id="vts-items-label">{m.vts.throw.items}</FieldLabel>
           <Tabs
             defaultValue={
               items.length === 0 && customImages.length > 0 ? 'images' : 'vts'
@@ -200,7 +202,7 @@ const Throw = ({ canSendTest, onSendTest }: ThrowProps) => {
                 <Badge variant="secondary">{items.length}</Badge>
               </TabsTrigger>
               <TabsTrigger value="images">
-                Your images
+                {m.vts.throw.yourImages}
                 <Badge variant="secondary">{customImages.length}</Badge>
               </TabsTrigger>
             </TabsList>
@@ -208,8 +210,11 @@ const Throw = ({ canSendTest, onSendTest }: ThrowProps) => {
               <div className="flex items-center gap-2">
                 <p className="text-muted-foreground mr-auto text-sm">
                   {scannedItems === null
-                    ? 'Items in VTube Studio’s Items folder.'
-                    : `${items.length} of ${scannedItems.length} selected`}
+                    ? m.vts.throw.itemsFolderHint
+                    : m.vts.throw.selectedCount(
+                        items.length,
+                        scannedItems.length
+                      )}
                 </p>
                 <Button
                   type="button"
@@ -219,7 +224,7 @@ const Throw = ({ canSendTest, onSendTest }: ThrowProps) => {
                   disabled={isScanning || isEndpointInvalid}
                 >
                   <RefreshCwIcon className={cn(isScanning && 'animate-spin')} />
-                  Scan
+                  {m.vts.throw.scan}
                 </Button>
               </div>
               <ul className="flex h-56 flex-col overflow-y-auto rounded-md border">
@@ -235,7 +240,7 @@ const Throw = ({ canSendTest, onSendTest }: ThrowProps) => {
                       <span className="truncate">{item}</span>
                       {missingItems.includes(item) && (
                         <span className="text-destructive shrink-0">
-                          (not found)
+                          {m.vts.throw.notFound}
                         </span>
                       )}
                     </label>
@@ -244,8 +249,8 @@ const Throw = ({ canSendTest, onSendTest }: ThrowProps) => {
                 {itemOptions.length === 0 && (
                   <li className="text-muted-foreground px-3 py-2 text-sm">
                     {scannedItems === null
-                      ? 'Scan to list your VTube Studio items.'
-                      : 'VTube Studio’s Items folder is empty.'}
+                      ? m.vts.throw.scanToList
+                      : m.vts.throw.itemsFolderEmpty}
                   </li>
                 )}
               </ul>
@@ -253,7 +258,7 @@ const Throw = ({ canSendTest, onSendTest }: ThrowProps) => {
             <TabsContent value="images" className="flex flex-col gap-3">
               <div className="flex items-center gap-2">
                 <p className="text-muted-foreground mr-auto text-sm">
-                  PNG, JPG or GIF, 64-2048&nbsp;px a side, under 5&nbsp;MB.
+                  {m.vts.throw.imageRequirements}
                 </p>
                 <Button
                   type="button"
@@ -263,7 +268,7 @@ const Throw = ({ canSendTest, onSendTest }: ThrowProps) => {
                   disabled={isImporting}
                 >
                   <ImagePlusIcon />
-                  Add images
+                  {m.vts.throw.addImages}
                 </Button>
               </div>
               <ul className="flex h-56 flex-col overflow-y-auto rounded-md border">
@@ -280,7 +285,7 @@ const Throw = ({ canSendTest, onSendTest }: ThrowProps) => {
                       size="icon-sm"
                       className="ml-auto"
                       onClick={() => removeImage(image.fileName)}
-                      aria-label={`Remove ${image.name}`}
+                      aria-label={m.vts.throw.removeImage(image.name)}
                     >
                       <XIcon />
                     </Button>
@@ -288,24 +293,24 @@ const Throw = ({ canSendTest, onSendTest }: ThrowProps) => {
                 ))}
                 {customImages.length === 0 && (
                   <li className="text-muted-foreground px-3 py-2 text-sm">
-                    No images added yet.
+                    {m.vts.throw.noImages}
                   </li>
                 )}
               </ul>
             </TabsContent>
           </Tabs>
           {missingItems.length > 0 ? (
-            <FieldError>Some items are not in VTube Studio.</FieldError>
+            <FieldError>{m.vts.throw.itemsMissing}</FieldError>
           ) : itemsError ? (
             <FieldError>{itemsError.message}</FieldError>
           ) : null}
         </Field>
         <div className="grid grid-cols-5 gap-4">
-          {MOTION_FIELDS.map(({ field, label, step }) => (
+          {MOTION_FIELDS.map(({ field, step }) => (
             <NumberField
               key={field}
               name={`vts.throw.${field}`}
-              label={label}
+              label={m.vts.throw.motion[field]}
               range={VTS_THROW_RANGES[field]}
               step={step}
             />

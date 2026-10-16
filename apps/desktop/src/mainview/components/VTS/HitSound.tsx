@@ -22,6 +22,7 @@ import {
 } from '~/components/ui/select'
 import { Spinner } from '~/components/ui/spinner'
 import { AlignedField } from '~/components/VTS/fields'
+import { useMessages } from '~/hooks/use-messages'
 import { useVTSSoundImport } from '~/hooks/use-vts-sound-import'
 import { previewHitSound, stopPreview } from '~/libs/hit-sound'
 
@@ -29,20 +30,11 @@ import {
   Config,
   VTS_HIT_SOUNDS,
   VTS_THROW_RANGES,
-  VTSHitSound,
 } from '../../../shared/config'
 
-const SOUND_LABELS: Record<VTSHitSound, string> = {
-  none: 'None',
-  punch: 'Punch',
-  soft: 'Soft',
-  wood: 'Wood',
-  metal: 'Metal',
-  glass: 'Glass',
-  bell: 'Bell',
-}
-
 const HitSound = () => {
+  const m = useMessages()
+
   const [isPreviewing, setIsPreviewing] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -125,7 +117,9 @@ const HitSound = () => {
   return (
     <div className="grid grid-cols-[1fr_8rem_auto] gap-4">
       <Field>
-        <FieldLabel htmlFor="vts-hit-sound">Hit sound</FieldLabel>
+        <FieldLabel htmlFor="vts-hit-sound">
+          {m.vts.hitSound.hitSound}
+        </FieldLabel>
         <div className="flex gap-2">
           <Select
             value={hitSound.value}
@@ -137,14 +131,14 @@ const HitSound = () => {
             <SelectContent position="popper">
               {VTS_HIT_SOUNDS.map(sound => (
                 <SelectItem key={sound} value={sound}>
-                  {SOUND_LABELS[sound]}
+                  {m.vts.hitSound.sounds[sound]}
                 </SelectItem>
               ))}
               {customSounds.length > 0 && (
                 <>
                   <SelectSeparator />
                   <SelectGroup>
-                    <SelectLabel>Your sounds</SelectLabel>
+                    <SelectLabel>{m.vts.hitSound.yourSounds}</SelectLabel>
                     {/* The button sits beside the item, not in it, because the
                         trigger copies the selected item's content and the
                         item selects on any click inside it */}
@@ -159,7 +153,7 @@ const HitSound = () => {
                           size="icon-xs"
                           className="text-muted-foreground absolute inset-y-0 right-7 my-auto"
                           onClick={() => handleRemoveSound(sound.fileName)}
-                          aria-label={`Remove ${sound.name}`}
+                          aria-label={m.vts.hitSound.removeSound(sound.name)}
                         >
                           <Trash2Icon />
                         </Button>
@@ -177,7 +171,7 @@ const HitSound = () => {
             disabled={isImporting}
           >
             {isImporting ? <Spinner /> : <FileMusicIcon />}
-            Add sounds
+            {m.vts.hitSound.addSounds}
           </Button>
           <input
             ref={fileInputRef}
@@ -191,7 +185,7 @@ const HitSound = () => {
       </Field>
       <NumberField
         name="vts.throw.hitVolume"
-        label="Volume (%)"
+        label={m.vts.hitSound.volume}
         range={VTS_THROW_RANGES.hitVolume}
         step={5}
       />
@@ -206,9 +200,11 @@ const HitSound = () => {
           {/* The hidden Preview keeps the button's width, so the fields beside
               it don't move */}
           <span className="grid text-left">
-            <span className="invisible col-start-1 row-start-1">Preview</span>
+            <span className="invisible col-start-1 row-start-1">
+              {m.vts.hitSound.preview}
+            </span>
             <span className="col-start-1 row-start-1">
-              {isPreviewing ? 'Stop' : 'Preview'}
+              {isPreviewing ? m.vts.hitSound.stop : m.vts.hitSound.preview}
             </span>
           </span>
         </Button>

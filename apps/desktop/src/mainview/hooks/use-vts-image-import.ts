@@ -1,27 +1,36 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 
+import { getMessages } from '~/libs/i18n'
 import { log } from '~/libs/logs'
 import { importVTSImages } from '~/libs/rpc'
 
 import type { VTSCustomImage } from '../../shared/config'
+import { describeError, describeMessage } from '../../shared/i18n/error'
 
 const loadImages = async (): Promise<VTSCustomImage[]> => {
   try {
     const { added, rejected } = await importVTSImages()
 
     if (rejected.length > 0) {
-      toast.warning(
-        `${rejected.length} image${rejected.length === 1 ? '' : 's'} not added`,
-        { description: rejected.join('\n') }
-      )
+      toast.warning(getMessages().vts.throw.imagesNotAdded(rejected.length), {
+        description: rejected
+          .map(
+            ({ name, reason }) =>
+              `${name}: ${describeMessage(reason, getMessages())}`
+          )
+          .join('\n'),
+      })
     }
 
     return added
   } catch (error) {
-    const description = error instanceof Error ? error.message : undefined
-    toast.error('Failed to add images', { description })
-    log.error(`Failed to add images: ${description ?? 'unknown error'}`)
+    toast.error(getMessages().vts.throw.addImagesFailed, {
+      description: describeError(error, getMessages()),
+    })
+    log.error(
+      `Failed to add images: ${describeError(error) ?? 'unknown error'}`
+    )
 
     return []
   }

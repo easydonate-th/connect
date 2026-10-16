@@ -7,6 +7,7 @@ import type {
   VTSThrowConfig,
 } from './config'
 import type { Donation } from './donation'
+import type { Language, Messages } from './i18n'
 import type { LogEntry } from './log'
 
 export type VTSConnectionInfo = {
@@ -15,10 +16,16 @@ export type VTSConnectionInfo = {
   modelName: string | null
 }
 
+export type RejectedFile = {
+  name: string
+  /** An error message, which `describeMessage` renders in a language */
+  reason: string
+}
+
 export type VTSImageImport = {
   added: VTSCustomImage[]
   /** Why the import skipped each image VTube Studio can't use */
-  rejected: string[]
+  rejected: RejectedFile[]
 }
 
 export type UpdateCheck = {
@@ -33,7 +40,7 @@ export type HitSound = {
 }
 
 export type UpdateStage = {
-  label: string
+  stage: keyof Messages['settings']['updateStages']
   percent: number | null
 }
 
@@ -59,6 +66,8 @@ export type AppRPC = {
         response: VTSCustomSound
       }
       readVTSSound: { params: string; response: string }
+      getLanguage: { params: undefined; response: Language }
+      setLanguage: { params: Language; response: Language }
       getAppVersion: { params: undefined; response: string }
       getPlatform: { params: undefined; response: string }
       checkForUpdate: { params: undefined; response: UpdateCheck }

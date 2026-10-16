@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
+import { useMessages } from '~/hooks/use-messages'
 import { useMIDIDevices } from '~/hooks/use-midi-devices'
 
 import { Config, MIDI_CHANNEL_RANGE } from '../../../shared/config'
@@ -28,6 +29,8 @@ type MIDIProps = {
 }
 
 const MIDI = ({ isSupported }: MIDIProps) => {
+  const m = useMessages()
+
   const { devices, isScanning, scan } = useMIDIDevices()
 
   const { control } = useFormContext<Config>()
@@ -56,12 +59,12 @@ const MIDI = ({ isSupported }: MIDIProps) => {
       name="vrc.midi.enabled"
       icon={PianoIcon}
       title="MIDI"
-      description="Send donations to VRChat through a MIDI device."
+      description={m.vrc.midi.description}
       isSupported={isSupported}
     >
       <FieldGroup className="grid grid-cols-[1fr_8rem] gap-4">
         <Field data-invalid={isDeviceMissing || deviceError !== undefined}>
-          <FieldLabel htmlFor="midi-device">Device</FieldLabel>
+          <FieldLabel htmlFor="midi-device">{m.vrc.midi.device}</FieldLabel>
           <div className="flex gap-2">
             <Select
               value={deviceName.value}
@@ -75,15 +78,17 @@ const MIDI = ({ isSupported }: MIDIProps) => {
                 <SelectValue
                   placeholder={
                     devices.length === 0
-                      ? 'No MIDI devices found'
-                      : 'Select a device'
+                      ? m.vrc.midi.noDevices
+                      : m.vrc.midi.selectDevice
                   }
                 />
               </SelectTrigger>
               <SelectContent position="popper">
                 {options.map(name => (
                   <SelectItem key={name} value={name}>
-                    {devices.includes(name) ? name : `${name} (not found)`}
+                    {devices.includes(name)
+                      ? name
+                      : m.vrc.midi.deviceNotFound(name)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -94,24 +99,22 @@ const MIDI = ({ isSupported }: MIDIProps) => {
               size="icon"
               onClick={scan}
               disabled={isScanning}
-              aria-label="Rescan MIDI devices"
+              aria-label={m.vrc.midi.rescan}
             >
               <RefreshCwIcon className={cn(isScanning && 'animate-spin')} />
             </Button>
           </div>
           {isDeviceMissing ? (
-            <FieldError>Device not found. Is loopMIDI running?</FieldError>
+            <FieldError>{m.vrc.midi.deviceMissing}</FieldError>
           ) : deviceError ? (
             <FieldError>{deviceError.message}</FieldError>
           ) : (
-            <FieldDescription>
-              loopMIDI port that VRChat reads from.
-            </FieldDescription>
+            <FieldDescription>{m.vrc.midi.deviceDescription}</FieldDescription>
           )}
         </Field>
         <NumberField
           name="vrc.midi.channel"
-          label="Channel"
+          label={m.vrc.midi.channel}
           range={MIDI_CHANNEL_RANGE}
           placeholder="1"
         />

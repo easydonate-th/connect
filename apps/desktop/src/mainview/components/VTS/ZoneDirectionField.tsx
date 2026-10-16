@@ -4,14 +4,10 @@ import { useController, useFormContext } from 'react-hook-form'
 import { Checkbox } from '~/components/ui/checkbox'
 import { Field, FieldError, FieldLabel } from '~/components/ui/field'
 import { Label } from '~/components/ui/label'
+import { useMessages } from '~/hooks/use-messages'
 
 import { Config, VTS_THROW_DIRECTIONS } from '../../../shared/config'
 import type { VTSHitZone, VTSThrowDirection } from '../../../shared/config'
-
-const DIRECTION_LABELS: Record<VTSThrowDirection, string> = {
-  left: 'Left',
-  right: 'Right',
-}
 
 type ZoneDirectionFieldProps = {
   index: number
@@ -27,6 +23,7 @@ const ZoneDirectionField = ({
   disabled,
 }: ZoneDirectionFieldProps) => {
   const id = useId()
+  const m = useMessages()
 
   const { control } = useFormContext<Config>()
 
@@ -50,7 +47,7 @@ const ZoneDirectionField = ({
 
   return (
     <Field data-invalid={error !== undefined} data-disabled={disabled}>
-      <FieldLabel id={labelId}>{label} thrown from</FieldLabel>
+      <FieldLabel id={labelId}>{m.vts.rules.thrownFrom(label)}</FieldLabel>
       <fieldset
         disabled={disabled}
         aria-labelledby={labelId}
@@ -71,7 +68,7 @@ const ZoneDirectionField = ({
             />
             {/* The checkbox dims itself when disabled */}
             <span className="group-data-[disabled=true]/field:opacity-50">
-              {DIRECTION_LABELS[direction]}
+              {m.vts.rules.directions[direction]}
             </span>
           </Label>
         ))}

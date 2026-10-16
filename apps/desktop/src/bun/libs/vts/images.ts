@@ -1,5 +1,6 @@
 import { VTS_IMAGES_DIR } from '../../../shared/config'
 import type { VTSCustomImage } from '../../../shared/config'
+import { TranslatableError } from '../../../shared/i18n/error'
 import type { VTSImageImport } from '../../../shared/rpc'
 import {
   importUserFiles,
@@ -18,7 +19,6 @@ const SIDE_RANGE = { min: 64, max: 2048 }
 
 const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]
 
-/** Reads the size from a JPEG's start-of-frame segment. */
 const readJPEGSize = (view: DataView) => {
   let offset = 2
 
@@ -93,11 +93,17 @@ const isSideInRange = (side: number) =>
 
 const findImageProblem = (bytes: Uint8Array, info: ImageInfo) => {
   if (bytes.length >= MAX_BYTES) {
-    return 'larger than 5 MB'
+    return new TranslatableError('imageTooLarge')
   }
 
   if (!isSideInRange(info.width) || !isSideInRange(info.height)) {
-    return `${info.width}x${info.height} px, each side must be ${SIDE_RANGE.min}-${SIDE_RANGE.max} px`
+    return new TranslatableError(
+      'imageSizeOutOfRange',
+      info.width,
+      info.height,
+      SIDE_RANGE.min,
+      SIDE_RANGE.max
+    )
   }
 
   return null
@@ -107,13 +113,13 @@ const checkImage = (bytes: Uint8Array) => {
   const info = readImageInfo(bytes)
 
   if (!info) {
-    throw new Error('not a PNG, JPG or GIF image')
+    throw new TranslatableError('imageNotSupported')
   }
 
   const problem = findImageProblem(bytes, info)
 
   if (problem) {
-    throw new Error(problem)
+    throw problem
   }
 
   return info.type

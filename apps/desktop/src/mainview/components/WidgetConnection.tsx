@@ -22,11 +22,13 @@ import {
 } from '~/components/ui/field'
 import { Input } from '~/components/ui/input'
 import { Switch } from '~/components/ui/switch'
+import { useMessages } from '~/hooks/use-messages'
 import type { ConnectionStatus } from '~/hooks/use-widget-socket'
 import { getSocketUrl } from '~/libs/utils'
 
 import type { Config } from '../../shared/config'
 import type { Donation } from '../../shared/donation'
+import type { Messages } from '../../shared/i18n'
 
 const timeFormatter = new Intl.DateTimeFormat(undefined, {
   timeStyle: 'medium',
@@ -38,16 +40,19 @@ const amountFormatter = new Intl.NumberFormat(undefined, {
   maximumFractionDigits: 2,
 })
 
-const describeLastDonation = (donation: Donation | null) => {
+const describeLastDonation = (
+  donation: Donation | null,
+  m: Messages['widget']
+) => {
   if (!donation) {
-    return 'No donations received yet.'
+    return m.noDonations
   }
 
-  const name = donation.donatorName || 'Anonymous'
-  const amount = amountFormatter.format(donation.amount)
-  const time = timeFormatter.format(donation.timestamp)
-
-  return `Last donation: ${name} · ${amount} at ${time}`
+  return m.lastDonation({
+    name: donation.donatorName || m.anonymous,
+    amount: amountFormatter.format(donation.amount),
+    time: timeFormatter.format(donation.timestamp),
+  })
 }
 
 type WidgetConnectionProps = {
@@ -69,6 +74,8 @@ const WidgetConnection = ({
   onDisconnect,
   onSendTest,
 }: WidgetConnectionProps) => {
+  const m = useMessages()
+
   const { control } = useFormContext<Config>()
   const { field: widgetUrl } = useController({ control, name: 'widgetUrl' })
 
@@ -97,11 +104,9 @@ const WidgetConnection = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <LinkIcon className="text-muted-foreground size-4" />
-          Alert widget
+          {m.widget.title}
         </CardTitle>
-        <CardDescription>
-          Paste your EasyDonate alert widget URL
-        </CardDescription>
+        <CardDescription>{m.widget.description}</CardDescription>
         <CardAction>
           <ConnectionBadge status={status} />
         </CardAction>
@@ -109,7 +114,7 @@ const WidgetConnection = ({
       <CardContent className="flex flex-col gap-6">
         <form noValidate onSubmit={handleSubmit}>
           <Field data-invalid={isUrlInvalid}>
-            <FieldLabel htmlFor="widget-url">Widget URL</FieldLabel>
+            <FieldLabel htmlFor="widget-url">{m.widget.widgetUrl}</FieldLabel>
             <div className="flex gap-2">
               <Input
                 {...widgetUrl}
@@ -118,7 +123,7 @@ const WidgetConnection = ({
                 inputMode="url"
                 autoComplete="off"
                 spellCheck={false}
-                placeholder="https://widgets.easydonate.app?w=alert…"
+                placeholder={m.widget.widgetUrlPlaceholder}
                 aria-invalid={isUrlInvalid}
                 aria-describedby="widget-url-hint"
               />
@@ -128,14 +133,16 @@ const WidgetConnection = ({
                 className="min-w-28"
               >
                 {isActive ? <UnplugIcon /> : <PlugIcon />}
-                {isActive ? 'Disconnect' : 'Connect'}
+                {isActive ? m.widget.disconnect : m.widget.connect}
               </Button>
             </div>
             {isUrlInvalid ? (
-              <FieldError id="widget-url-hint">Invalid widget URL</FieldError>
+              <FieldError id="widget-url-hint">
+                {m.widget.invalidUrl}
+              </FieldError>
             ) : (
               <FieldDescription id="widget-url-hint">
-                {describeLastDonation(lastDonation)}
+                {describeLastDonation(lastDonation, m.widget)}
               </FieldDescription>
             )}
           </Field>
@@ -149,7 +156,7 @@ const WidgetConnection = ({
             />
             <FieldContent>
               <FieldLabel htmlFor="auto-connect" className="cursor-pointer">
-                Auto connect
+                {m.widget.autoConnect}
               </FieldLabel>
             </FieldContent>
           </Field>

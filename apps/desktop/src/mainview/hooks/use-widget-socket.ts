@@ -34,10 +34,6 @@ const toStatus = (
   return 'reconnecting'
 }
 
-/**
- * Keeps a connection to the EasyDonate widget socket open while `socketUrl` is
- * set, reconnecting with backoff, and passes each donation to `onDonation`.
- */
 export const useWidgetSocket = (
   socketUrl: string | null,
   onDonation: (donation: Donation) => void

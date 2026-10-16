@@ -1,4 +1,5 @@
 import type { VTSThrowConfig } from '../../../shared/config'
+import { TranslatableError } from '../../../shared/i18n/error'
 import { logger } from '../../logger'
 import type {
   APIErrorData,
@@ -64,11 +65,7 @@ const openSocket = async ({ host, port }: Endpoint) => {
   const { promise, resolve, reject } = Promise.withResolvers<WebSocket>()
 
   const fail = () =>
-    reject(
-      new Error(
-        `Cannot connect to VTube Studio at ${host}:${port}. Turn on “Allow Plugin API access” in VTube Studio`
-      )
-    )
+    reject(new TranslatableError('vtsConnectFailed', host, port))
 
   socket.addEventListener('open', () => resolve(socket), { once: true })
   socket.addEventListener('error', fail, { once: true })
@@ -105,7 +102,6 @@ const createSession = (socket: WebSocket): VTSSession => {
       }
     }
 
-    // Skips messages without a pending request, such as events
     const { requestID } = message
     const entry = requestID ? pending.get(requestID) : undefined
 
@@ -127,14 +123,14 @@ const createSession = (socket: WebSocket): VTSSession => {
   socket.addEventListener('close', () => {
     for (const entry of pending.values()) {
       clearTimeout(entry.timer)
-      entry.reject(new Error('Connection to VTube Studio closed'))
+      entry.reject(new TranslatableError('vtsConnectionClosed'))
     }
 
     pending.clear()
 
     for (const waiter of eventWaiters) {
       clearTimeout(waiter.timer)
-      waiter.reject(new Error('Connection to VTube Studio closed'))
+      waiter.reject(new TranslatableError('vtsConnectionClosed'))
     }
 
     eventWaiters.clear()
@@ -146,7 +142,7 @@ const createSession = (socket: WebSocket): VTSSession => {
     timeout = REQUEST_TIMEOUT
   ) => {
     if (socket.readyState !== WebSocket.OPEN) {
-      throw new Error('Connection to VTube Studio closed')
+      throw new TranslatableError('vtsConnectionClosed')
     }
 
     const requestID = crypto.randomUUID()
@@ -154,7 +150,7 @@ const createSession = (socket: WebSocket): VTSSession => {
 
     const timer = setTimeout(() => {
       pending.delete(requestID)
-      reject(new Error(`${messageType} timed out`))
+      reject(new TranslatableError('vtsRequestTimedOut', messageType))
     }, timeout)
 
     pending.set(requestID, { resolve, reject, timer })
@@ -232,7 +228,6 @@ const fetchToken = async (session: VTSSession) => {
   }
 }
 
-// Asks the user for a new token when the saved one is missing or revoked
 const authenticate = async (session: VTSSession) => {
   const savedToken = readToken()
 
@@ -243,7 +238,7 @@ const authenticate = async (session: VTSSession) => {
   tokenRequest ??= fetchToken(session)
 
   if (!(await authenticateWith(session, await tokenRequest))) {
-    throw new Error('VTube Studio rejected the plugin token')
+    throw new TranslatableError('vtsTokenRejected')
   }
 }
 
@@ -270,8 +265,6 @@ const fetchCustomImagePermission = async (session: VTSSession) => {
   }
 }
 
-// VTube Studio answers at once if the user allowed custom images before, and
-// shows a popup otherwise
 export const allowCustomImages = (session: VTSSession) => {
   permissionRequest ??= fetchCustomImagePermission(session)
 

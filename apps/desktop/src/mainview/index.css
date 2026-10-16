@@ -163,7 +163,9 @@
   }
 }
 
+/* Sonner sets a system font on its toaster, so toasts don't inherit the body's */
 [data-sonner-toaster] [data-sonner-toast][data-styled='true'] {
+  font-family: var(--font-sans);
   gap: 0.375rem;
   padding: 1rem;
   font-size: 0.8125rem;

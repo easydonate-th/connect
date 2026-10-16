@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import type { Messages } from './i18n'
+
 export const PORT_RANGE = { min: 1, max: 65_535, integer: true } as const
 export const MIDI_CHANNEL_RANGE = { min: 1, max: 16, integer: true } as const
 
@@ -22,14 +24,12 @@ export const VTS_RULE_RANGES = {
   count: { min: 1, max: 20, integer: true },
 } as const
 
-/** Pixels a hit zone moves down, or up when negative */
 export const VTS_ZONE_OFFSET_RANGE = {
   min: -1000,
   max: 1000,
   integer: true,
 } as const
 
-/** Pixels across the band items aimed at a zone land in, centered on the model */
 export const VTS_ZONE_WIDTH_RANGE = {
   min: 0,
   max: 2000,
@@ -132,8 +132,6 @@ const ZoneDirectionsSchema = listOf(z.enum(VTS_THROW_DIRECTIONS)).transform(
       : [...VTS_THROW_DIRECTIONS]
 )
 
-// Every field falls back to its default on its own, so one bad value in
-// config.json never resets the rest of the config.
 const OSCConfigSchema = z.object({
   enabled: withFallback(z.boolean(), false),
   // VRChat listens for OSC input on 127.0.0.1:9000 by default
@@ -171,14 +169,11 @@ const VTSCustomSoundSchema = z.object({
  * donation below every rule throws nothing.
  */
 const VTSThrowRuleSchema = z.object({
-  /** Stable React key */
   id: withFallback(z.string().min(1), () => createId()),
   minAmount: withFallback(VTS_RULE_VALUE_SCHEMAS.minAmount, 0),
   count: withFallback(VTS_RULE_VALUE_SCHEMAS.count, 1),
   custom: withFallback(z.boolean(), false),
-  /** Picks from the config's `items` */
   items: listOf(z.string()),
-  /** Picks from the config's `customImages`, by `fileName` */
   images: listOf(z.string()),
   /** Each item hits one of these at random. An empty list means all zones. */
   zones: listOf(z.enum(VTS_HIT_ZONES)).transform(zones =>
@@ -301,10 +296,8 @@ export const createDefaultConfig = (): Config => ConfigSchema.parse({})
 export const createVTSThrowRule = (rule: Partial<VTSThrowRule> = {}) =>
   VTSThrowRuleSchema.parse(rule)
 
-/**
- * URL the webview loads an added image from. `appdata://` serves `userData`
- * to the main window, which enables it in `allowedProtocols`.
- */
+// `appdata://` serves `userData` to the main window, which enables it in
+// `allowedProtocols`
 export const getVTSImageUrl = ({ fileName }: VTSCustomImage) =>
   `appdata://${VTS_IMAGES_DIR}/${encodeURIComponent(fileName)}`
 
@@ -314,7 +307,8 @@ export const isVTSSoundFileName = (fileName: string) =>
 /** A message for each invalid field, keyed by its path in the config form. */
 export type ConfigErrors = Record<string, string>
 
-const formatRange = ({ min, max }: Range) => `${min}-${max.toLocaleString()}`
+const formatRange = ({ min, max }: Range, messages: Messages) =>
+  messages.app.form.range({ min: `${min}`, max: max.toLocaleString() })
 
 const fits = <T extends z.ZodType>(schema: T, value: z.input<T>) =>
   schema.safeParse(value).success
@@ -323,14 +317,23 @@ const fits = <T extends z.ZodType>(schema: T, value: z.input<T>) =>
  * Checks the config in the form. Where `ConfigSchema` heals a bad value, this
  * reports it. It also runs the checks that span fields.
  */
-export const validateConfig = ({ vrc, vts }: Config) => {
+export const validateConfig = ({ vrc, vts }: Config, messages: Messages) => {
   const errors: ConfigErrors = {}
   const { osc, midi } = vrc
   const vtsThrow = vts.throw
-  const portRange = `${PORT_RANGE.min}-${PORT_RANGE.max}`
-  // `formatRange` would read -1000-1,000
-  const zoneOffsetRange = `${VTS_ZONE_OFFSET_RANGE.min.toLocaleString()} to ${VTS_ZONE_OFFSET_RANGE.max.toLocaleString()}`
+  const { form } = messages.app
   const hasItems = vtsThrow.items.length + vtsThrow.customImages.length > 0
+
+  const portRange = form.range({
+    min: `${PORT_RANGE.min}`,
+    max: `${PORT_RANGE.max}`,
+  })
+
+  // `formatRange` would read -1000-1,000
+  const zoneOffsetRange = form.signedRange({
+    min: VTS_ZONE_OFFSET_RANGE.min.toLocaleString(),
+    max: VTS_ZONE_OFFSET_RANGE.max.toLocaleString(),
+  })
 
   // A field shows its first failed check
   const check = (path: string, isValid: boolean, message: string) => {
@@ -339,31 +342,27 @@ export const validateConfig = ({ vrc, vts }: Config) => {
     }
   }
 
-  check('vrc.osc.host', fits(HostSchema, osc.host), 'Enter a host.')
+  check('vrc.osc.host', fits(HostSchema, osc.host), form.enterHost)
   check('vrc.osc.port', fits(PortSchema, osc.port), portRange)
   check(
     'vrc.midi.deviceName',
     !midi.enabled || midi.deviceName.trim() !== '',
-    'Select a device to send donations.'
+    form.selectDevice
   )
   check(
     'vrc.midi.channel',
     fits(MIDIChannelSchema, midi.channel),
-    formatRange(MIDI_CHANNEL_RANGE)
+    formatRange(MIDI_CHANNEL_RANGE, messages)
   )
-  check('vts.throw.host', fits(HostSchema, vtsThrow.host), 'Enter a host.')
+  check('vts.throw.host', fits(HostSchema, vtsThrow.host), form.enterHost)
   check('vts.throw.port', fits(PortSchema, vtsThrow.port), portRange)
-  check(
-    'vts.throw.items',
-    !vtsThrow.enabled || hasItems,
-    'Select or add at least one item.'
-  )
+  check('vts.throw.items', !vtsThrow.enabled || hasItems, form.selectItems)
 
   for (const key of VTS_THROW_RANGE_KEYS) {
     check(
       `vts.throw.${key}`,
       fits(VTS_THROW_VALUE_SCHEMAS[key], vtsThrow[key]),
-      formatRange(VTS_THROW_RANGES[key])
+      formatRange(VTS_THROW_RANGES[key], messages)
     )
   }
 
@@ -374,7 +373,7 @@ export const validateConfig = ({ vrc, vts }: Config) => {
     check(
       `${path}.minAmount`,
       fits(VTS_RULE_VALUE_SCHEMAS.minAmount, rule.minAmount),
-      formatRange(VTS_RULE_RANGES.minAmount)
+      formatRange(VTS_RULE_RANGES.minAmount, messages)
     )
     // With two rules at the same Min THB, it's unclear which one a donation
     // uses
@@ -383,25 +382,19 @@ export const validateConfig = ({ vrc, vts }: Config) => {
       vtsThrow.rules.every(
         other => other.id === rule.id || other.minAmount !== rule.minAmount
       ),
-      'Another rule has this Min THB.'
+      form.duplicateMinAmount
     )
     check(
       `${path}.count`,
       fits(VTS_RULE_VALUE_SCHEMAS.count, rule.count),
-      formatRange(VTS_RULE_RANGES.count)
+      formatRange(VTS_RULE_RANGES.count, messages)
     )
     check(
       `${path}.items`,
       !vtsThrow.enabled || (rule.custom ? pickedCount > 0 : hasItems),
-      rule.custom
-        ? 'Choose at least one custom item.'
-        : 'Select VTube Studio items or add your images above.'
+      rule.custom ? form.chooseCustomItems : form.selectRuleItems
     )
-    check(
-      `${path}.zones`,
-      rule.zones.length > 0,
-      'Choose at least one hit zone.'
-    )
+    check(`${path}.zones`, rule.zones.length > 0, form.chooseZones)
 
     // An unchecked zone's settings are grayed out, so they can't block Save,
     // and `ConfigSchema` heals them on save
@@ -419,7 +412,7 @@ export const validateConfig = ({ vrc, vts }: Config) => {
       check(
         `${path}.zoneWidths.${zone}`,
         fits(ZoneWidthSchema, rule.zoneWidths[zone]),
-        formatRange(VTS_ZONE_WIDTH_RANGE)
+        formatRange(VTS_ZONE_WIDTH_RANGE, messages)
       )
     }
   }

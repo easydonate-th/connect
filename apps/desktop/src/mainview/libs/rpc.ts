@@ -2,6 +2,7 @@ import { Electroview } from 'electrobun/view'
 
 import { Config, VTSThrowConfig } from '../../shared/config'
 import { Donation } from '../../shared/donation'
+import type { Language } from '../../shared/i18n'
 import { AppRPC } from '../../shared/rpc'
 import { playHitSound, setSoundReader } from './hit-sound'
 import { addLog } from './logs'
@@ -54,6 +55,11 @@ export const saveVTSSound = (sound: { name: string; data: string }) =>
   rpc.request.saveVTSSound(sound, { maxRequestTime: SOUND_TRANSFER_TIME })
 
 export const openDataFolder = () => rpc.request.openDataFolder()
+export const getLanguage = () => rpc.request.getLanguage()
+
+export const setLanguage = (language: Language) =>
+  rpc.request.setLanguage(language)
+
 export const getAppVersion = () => rpc.request.getAppVersion()
 export const getPlatform = () => rpc.request.getPlatform()
 

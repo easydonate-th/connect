@@ -1,23 +1,24 @@
 import { Badge } from '~/components/ui/badge'
+import { useMessages } from '~/hooks/use-messages'
 import type { ConnectionStatus } from '~/hooks/use-widget-socket'
 import { cn } from '~/libs/utils'
 
-const STATUS_STYLES: Record<
-  ConnectionStatus,
-  { label: string; dot: string; pulse: boolean }
-> = {
-  idle: { label: 'Not connected', dot: 'bg-muted-foreground', pulse: false },
-  connecting: { label: 'Connecting…', dot: 'bg-amber-500', pulse: true },
-  connected: { label: 'Connected', dot: 'bg-emerald-500', pulse: false },
-  reconnecting: { label: 'Reconnecting…', dot: 'bg-red-500', pulse: true },
-}
+const STATUS_STYLES: Record<ConnectionStatus, { dot: string; pulse: boolean }> =
+  {
+    idle: { dot: 'bg-muted-foreground', pulse: false },
+    connecting: { dot: 'bg-amber-500', pulse: true },
+    connected: { dot: 'bg-emerald-500', pulse: false },
+    reconnecting: { dot: 'bg-red-500', pulse: true },
+  }
 
 type ConnectionBadgeProps = {
   status: ConnectionStatus
 }
 
 const ConnectionBadge = ({ status }: ConnectionBadgeProps) => {
-  const { label, dot, pulse } = STATUS_STYLES[status]
+  const m = useMessages()
+
+  const { dot, pulse } = STATUS_STYLES[status]
 
   return (
     <Badge variant="outline" asChild>
@@ -26,7 +27,7 @@ const ConnectionBadge = ({ status }: ConnectionBadgeProps) => {
           aria-hidden
           className={cn('size-1.5 rounded-full', dot, pulse && 'animate-pulse')}
         />
-        {label}
+        {m.widget.status[status]}
       </output>
     </Badge>
   )
