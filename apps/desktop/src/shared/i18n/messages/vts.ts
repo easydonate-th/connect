@@ -84,7 +84,6 @@ const en = {
     yourImages: 'Your images',
     yourImagesEmpty: 'Add images in the Your images tab first.',
     picked: (count: number) => `${count} picked`,
-    done: 'Done',
     zonesTitle: (minAmount: number | string) =>
       `Hit zones for ${minAmount} THB`,
     zones: {
@@ -200,7 +199,6 @@ const th: typeof en = {
     yourImages: 'รูปของคุณ',
     yourImagesEmpty: 'เพิ่มรูปในแท็บ “รูปของคุณ” ก่อน',
     picked: count => `เลือกแล้ว ${count} ชิ้น`,
-    done: 'เสร็จ',
     zonesTitle: minAmount => `จุดที่โดนสำหรับ ${minAmount} THB`,
     zones: {
       head: {

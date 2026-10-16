@@ -1,21 +1,28 @@
-import { CheckIcon, PackageIcon } from 'lucide-react'
+import { PackageIcon, SaveIcon } from 'lucide-react'
 import { useId } from 'react'
 import type { ReactNode } from 'react'
-import { useController, useFormContext, useWatch } from 'react-hook-form'
+import {
+  useController,
+  useFormContext,
+  useFormState,
+  useWatch,
+} from 'react-hook-form'
 
 import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '~/components/ui/dialog'
+import { Spinner } from '~/components/ui/spinner'
 import ImageThumbnail from '~/components/VTS/ImageThumbnail'
+import { useConfigSave } from '~/hooks/use-config-form'
 import { useMessages } from '~/hooks/use-messages'
+import { useHideUnsavedChangesToast } from '~/hooks/use-unsaved-changes-toast'
 
 import type { Config } from '../../../shared/config'
 
@@ -83,9 +90,23 @@ const RuleItemsDialog = ({ index, open, onClose }: RuleItemsDialogProps) => {
     ],
   })
 
+  const { isDirty, isValid, isSubmitting } = useFormState({ control })
+  const save = useConfigSave(onClose)
+
+  // Saving an unchanged draft would only log "Settings saved"
+  const handleSave = () => (isDirty ? save() : onClose())
+
+  // The dialog's Save button stands in for the toast, which would cover it
+  useHideUnsavedChangesToast(open)
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent
+        className="sm:max-w-lg"
+        // Only Save, the close button and Escape close it, so a stray click
+        // can't drop the user out mid-edit
+        onInteractOutside={event => event.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>
             {m.vts.rules.itemsTitle(Number.isNaN(minAmount) ? '?' : minAmount)}
@@ -153,12 +174,14 @@ const RuleItemsDialog = ({ index, open, onClose }: RuleItemsDialogProps) => {
           <p className="text-muted-foreground mr-auto text-sm">
             {m.vts.rules.picked(items.value.length + images.value.length)}
           </p>
-          <DialogClose asChild>
-            <Button type="button">
-              <CheckIcon />
-              {m.vts.rules.done}
-            </Button>
-          </DialogClose>
+          <Button
+            type="button"
+            disabled={!isValid || isSubmitting}
+            onClick={handleSave}
+          >
+            {isSubmitting ? <Spinner /> : <SaveIcon />}
+            {m.vts.rules.save}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
