@@ -24,6 +24,7 @@ for (const [path, url] of Object.entries(SOUND_URLS)) {
 
 let context: AudioContext | undefined
 const buffers = new Map<string, Promise<AudioBuffer>>()
+let userSound: string | undefined
 let hasWarnedMuted = false
 let readSound: SoundReader | undefined
 
@@ -90,6 +91,12 @@ const loadSound = (audio: AudioContext, sound: string) => {
   const urls = takes.get(sound)
 
   if (!urls) {
+    if (userSound !== undefined && userSound !== sound) {
+      buffers.delete(userSound)
+    }
+
+    userSound = sound
+
     return loadBuffer(audio, sound, () => readUserSound(sound))
   }
 

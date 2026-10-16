@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
 
 import type { Messages } from './i18n'
 
@@ -6,7 +6,7 @@ export const PORT_RANGE = { min: 1, max: 65_535, integer: true } as const
 export const MIDI_CHANNEL_RANGE = { min: 1, max: 16, integer: true } as const
 
 export const VTS_THROW_RANGES = {
-  /** 0 is the smallest item size and 1 the biggest. The default is 0.32. */
+  /** 0 is the smallest item size and 1 the biggest */
   size: { min: 0.05, max: 1, integer: false },
   /** Seconds from the screen edge to the model */
   flightTime: { min: 0.1, max: 2, integer: false },
@@ -42,8 +42,7 @@ export const VTS_THROW_DIRECTIONS = ['left', 'right'] as const
 
 /**
  * Sounds the app plays when an item hits the model, each a set of takes in
- * `mainview/sounds`. VTube Studio's API can't play audio. The config's
- * `hitSound` is one of these or the `fileName` of one of the user's sounds.
+ * `mainview/sounds`. VTube Studio's API can't play audio.
  */
 export const VTS_HIT_SOUNDS = [
   'none',
@@ -78,32 +77,33 @@ export const VTS_SOUNDS_DIR = 'vts-sounds'
 // zod export, locales and JSON Schema included, in both bundles
 const withFallback = z.catch
 
-const withDefaults = <T extends z.ZodType>(schema: T) =>
+const withDefaults = <T extends z.ZodMiniType>(schema: T) =>
   withFallback(schema, () => schema.parse({}))
 
-/** Drops the elements `schema` rejects instead of failing the whole array. */
-const listOf = <T extends z.ZodType>(
+const listOf = <T extends z.ZodMiniType>(
   schema: T,
   fallback: () => unknown[] = () => []
 ) =>
-  withFallback(z.array(z.unknown()), fallback).transform(values =>
-    values.flatMap(value => {
-      const result = schema.safeParse(value)
+  z.pipe(
+    withFallback(z.array(z.unknown()), fallback),
+    z.transform(values =>
+      values.flatMap(value => {
+        const result = schema.safeParse(value)
 
-      return result.success ? [result.data] : []
-    })
+        return result.success ? [result.data] : []
+      })
+    )
   )
 
 const rangeSchema = ({ min, max, integer }: Range) =>
-  (integer ? z.int() : z.number()).min(min).max(max)
+  (integer ? z.int() : z.number()).check(z.minimum(min), z.maximum(max))
 
-/** `crypto.randomUUID` needs a secure context, which `views://` may not be */
 const createId = () =>
   Array.from(crypto.getRandomValues(new Uint8Array(8)), byte =>
     byte.toString(16).padStart(2, '0')
   ).join('')
 
-const HostSchema = z.string().trim().min(1)
+const HostSchema = z.string().check(z.trim(), z.minLength(1))
 const PortSchema = rangeSchema(PORT_RANGE)
 const MIDIChannelSchema = rangeSchema(MIDI_CHANNEL_RANGE)
 
@@ -124,67 +124,56 @@ const VTS_RULE_VALUE_SCHEMAS = {
 const ZoneOffsetSchema = rangeSchema(VTS_ZONE_OFFSET_RANGE)
 const ZoneWidthSchema = rangeSchema(VTS_ZONE_WIDTH_RANGE)
 
-// An empty list, or a value from before directions were a list, means both
-const ZoneDirectionsSchema = listOf(z.enum(VTS_THROW_DIRECTIONS)).transform(
-  directions =>
+const ZoneDirectionsSchema = z.pipe(
+  listOf(z.enum(VTS_THROW_DIRECTIONS)),
+  z.transform(directions =>
     directions.length > 0
       ? VTS_THROW_DIRECTIONS.filter(direction => directions.includes(direction))
       : [...VTS_THROW_DIRECTIONS]
+  )
 )
 
 const OSCConfigSchema = z.object({
   enabled: withFallback(z.boolean(), false),
-  // VRChat listens for OSC input on 127.0.0.1:9000 by default
   host: withFallback(HostSchema, '127.0.0.1'),
   port: withFallback(PortSchema, 9000),
 })
 
 const MIDIConfigSchema = z.object({
   enabled: withFallback(z.boolean(), false),
-  deviceName: withFallback(z.string().trim(), ''),
-  /** 1-16, the way most MIDI tools number channels */
+  deviceName: withFallback(z.string().check(z.trim()), ''),
   channel: withFallback(MIDIChannelSchema, 1),
 })
 
 const VTSCustomImageSchema = z.object({
-  // The format `importVTSImages` gives, or the `ezdn-` prefixed one of earlier
-  // versions, which also keeps the path inside `userData/vts-images`
-  fileName: z.string().regex(/^(?:ezdn-)?[\da-f]{8}\.(?:gif|jpg|png)$/u),
+  fileName: z
+    .string()
+    .check(z.regex(/^(?:ezdn-)?[\da-f]{8}\.(?:gif|jpg|png)$/u)),
   name: z.string(),
 })
 
 const VTSCustomSoundSchema = z.object({
-  // The format `saveVTSSound` gives, or the `ezdn-` prefixed one of earlier
-  // versions (with `wav` and `ogg` from 1.8.0), which also keeps the path
-  // inside `userData/vts-sounds`
-  fileName: z.string().regex(/^(?:ezdn-)?[\da-f]{8}\.(?:mp3|ogg|wav)$/u),
+  fileName: z
+    .string()
+    .check(z.regex(/^(?:ezdn-)?[\da-f]{8}\.(?:mp3|ogg|wav)$/u)),
   name: z.string(),
 })
 
-/**
- * A donation of at least `minAmount` THB throws `count` items, each at one of
- * the rule's `zones`. Each item comes at random from the config's `items` and
- * `customImages`, or, with `custom`, from the rule's own `items` and `images`.
- * A donation uses the rule with the highest `minAmount` it reaches, and a
- * donation below every rule throws nothing.
- */
 const VTSThrowRuleSchema = z.object({
-  id: withFallback(z.string().min(1), () => createId()),
+  id: withFallback(z.string().check(z.minLength(1)), () => createId()),
   minAmount: withFallback(VTS_RULE_VALUE_SCHEMAS.minAmount, 0),
   count: withFallback(VTS_RULE_VALUE_SCHEMAS.count, 1),
   custom: withFallback(z.boolean(), false),
   items: listOf(z.string()),
   images: listOf(z.string()),
-  /** Each item hits one of these at random. An empty list means all zones. */
-  zones: listOf(z.enum(VTS_HIT_ZONES)).transform(zones =>
-    zones.length > 0
-      ? VTS_HIT_ZONES.filter(zone => zones.includes(zone))
-      : [...VTS_HIT_ZONES]
+  zones: z.pipe(
+    listOf(z.enum(VTS_HIT_ZONES)),
+    z.transform(zones =>
+      zones.length > 0
+        ? VTS_HIT_ZONES.filter(zone => zones.includes(zone))
+        : [...VTS_HIT_ZONES]
+    )
   ),
-  /**
-   * Pixels each zone moves down, or up when negative, for models whose
-   * outline doesn't match where hits should land
-   */
   zoneOffsets: withDefaults(
     z.object({
       head: withFallback(ZoneOffsetSchema, 0),
@@ -192,7 +181,6 @@ const VTSThrowRuleSchema = z.object({
       feet: withFallback(ZoneOffsetSchema, 0),
     })
   ),
-  /** Pixels across each zone, centered on the model */
   zoneWidths: withDefaults(
     z.object({
       head: withFallback(ZoneWidthSchema, 300),
@@ -200,7 +188,6 @@ const VTSThrowRuleSchema = z.object({
       feet: withFallback(ZoneWidthSchema, 300),
     })
   ),
-  /** The screen edges each zone's items are thrown from, one at random */
   zoneDirections: withDefaults(
     z.object({
       head: ZoneDirectionsSchema,
@@ -210,13 +197,12 @@ const VTSThrowRuleSchema = z.object({
   ),
 })
 
-const VTSThrowConfigSchema = z
-  .object({
+const VTSThrowConfigSchema = z.pipe(
+  z.object({
     enabled: withFallback(z.boolean(), false),
     host: withFallback(HostSchema, '127.0.0.1'),
     port: withFallback(PortSchema, 8001),
-    /** Selected files from VTube Studio's `Items` folder */
-    items: listOf(z.string().trim().min(1)),
+    items: listOf(z.string().check(z.trim(), z.minLength(1))),
     customImages: listOf(VTSCustomImageSchema),
     customSounds: listOf(VTSCustomSoundSchema),
     rules: listOf(VTSThrowRuleSchema),
@@ -227,8 +213,8 @@ const VTSThrowConfigSchema = z
     hitForce: withFallback(VTS_THROW_VALUE_SCHEMAS.hitForce, 1),
     hitSound: withFallback(z.string(), 'punch'),
     hitVolume: withFallback(VTS_THROW_VALUE_SCHEMAS.hitVolume, 50),
-  })
-  .transform(config => {
+  }),
+  z.transform(config => {
     const imageNames = new Set(config.customImages.map(image => image.fileName))
 
     const soundNames = new Set<string>([
@@ -236,8 +222,6 @@ const VTSThrowConfigSchema = z
       ...config.customSounds.map(sound => sound.fileName),
     ])
 
-    // With no rules left, add the default one, which throws an item at every
-    // donation
     const rules =
       config.rules.length > 0 ? config.rules : [VTSThrowRuleSchema.parse({})]
 
@@ -254,6 +238,7 @@ const VTSThrowConfigSchema = z
         .toSorted((a, b) => a.minAmount - b.minAmount),
     }
   })
+)
 
 /**
  * Heals a config from disk or RPC. An invalid field falls back to its default
@@ -261,7 +246,7 @@ const VTSThrowConfigSchema = z
  */
 export const ConfigSchema = withDefaults(
   z.object({
-    widgetUrl: withFallback(z.string().trim(), ''),
+    widgetUrl: withFallback(z.string().check(z.trim()), ''),
     autoConnect: withFallback(z.boolean(), false),
     vrc: withDefaults(
       z.object({
@@ -310,7 +295,7 @@ export type ConfigErrors = Record<string, string>
 const formatRange = ({ min, max }: Range, messages: Messages) =>
   messages.app.form.range({ min: `${min}`, max: max.toLocaleString() })
 
-const fits = <T extends z.ZodType>(schema: T, value: z.input<T>) =>
+const fits = <T extends z.ZodMiniType>(schema: T, value: z.input<T>) =>
   schema.safeParse(value).success
 
 /**
@@ -335,7 +320,6 @@ export const validateConfig = ({ vrc, vts }: Config, messages: Messages) => {
     max: VTS_ZONE_OFFSET_RANGE.max.toLocaleString(),
   })
 
-  // A field shows its first failed check
   const check = (path: string, isValid: boolean, message: string) => {
     if (!isValid) {
       errors[path] ??= message
