@@ -13,9 +13,7 @@ if (!rootElement) {
   throw new Error('Root element not found')
 }
 
-if (!import.meta.env.DEV) {
-  document.addEventListener('contextmenu', event => event.preventDefault())
-}
+document.addEventListener('contextmenu', event => event.preventDefault())
 
 createRoot(rootElement).render(
   <StrictMode>
