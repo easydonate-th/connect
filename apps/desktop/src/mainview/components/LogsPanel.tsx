@@ -1,4 +1,4 @@
-import { CopyIcon, Trash2Icon } from 'lucide-react'
+import { CopyIcon, FolderOpenIcon, Trash2Icon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -6,8 +6,11 @@ import { Button } from '~/components/ui/button'
 import { Label } from '~/components/ui/label'
 import { Switch } from '~/components/ui/switch'
 import { useLogs } from '~/hooks/use-logs'
-import { clearLogs, LogLine, mergeLogLines } from '~/libs/logs'
+import { clearLogs, log, LogLine, mergeLogLines } from '~/libs/logs'
+import { openLogsFolder } from '~/libs/rpc'
 import { cn } from '~/libs/utils'
+
+import { describeError } from '../../shared/i18n/error'
 
 const LEVEL_STYLES: Record<LogLine['level'], string> = {
   info: 'text-sky-400',
@@ -32,6 +35,17 @@ const copyLogs = async (lines: LogLine[]) => {
     toast.success('Logs copied')
   } catch {
     toast.error('Failed to copy logs')
+  }
+}
+
+const showLogsFolder = async () => {
+  try {
+    await openLogsFolder()
+  } catch (error) {
+    toast.error('Failed to open the logs folder')
+    log.error(
+      `Failed to open logs folder: ${describeError(error) ?? 'unknown error'}`
+    )
   }
 }
 
@@ -80,6 +94,15 @@ const LogsPanel = () => {
           </Label>
         </div>
         <div className="flex gap-1">
+          <Button
+            variant="ghost"
+            size="xs"
+            className="text-zinc-400 hover:bg-white/10 hover:text-zinc-100 dark:hover:bg-white/10"
+            onClick={showLogsFolder}
+          >
+            <FolderOpenIcon />
+            Folder
+          </Button>
           <Button
             variant="ghost"
             size="xs"

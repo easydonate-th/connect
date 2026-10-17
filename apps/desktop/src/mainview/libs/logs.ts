@@ -19,6 +19,7 @@ const MAX_LOG_LINES = 500
 let snapshot: LogsSnapshot = { events: [], rawFrames: [] }
 let nextId = 0
 const listeners = new Set<() => void>()
+let forward: ((entry: LogEntry) => void) | undefined
 
 const append = (lines: LogLine[], line: Omit<LogLine, 'id'>) => {
   nextId += 1
@@ -92,12 +93,30 @@ export const mergeLogLines = (a: LogLine[], b: LogLine[]) => {
   return merged
 }
 
+/**
+ * Sends the webview's own lines to the main process, which writes them to the
+ * session's log file. `libs/rpc.ts` sets it, since importing it here would
+ * make an import cycle.
+ */
+export const setLogForwarder = (next: (entry: LogEntry) => void) => {
+  forward = next
+}
+
+const write = (level: LogLevel, message: string) => {
+  const entry: LogEntry = { timestamp: Date.now(), level, message }
+
+  addLog(entry)
+
+  try {
+    forward?.(entry)
+  } catch {
+    //
+  }
+}
+
 /** Webview-side logger; main-process entries arrive over RPC. */
 export const log = {
-  info: (message: string) =>
-    addLog({ timestamp: Date.now(), level: 'info', message }),
-  warn: (message: string) =>
-    addLog({ timestamp: Date.now(), level: 'warn', message }),
-  error: (message: string) =>
-    addLog({ timestamp: Date.now(), level: 'error', message }),
+  info: (message: string) => write('info', message),
+  warn: (message: string) => write('warn', message),
+  error: (message: string) => write('error', message),
 }

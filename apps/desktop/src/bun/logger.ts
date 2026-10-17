@@ -1,5 +1,6 @@
 import { describeError } from '../shared/i18n/error'
 import type { LogEntry, LogLevel } from '../shared/log'
+import { writeAppLog } from './log-file'
 
 type LogSink = (entry: LogEntry) => void
 
@@ -17,6 +18,8 @@ const write = (level: LogLevel, message: string) => {
   } else {
     console[level](message)
   }
+
+  writeAppLog(entry)
 
   try {
     sink?.(entry)

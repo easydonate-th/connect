@@ -56,6 +56,7 @@ export type AppRPC = {
         response: VTSConnectionInfo
       }
       openDataFolder: { params: undefined; response: string }
+      openLogsFolder: { params: undefined; response: string }
       importVTSImages: { params: undefined; response: VTSImageImport }
       saveVTSSound: {
         params: { name: string; data: string }
@@ -73,6 +74,7 @@ export type AppRPC = {
     messages: {
       donation: Donation
       testDonation: { donation: Donation; config: Config }
+      log: LogEntry
     }
   }>
   webview: RPCSchema<{

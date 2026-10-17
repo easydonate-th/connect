@@ -3,9 +3,10 @@ import { ApplicationMenu, BrowserWindow, Updater, Utils } from 'electrobun/main'
 import { allowAutoplay } from './autoplay'
 import { setWindowIcon } from './icon'
 import { getMessages } from './language'
-import { setUpdateStageSink } from './libs/update'
+import { logLaunch, setUpdateStageSink } from './libs/update'
 import { setHitSoundSink } from './libs/vts/hit-sound'
-import { setLogSink } from './logger'
+import { startLogFiles } from './log-file'
+import { logger, setLogSink } from './logger'
 import { createAppRPC } from './rpc'
 import { acquireSingleInstance } from './single-instance'
 
@@ -54,6 +55,17 @@ const setMenu = () => {
 }
 
 const main = async () => {
+  try {
+    startLogFiles()
+  } catch (error) {
+    logger.warn(
+      'Failed to open the log files',
+      error instanceof Error ? error : undefined
+    )
+  }
+
+  await logLaunch()
+
   const url = await getMainViewUrl()
 
   allowAutoplay()

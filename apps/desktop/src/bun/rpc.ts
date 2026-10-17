@@ -14,10 +14,21 @@ import { testVTSConnection } from './libs/vts/connection'
 import { importVTSImages, pruneVTSImages } from './libs/vts/images'
 import { getVTSItems } from './libs/vts/items'
 import { pruneVTSSounds, readVTSSound, saveVTSSound } from './libs/vts/sounds'
+import { getLogsFolder, writeAppLog } from './log-file'
 import { logger } from './logger'
 
 type AppRPCOptions = {
   onLanguageChange: () => void
+}
+
+const openFolder = (folder: string) => {
+  fs.mkdirSync(folder, { recursive: true })
+
+  if (!Utils.openPath(folder)) {
+    throw new TranslatableError('openFolderFailed', folder)
+  }
+
+  return folder
 }
 
 export const createAppRPC = ({ onLanguageChange }: AppRPCOptions) =>
@@ -49,16 +60,8 @@ export const createAppRPC = ({ onLanguageChange }: AppRPCOptions) =>
         importVTSImages: () => importVTSImages(),
         saveVTSSound: sound => saveVTSSound(sound),
         readVTSSound: fileName => readVTSSound(fileName),
-        openDataFolder: () => {
-          const folder = Utils.paths.userData
-          fs.mkdirSync(folder, { recursive: true })
-
-          if (!Utils.openPath(folder)) {
-            throw new TranslatableError('openFolderFailed', folder)
-          }
-
-          return folder
-        },
+        openDataFolder: () => openFolder(Utils.paths.userData),
+        openLogsFolder: () => openFolder(getLogsFolder()),
         getLanguage: () => getLanguage(),
         setLanguage: language => {
           const saved = saveLanguage(isLanguage(language) ? language : 'en')
@@ -82,6 +85,7 @@ export const createAppRPC = ({ onLanguageChange }: AppRPCOptions) =>
         donation: donation => forwardDonation(donation, getConfig()),
         testDonation: ({ donation, config }) =>
           forwardDonation(donation, ConfigSchema.parse(config)),
+        log: entry => writeAppLog(entry),
       },
     },
   })

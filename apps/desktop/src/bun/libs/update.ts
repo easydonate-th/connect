@@ -1,8 +1,9 @@
 import { Updater } from 'electrobun/main'
 import type { UpdateStatusType } from 'electrobun/main'
 
-import { TranslatableError } from '../../shared/i18n/error'
+import { describeError, TranslatableError } from '../../shared/i18n/error'
 import type { UpdateCheck, UpdateStage } from '../../shared/rpc'
+import { writeInstallerLog } from '../log-file'
 import { logger } from '../logger'
 
 type UpdateStageSink = (stage: UpdateStage) => void
@@ -30,7 +31,10 @@ const STAGES: Partial<Record<UpdateStatusType, UpdateStage['stage']>> = {
   applying: 'preparingUpdate',
 }
 
+const PROGRESS_LOG_STEP = 10
+
 let stageSink: UpdateStageSink | undefined
+let loggedProgressStep = -1
 
 export const setUpdateStageSink = (next: UpdateStageSink) => {
   stageSink = next
@@ -38,8 +42,20 @@ export const setUpdateStageSink = (next: UpdateStageSink) => {
 
 // The updater has one status callback; progress fires once per percent
 Updater.onStatusChange(entry => {
-  if (entry.status !== 'download-progress') {
-    logger.info(`[Update] ${entry.message}`)
+  if (entry.status === 'download-progress') {
+    const progress = entry.details?.progress ?? 0
+    const step = Math.floor(progress / PROGRESS_LOG_STEP)
+
+    if (step > loggedProgressStep) {
+      loggedProgressStep = step
+      writeInstallerLog('info', `${entry.message} ${progress}%`)
+    }
+  } else {
+    const level = entry.status === 'error' ? 'error' : 'info'
+
+    loggedProgressStep = -1
+    logger[level](`[Update] ${entry.message}`)
+    writeInstallerLog(level, entry.message)
   }
 
   const stage = STAGES[entry.status]
@@ -54,6 +70,15 @@ Updater.onStatusChange(entry => {
 })
 
 export const getAppVersion = () => Updater.localInfo.version()
+
+// The next launch is the only sign that the native helper installed an update
+export const logLaunch = async () => {
+  const { version, channel, hash } = await Updater.getLocalInfo()
+  const message = `EasyDonate Connect ${version} (${channel}, ${hash}) started on ${process.platform} ${process.arch}`
+
+  logger.info(message)
+  writeInstallerLog('info', message)
+}
 
 export const checkForUpdate = async (): Promise<UpdateCheck> => {
   const [currentVersion, latest] = await Promise.all([
@@ -79,7 +104,7 @@ export const checkForUpdate = async (): Promise<UpdateCheck> => {
 }
 
 // Resolves once the relaunch starts; the app quits shortly after
-export const installUpdate = async () => {
+const startUpdate = async () => {
   await Updater.downloadUpdate()
 
   const downloaded = Updater.updateInfo()
@@ -104,4 +129,17 @@ export const installUpdate = async () => {
   }
 
   return downloaded.version
+}
+
+export const installUpdate = async () => {
+  try {
+    return await startUpdate()
+  } catch (error) {
+    writeInstallerLog(
+      'error',
+      `Failed to install update: ${describeError(error) ?? 'unknown error'}`
+    )
+
+    throw error
+  }
 }
