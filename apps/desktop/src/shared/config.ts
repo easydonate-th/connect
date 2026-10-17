@@ -281,11 +281,6 @@ export const createDefaultConfig = (): Config => ConfigSchema.parse({})
 export const createVTSThrowRule = (rule: Partial<VTSThrowRule> = {}) =>
   VTSThrowRuleSchema.parse(rule)
 
-// `appdata://` serves `userData` to the main window, which enables it in
-// `allowedProtocols`
-export const getVTSImageUrl = ({ fileName }: VTSCustomImage) =>
-  `appdata://${VTS_IMAGES_DIR}/${encodeURIComponent(fileName)}`
-
 export const isVTSSoundFileName = (fileName: string) =>
   VTSCustomSoundSchema.shape.fileName.safeParse(fileName).success
 

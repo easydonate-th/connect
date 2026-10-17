@@ -1,4 +1,4 @@
-import { parseSocketFrame } from '../../shared/socket-frame'
+import { parseSocketFrame } from './socket-frame'
 
 // TTS payload fields are long and irrelevant to forwarding
 const HIDDEN_KEYS = new Set(['ttsMessage', 'ttsTitle', 'ttsHash', 'ttsConfig'])

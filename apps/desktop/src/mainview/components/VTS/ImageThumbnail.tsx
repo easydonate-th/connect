@@ -2,7 +2,10 @@ import { cn } from 'cn'
 import { ImageIcon } from 'lucide-react'
 import { useState } from 'react'
 
-import { getVTSImageUrl, VTSCustomImage } from '../../../shared/config'
+import { VTS_IMAGES_DIR, VTSCustomImage } from '../../../shared/config'
+
+const getVTSImageUrl = ({ fileName }: VTSCustomImage) =>
+  `appdata://${VTS_IMAGES_DIR}/${encodeURIComponent(fileName)}`
 
 type ImageThumbnailProps = {
   image: VTSCustomImage

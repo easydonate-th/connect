@@ -12,19 +12,16 @@ import type { LogEntry } from './log'
 
 export type VTSConnectionInfo = {
   vTubeStudioVersion: string
-  /** `null` when no model is loaded */
   modelName: string | null
 }
 
 export type RejectedFile = {
   name: string
-  /** An error message, which `describeMessage` renders in a language */
   reason: string
 }
 
 export type VTSImageImport = {
   added: VTSCustomImage[]
-  /** Why the import skipped each image VTube Studio can't use */
   rejected: RejectedFile[]
 }
 
@@ -60,7 +57,6 @@ export type AppRPC = {
       }
       openDataFolder: { params: undefined; response: string }
       importVTSImages: { params: undefined; response: VTSImageImport }
-
       saveVTSSound: {
         params: { name: string; data: string }
         response: VTSCustomSound
@@ -71,7 +67,6 @@ export type AppRPC = {
       getAppVersion: { params: undefined; response: string }
       getPlatform: { params: undefined; response: string }
       checkForUpdate: { params: undefined; response: UpdateCheck }
-
       installUpdate: { params: undefined; response: string }
       openExternal: { params: string; response: string }
     }

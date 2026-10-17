@@ -1,8 +1,9 @@
 import useWebSocket, { ReadyState } from 'react-use-websocket'
 
+import { parseDonationMessage } from '~/libs/donation'
 import { addRawLog, log } from '~/libs/logs'
 
-import { Donation, parseDonationMessage } from '../../shared/donation'
+import { Donation } from '../../shared/donation'
 
 export type ConnectionStatus =
   | 'idle'
