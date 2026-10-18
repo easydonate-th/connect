@@ -1,4 +1,4 @@
-import type { Donation } from '../../shared/donation'
+import type { Donation } from '../../../shared/donation'
 import { parseSocketFrame } from './socket-frame'
 
 type DonateMessage = {

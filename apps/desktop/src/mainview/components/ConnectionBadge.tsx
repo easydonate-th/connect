@@ -1,7 +1,8 @@
 import { Badge } from '~/components/ui/badge'
 import { useMessages } from '~/hooks/use-messages'
-import type { ConnectionStatus } from '~/hooks/use-widget-socket'
 import { cn } from '~/libs/utils'
+
+import type { ConnectionStatus } from '../../shared/widget'
 
 const STATUS_STYLES: Record<ConnectionStatus, { dot: string; pulse: boolean }> =
   {

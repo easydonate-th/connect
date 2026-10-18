@@ -1,5 +1,4 @@
 import type { LogEntry, LogLevel } from '../../shared/log'
-import { toRawLogFrame } from './raw-frame'
 
 export type LogLine = Omit<LogEntry, 'level'> & {
   id: number
@@ -38,13 +37,8 @@ export const addLog = (entry: LogEntry) => {
   notify()
 }
 
-export const addRawLog = (frame: string) => {
-  const message = toRawLogFrame(frame)
-
-  if (message === null) {
-    return
-  }
-
+/** Takes a frame that the main process already prepared for the raw log */
+export const addRawLog = (message: string) => {
   snapshot = {
     ...snapshot,
     rawFrames: append(snapshot.rawFrames, {

@@ -9,6 +9,7 @@ import type {
 import type { Donation } from './donation'
 import type { Language, Messages } from './i18n'
 import type { LogEntry } from './log'
+import type { WidgetState } from './widget'
 
 export type VTSConnectionInfo = {
   vTubeStudioVersion: string
@@ -70,9 +71,11 @@ export type AppRPC = {
       checkForUpdate: { params: undefined; response: UpdateCheck }
       installUpdate: { params: undefined; response: string }
       openExternal: { params: string; response: string }
+      getWidgetState: { params: undefined; response: WidgetState }
+      connectWidget: { params: string; response: WidgetState }
+      disconnectWidget: { params: undefined; response: WidgetState }
     }
     messages: {
-      donation: Donation
       testDonation: { donation: Donation; config: Config }
       log: LogEntry
     }
@@ -83,6 +86,9 @@ export type AppRPC = {
       log: LogEntry
       updateStage: UpdateStage
       hitSound: HitSound
+      widgetState: WidgetState
+      rawFrame: string
+      donation: Donation
     }
   }>
 }

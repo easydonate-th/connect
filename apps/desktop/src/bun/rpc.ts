@@ -14,6 +14,11 @@ import { testVTSConnection } from './libs/vts/connection'
 import { importVTSImages, pruneVTSImages } from './libs/vts/images'
 import { getVTSItems } from './libs/vts/items'
 import { pruneVTSSounds, readVTSSound, saveVTSSound } from './libs/vts/sounds'
+import {
+  connectWidget,
+  disconnectWidget,
+  getWidgetState,
+} from './libs/widget/socket'
 import { getLogsFolder, writeAppLog } from './log-file'
 import { logger } from './logger'
 
@@ -80,9 +85,11 @@ export const createAppRPC = ({ onLanguageChange }: AppRPCOptions) =>
 
           return url
         },
+        getWidgetState: () => getWidgetState(),
+        connectWidget: widgetUrl => connectWidget(widgetUrl),
+        disconnectWidget: () => disconnectWidget(),
       },
       messages: {
-        donation: donation => forwardDonation(donation, getConfig()),
         testDonation: ({ donation, config }) =>
           forwardDonation(donation, ConfigSchema.parse(config)),
         log: entry => writeAppLog(entry),

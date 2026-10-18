@@ -7,6 +7,10 @@ import { sendDonationOSC } from './vrc/osc'
 import { sendDonationVTS } from './vts/throw'
 
 export const forwardDonation = async (data: Donation, { vrc, vts }: Config) => {
+  logger.info(
+    `Donation ${data.referenceNo}: ${data.donatorName || 'Anonymous'} donated ${data.amount} THB`
+  )
+
   const outputs: { name: string; send: () => void }[] = []
 
   if (vrc.osc.enabled) {

@@ -5,10 +5,11 @@ import { setWindowIcon } from './icon'
 import { getMessages } from './language'
 import { logLaunch, setUpdateStageSink } from './libs/update'
 import { setHitSoundSink } from './libs/vts/hit-sound'
+import { setWidgetSink } from './libs/widget/socket'
 import { startLogFiles } from './log-file'
 import { logger, setLogSink } from './logger'
+import { acquireSingleInstance } from './mutex'
 import { createAppRPC } from './rpc'
-import { acquireSingleInstance } from './single-instance'
 
 const channel = await Updater.localInfo.channel()
 
@@ -85,6 +86,11 @@ const main = async () => {
   setLogSink(entry => mainWindow.webview.rpc?.send.log(entry))
   setUpdateStageSink(stage => mainWindow.webview.rpc?.send.updateStage(stage))
   setHitSoundSink(sound => mainWindow.webview.rpc?.send.hitSound(sound))
+  setWidgetSink({
+    state: state => mainWindow.webview.rpc?.send.widgetState(state),
+    rawFrame: frame => mainWindow.webview.rpc?.send.rawFrame(frame),
+    donation: donation => mainWindow.webview.rpc?.send.donation(donation),
+  })
 }
 
 if (acquireSingleInstance(`app.ezdn.connect-${channel}`)) {

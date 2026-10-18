@@ -5,8 +5,9 @@ import { Donation } from '../../shared/donation'
 import type { Language } from '../../shared/i18n'
 import { AppRPC } from '../../shared/rpc'
 import { playHitSound, setSoundReader } from './hit-sound'
-import { addLog, setLogForwarder } from './logs'
+import { addLog, addRawLog, setLogForwarder } from './logs'
 import { setUpdateStage } from './update-stage'
+import { setLastDonation, setWidgetState } from './widget-state'
 
 // Outlasts the main process's two-minute wait for VTube Studio approval
 const VTS_REQUEST_TIME = 180_000
@@ -27,6 +28,9 @@ const rpc = Electroview.defineRPC<AppRPC>({
       log: entry => addLog(entry),
       updateStage: stage => setUpdateStage(stage),
       hitSound: sound => playHitSound(sound),
+      widgetState: state => setWidgetState(state),
+      rawFrame: frame => addRawLog(frame),
+      donation: donation => setLastDonation(donation),
     },
   },
 })
@@ -74,7 +78,12 @@ export const installUpdate = () =>
   rpc.request.installUpdate(undefined, { maxRequestTime: Infinity })
 
 export const openExternal = (url: string) => rpc.request.openExternal(url)
-export const sendDonation = (donation: Donation) => rpc.send.donation(donation)
+export const getWidgetState = () => rpc.request.getWidgetState()
+
+export const connectWidget = (widgetUrl: string) =>
+  rpc.request.connectWidget(widgetUrl)
+
+export const disconnectWidget = () => rpc.request.disconnectWidget()
 
 export const sendTestDonation = (donation: Donation, config: Config) =>
   rpc.send.testDonation({ donation, config })

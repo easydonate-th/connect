@@ -23,12 +23,12 @@ import {
 import { Input } from '~/components/ui/input'
 import { Switch } from '~/components/ui/switch'
 import { useMessages } from '~/hooks/use-messages'
-import type { ConnectionStatus } from '~/hooks/use-widget-socket'
-import { getSocketUrl } from '~/libs/utils'
 
 import type { Config } from '../../shared/config'
 import type { Donation } from '../../shared/donation'
 import type { Messages } from '../../shared/i18n'
+import type { ConnectionStatus } from '../../shared/widget'
+import { getSocketUrl } from '../../shared/widget'
 
 const timeFormatter = new Intl.DateTimeFormat(undefined, {
   timeStyle: 'medium',
