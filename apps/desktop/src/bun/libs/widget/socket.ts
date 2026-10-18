@@ -4,6 +4,7 @@ import type { WidgetState } from '../../../shared/widget'
 import { getConfig } from '../../config'
 import { logger } from '../../logger'
 import { forwardDonation } from '../forward'
+import { getAppVersion } from '../update'
 import { parseDonationMessage } from './donation'
 import { toRawLogFrame } from './raw-frame'
 
@@ -19,6 +20,8 @@ const BunWebSocket = WebSocket as new (
   url: string,
   options?: string | string[] | Bun.WebSocketOptions
 ) => WebSocket
+
+const USER_AGENT = `EasyDonate Connect/${await getAppVersion()} (${process.platform}; ${process.arch})`
 
 const MAX_RECONNECT_DELAY_MS = 30_000
 const MAX_RECONNECT_JITTER_MS = 1000
@@ -120,13 +123,8 @@ const open = (socketUrl: string) => {
   let ws: WebSocket
 
   try {
-    // The socket runs here rather than in the webview, because a browser
-    // WebSocket can't set request headers
     ws = new BunWebSocket(socketUrl, {
-      headers: {
-        Referer: 'EasyDonate Connect/1.0',
-        'X-Requested-With': 'Desktop',
-      },
+      headers: { 'User-Agent': USER_AGENT },
     })
   } catch (error) {
     logger.error(
@@ -165,7 +163,6 @@ const open = (socketUrl: string) => {
     }
   })
 
-  // A failed connect fires `error`, then `close`, so only `close` reconnects
   ws.addEventListener('close', ({ code }) => {
     if (socket === ws) {
       logger.warn(`Alert widget connection closed (code ${code})`)
@@ -176,10 +173,6 @@ const open = (socketUrl: string) => {
 
 export const getWidgetState = () => state
 
-/**
- * Connects to the widget's socket. A second call with the same URL keeps the
- * connection, so a reloaded webview that connects again does not drop it.
- */
 export const connectWidget = (widgetUrl: string) => {
   const socketUrl = getSocketUrl(widgetUrl)
 

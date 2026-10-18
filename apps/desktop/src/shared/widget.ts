@@ -20,5 +20,10 @@ export const getSocketUrl = (widgetUrl: string): string | null => {
     return null
   }
 
-  return `wss://socket.easydonate.app/ezdn${search}&ex=easyconnect`
+  const params = new URLSearchParams(search)
+
+  params.delete('ts')
+  params.set('ex', 'easyconnect')
+
+  return `wss://socket.easydonate.app/ezdn?${params}`
 }
