@@ -8,9 +8,6 @@ import { logger } from '../logger'
 
 type UpdateStageSink = (stage: UpdateStage) => void
 
-// The webview's toast title already says this
-const CHECK_ERROR_PREFIX = /^Failed to check for updates: /u
-
 // Only the full bundle download reports a percent; a patch downloads without
 // one.
 const STAGES: Partial<Record<UpdateStatusType, UpdateStage['stage']>> = {
@@ -87,7 +84,7 @@ export const checkForUpdate = async (): Promise<UpdateCheck> => {
   ])
 
   if (latest.error) {
-    throw new Error(latest.error.replace(CHECK_ERROR_PREFIX, ''))
+    throw new Error(latest.error.replace(/^Failed to check for updates: /u, ''))
   }
 
   // The updater compares bundle hashes, which a rebuild of the same version
