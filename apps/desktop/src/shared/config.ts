@@ -20,8 +20,8 @@ export const VTS_THROW_RANGES = {
 
 export const VTS_RULE_RANGES = {
   minAmount: { min: 0, max: 1_000_000, integer: false },
-  /** VTube Studio fits about 60 items, the user's own included */
-  count: { min: 1, max: 20, integer: true },
+  /** `throw.ts` loads them in batches, since VTube Studio fits about 60 */
+  count: { min: 1, max: 50, integer: true },
 } as const
 
 export const VTS_ZONE_OFFSET_RANGE = {

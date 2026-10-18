@@ -44,6 +44,12 @@ const FLIGHT_FADE_MODE = 'easeIn'
 const DROP = { time: 0.7, fadeMode: 'easeIn' } as const
 const STAGGER = 0.15
 
+/**
+ * Items loaded at once. VTube Studio fits about 60, the user's own included,
+ * so a batch starts only after the last one's items unloaded.
+ */
+const BATCH_SIZE = 20
+
 const UNCHANGED = -1000
 const ITEM_FILE_NAME_NOT_FOUND = 751
 const SIDES: Record<VTSThrowDirection, number> = { left: -1, right: 1 }
@@ -278,6 +284,14 @@ const throwItem = async (
   reaction.hit((target.x - start.x) * force, (target.y - start.y) * force)
   playHitSound(config)
 
+  const unload = () =>
+    session.request('ItemUnloadRequest', {
+      unloadAllInScene: false,
+      unloadAllLoadedByThisPlugin: false,
+      allowUnloadingItemsLoadedByUserOrOtherPlugins: false,
+      instanceIDs: [instanceID],
+    })
+
   // Unloading starts the fade-out, so the item fades while it drops
   await Promise.all([
     moveItem(session, instanceID, {
@@ -286,15 +300,14 @@ const throwItem = async (
       y: DROP_Y,
       rotation: -side * spin * 2,
     }),
-    fadeTime > 0 &&
-      session.request('ItemUnloadRequest', {
-        unloadAllInScene: false,
-        unloadAllLoadedByThisPlugin: false,
-        allowUnloadingItemsLoadedByUserOrOtherPlugins: false,
-        instanceIDs: [instanceID],
-      }),
+    fadeTime > 0 && unload(),
   ])
   await sleep(Math.max(DROP.time, fadeTime))
+
+  // Out of view now, so it frees its place for the next batch
+  if (fadeTime === 0) {
+    await unload()
+  }
 }
 
 /**
@@ -347,12 +360,20 @@ export const sendDonationVTS = async (
 
     const reaction = createHitReaction(session, config.hitForce)
 
-    const results = await Promise.allSettled(
-      choices.map(async (choice, index) => {
-        await sleep(index * STAGGER)
-        await throwItem(session, config, choice, rule, aim, reaction)
-      })
-    )
+    const results: PromiseSettledResult<void>[] = []
+
+    for (let start = 0; start < choices.length; start += BATCH_SIZE) {
+      const batch = choices.slice(start, start + BATCH_SIZE)
+
+      results.push(
+        ...(await Promise.allSettled(
+          batch.map(async (choice, index) => {
+            await sleep(index * STAGGER)
+            await throwItem(session, config, choice, rule, aim, reaction)
+          })
+        ))
+      )
+    }
 
     // Closing the session would cut the head's swing short
     await reaction.settled()
