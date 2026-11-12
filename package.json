@@ -15,11 +15,11 @@
   },
   "devDependencies": {
     "lefthook": "2.2.2",
-    "oxfmt": "0.73.0",
-    "oxlint": "1.88.0",
-    "turbo": "2.11.9",
+    "oxfmt": "0.78.0",
+    "oxlint": "1.93.0",
+    "turbo": "2.11.11",
     "typescript": "7.0.2",
-    "ultracite": "8.0.1"
+    "ultracite": "8.2.0"
   },
-  "packageManager": "bun@1.4.3"
+  "packageManager": "bun@1.4.4"
 }

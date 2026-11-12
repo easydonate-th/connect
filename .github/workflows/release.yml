@@ -210,6 +210,7 @@ jobs:
           upload 'stable-*.patch' application/octet-stream
           upload 'stable-*.tar.zst' application/octet-stream
           upload 'stable-*-update.json' application/json
+          upload 'stable-*-update-v2.json' application/json
 
       - name: Publish release
         run: gh release edit "$tag" --draft=false

@@ -4,13 +4,13 @@ export default {
   app: {
     name: 'EasyDonate Connect',
     identifier: 'app.easydonate.connect',
-    version: '1.11.0',
+    version: '1.11.1',
   },
   build: {
     mainProcess: 'bun',
     bun: {
       // @ts-expect-error - internal versioning
-      version: '1.4.3',
+      version: '1.4.4',
       entrypoint: 'src/bun/index.ts',
       minify: true,
     },
