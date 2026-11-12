@@ -198,6 +198,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
           AWS_DEFAULT_REGION: auto
           AWS_ENDPOINT_URL: https://nozomi.easydonate.app
+          AWS_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt
           AWS_REQUEST_CHECKSUM_CALCULATION: when_required
           AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
         run: |
